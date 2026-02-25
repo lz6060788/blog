@@ -1,80 +1,80 @@
-## Context
+## 背景
 
-The blog is currently a static Next.js 14 application using the App Router pattern with TypeScript. It has internationalization support (next-intl) and a theme system but lacks any persistent data layer. All content is currently static.
+该博客目前是一个使用 App Router 模式的静态 Next.js 14 应用，采用 TypeScript 构建。它具有国际化支持（next-intl）和主题系统，但缺乏任何持久化数据层。所有内容目前都是静态的。
 
-Constraints:
-- Must integrate seamlessly with Next.js App Router
-- SQLite as the database (file-based, zero-config)
-- TypeScript-first approach
-- Keep setup simple for a personal blog scale
+**约束条件：**
+- 必须与 Next.js App Router 无缝集成
+- 使用 SQLite 作为数据库（基于文件、零配置）
+- TypeScript 优先的方法
+- 保持个人博客规模的简单设置
 
-## Goals / Non-Goals
+## 目标 / 非目标
 
-**Goals:**
-- Establish a reusable database layer with connection management
-- Set up ORM for type-safe database queries
-- Create migration system for schema evolution
-- Define API route patterns for CRUD operations
-- Enable future features (posts, comments, tags, etc.)
+**目标：**
+- 建立可复用的数据库层和连接管理
+- 设置 ORM 以进行类型安全的数据库查询
+- 创建模式演进的迁移系统
+- 定义 CRUD 操作的 API 路由模式
+- 支持未来功能（文章、评论、标签等）
 
-**Non-Goals:**
-- Defining actual table schemas (will be done in future changes)
-- Authentication/authorization system
-- Caching layer or query optimization
-- Database replication or backup strategies
+**非目标：**
+- 定义实际的表结构（将在未来的变更中完成）
+- 认证/授权系统
+- 缓存层或查询优化
+- 数据库复制或备份策略
 
-## Decisions
+## 技术决策
 
-### ORM: Drizzle ORM over Prisma
+### ORM：选择 Drizzle ORM 而非 Prisma
 
-**Rationale:**
-- **Lightweight**: Drizzle has no binary generation step; Prisma requires `prisma generate`
-- **SQLite native**: Drizzle's `better-sqlite3` driver is more performant for SQLite
-- **SQL-like syntax**: Drizzle's query builder feels closer to SQL, making it easier to debug
-- **Bundle size**: Drizzle is significantly smaller (~50KB vs Prisma's ~200KB)
-- **Next.js App Router friendly**: No edge compatibility issues
-- **TypeScript inference**: Better type inference from queries
+**理由：**
+- **轻量级**：Drizzle 没有二进制生成步骤；Prisma 需要 `prisma generate`
+- **SQLite 原生**：Drizzle 的 `better-sqlite3` 驱动对 SQLite 性能更好
+- **类似 SQL 的语法**：Drizzle 的查询构建器更接近 SQL，更容易调试
+- **打包大小**：Drizzle 明显更小（约 50KB vs Prisma 的约 200KB）
+- **Next.js App Router 友好**：没有边缘兼容性问题
+- **TypeScript 推断**：从查询中获得更好的类型推断
 
-**Alternative considered**: Prisma - mature ecosystem, excellent migrations, but heavier and the generate step adds complexity to the build.
+**考虑的替代方案**：Prisma - 成熟的生态系统，出色的迁移功能，但更重且生成步骤增加了构建复杂性。
 
-### Database Directory: `./data/db.sqlite`
+### 数据库目录：`./data/db.sqlite`
 
-**Rationale:**
-- Keeps database file in project root (gitignored)
-- Separate from code but easily accessible
-- Common convention for SQLite projects
+**理由：**
+- 将数据库文件保存在项目根目录中（gitignored）
+- 与代码分离但易于访问
+- SQLite 项目的常见约定
 
-### API Route Pattern: App Router (`/app/api/`)
+### API 路由模式：App Router（`/app/api/`）
 
-**Rationale:**
-- Next.js 14 uses App Router by default
-- Route Handlers (`route.ts`) support all HTTP methods
-- Can be collocated with app structure if needed (e.g., `/app/api/posts/route.ts`)
+**理由：**
+- Next.js 14 默认使用 App Router
+- Route Handlers（`route.ts`）支持所有 HTTP 方法
+- 如果需要，可以与应用结构共存（例如 `/app/api/posts/route.ts`）
 
-### Connection Management: Singleton pattern with lib file
+### 连接管理：使用 lib 文件的单例模式
 
-**Rationale:**
-- Single db instance reused across requests (SQLite handles this well)
-- Centralized `lib/db.ts` for database access
-- Easy to mock for testing
+**理由：**
+- 单个 db 实例在请求之间复用（SQLite 处理得很好）
+- 集中的 `lib/db.ts` 用于数据库访问
+- 易于模拟测试
 
-### Migration Tool: Drizzle Kit
+### 迁移工具：Drizzle Kit
 
-**Rationale:**
-- Built specifically for Drizzle ORM
-- Generates migrations from schema changes
-- Supports both push (dev) and migrate (prod) workflows
+**理由：**
+- 专为 Drizzle ORM 构建
+- 从模式变更生成迁移
+- 同时支持 push（开发）和 migrate（生产）工作流
 
-## Risks / Trade-offs
+## 风险 / 权衡
 
-**Risk: SQLite concurrency limits** → SQLite uses file-level locking. For a personal blog this is acceptable (single writer, multiple readers). If high concurrency is needed later, can migrate to PostgreSQL.
+**风险：SQLite 并发限制** → SQLite 使用文件级锁定。对于个人博客这是可接受的（单写入者，多读取者）。如果以后需要高并发，可以迁移到 PostgreSQL。
 
-**Risk: Migration complexity grows** → Keep schema changes small and additive. Use Drizzle's migrate strategy in production.
+**风险：迁移复杂性增加** → 保持模式变更小而增量。在生产环境中使用 Drizzle 的迁移策略。
 
-**Trade-off: No connection pooling** → SQLite doesn't need traditional connection pooling. Singleton pattern is sufficient.
+**权衡：无连接池** → SQLite 不需要传统的连接池。单例模式就足够了。
 
-**Risk: Edge runtime incompatibility** → `better-sqlite3` only works in Node.js runtime. API routes must use Node.js runtime, not Edge.
+**风险：边缘运行时不兼容** → `better-sqlite3` 仅在 Node.js 运行时中工作。API 路由必须使用 Node.js 运行时，而非 Edge。
 
-## Open Questions
+## 待解决的问题
 
-None - framework-level decisions are straightforward. Schema decisions will be made in follow-up changes.
+无 - 框架级别的决策很直接。模式决策将在后续变更中制定。

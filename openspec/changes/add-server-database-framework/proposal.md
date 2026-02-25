@@ -1,28 +1,28 @@
-## Why
+## 为什么
 
-The current blog is a static Next.js application with no persistent data storage. To enable dynamic content management (blog posts, comments, tags, categories, etc.), we need a server-side backend with database capabilities. SQLite provides a lightweight, zero-configuration database solution ideal for personal blogs, while an ORM abstracts away raw SQL complexity.
+当前博客是一个静态的 Next.js 应用，没有持久化数据存储。为了启用动态内容管理（博客文章、评论、标签、分类等），我们需要一个带有数据库功能的服务端后端。SQLite 提供了一个轻量级、零配置的数据库解决方案，非常适合个人博客，而 ORM 可以抽象掉原生 SQL 的复杂性。
 
-## What Changes
+## 变更内容
 
-- **Server-side framework integration**: Add API routes and server-side data handling capabilities
-- **SQLite database**: Set up SQLite as the persistent storage layer
-- **ORM integration**: Implement an ORM (Prisma or Drizzle) for type-safe database operations
-- **Database connection management**: Establish connection pooling and lifecycle management
-- **Migration system**: Set up database schema migration tooling
+- **服务端框架集成**：添加 API 路由和服务端数据处理能力
+- **SQLite 数据库**：设置 SQLite 作为持久化存储层
+- **ORM 集成**：实现 ORM（Drizzle）以进行类型安全的数据库操作
+- **数据库连接管理**：建立连接池和生命周期管理
+- **迁移系统**：设置数据库模式迁移工具
 
-## Capabilities
+## 能力
 
-### New Capabilities
-- `database-framework`: Core database connectivity, ORM setup, and migration infrastructure
-- `server-api`: Server-side API route handlers for CRUD operations
+### 新能力
+- `database-framework`：核心数据库连接、ORM 设置和迁移基础设施
+- `server-api`：用于 CRUD 操作的服务端 API 路由处理器
 
-### Modified Capabilities
-- *None* - This adds entirely new backend capabilities without modifying existing frontend behavior
+### 修改的能力
+- *无* - 这添加了全新的后端能力，不修改现有的前端行为
 
-## Impact
+## 影响
 
-- **New dependencies**: Prisma ORM (or Drizzle ORM), SQLite driver
-- **New directories**: `prisma/` (or `drizzle/`) for schema and migrations, API route handlers
-- **Build process**: Update to include database migrations and client generation
-- **Development workflow**: Add migration commands for schema changes
-- **Type safety**: Generate TypeScript types from database schema
+- **新依赖**：Drizzle ORM、SQLite 驱动
+- **新目录**：`drizzle/` 用于 schema 和迁移、API 路由处理器
+- **构建过程**：更新以包含数据库迁移和客户端生成
+- **开发工作流**：添加模式变更的迁移命令
+- **类型安全**：从数据库 schema 生成 TypeScript 类型

@@ -1,92 +1,92 @@
-## ADDED Requirements
+## 新增需求
 
-### Requirement: API route structure
-The system SHALL support API routes using Next.js App Router pattern under `/app/api/`.
+### 需求：API 路由结构
+系统应支持使用 Next.js App Router 模式在 `/app/api/` 下创建 API 路由。
 
-#### Scenario: API route directory structure
-- **WHEN** API routes are created
-- **THEN** they are placed under `/app/api/` directory
-- **AND** each route has a `route.ts` file as the handler
+#### 场景：API 路由目录结构
+- **当** 创建 API 路由时
+- **则** 它们位于 `/app/api/` 目录下
+- **且** 每个路由都有一个 `route.ts` 文件作为处理器
 
-#### Scenario: RESTful resource routes
-- **WHEN** a resource API is created (e.g., posts)
-- **THEN** routes follow RESTful conventions (`/api/posts`, `/api/posts/[id]`)
-- **AND** HTTP methods are handled in the same `route.ts` file
+#### 场景：RESTful 资源路由
+- **当** 创建资源 API 时（例如 posts）
+- **则** 路由遵循 RESTful 约定（`/api/posts`、`/api/posts/[id]`）
+- **且** HTTP 方法在同一个 `route.ts` 文件中处理
 
-### Requirement: CRUD operation handlers
-The system SHALL support standard CRUD operations through API route handlers.
+### 需求：CRUD 操作处理器
+系统应通过 API 路由处理器支持标准 CRUD 操作。
 
-#### Scenario: GET all resources
-- **WHEN** a GET request is made to a collection endpoint (e.g., `/api/posts`)
-- **THEN** the system returns an array of resources
-- **AND** the response status is 200
+#### 场景：GET 所有资源
+- **当** 向集合端点（例如 `/api/posts`）发出 GET 请求时
+- **则** 系统返回资源数组
+- **且** 响应状态为 200
 
-#### Scenario: GET single resource
-- **WHEN** a GET request is made to a resource endpoint (e.g., `/api/posts/1`)
-- **THEN** the system returns a single resource object
-- **AND** the response status is 200 if found
-- **AND** the response status is 404 if not found
+#### 场景：GET 单个资源
+- **当** 向资源端点（例如 `/api/posts/1`）发出 GET 请求时
+- **则** 系统返回单个资源对象
+- **且** 如果找到，响应状态为 200
+- **且** 如果未找到，响应状态为 404
 
-#### Scenario: POST create resource
-- **WHEN** a POST request is made to a collection endpoint with valid data
-- **THEN** the system creates a new resource
-- **AND** the response status is 201
-- **AND** the response includes the created resource
+#### 场景：POST 创建资源
+- **当** 使用有效数据向集合端点发出 POST 请求时
+- **则** 系统创建新资源
+- **且** 响应状态为 201
+- **且** 响应包含创建的资源
 
-#### Scenario: PUT update resource
-- **WHEN** a PUT request is made to a resource endpoint with valid data
-- **THEN** the system updates the resource
-- **AND** the response status is 200 if successful
-- **AND** the response status is 404 if not found
+#### 场景：PUT 更新资源
+- **当** 使用有效数据向资源端点发出 PUT 请求时
+- **则** 系统更新资源
+- **且** 如果成功，响应状态为 200
+- **且** 如果未找到，响应状态为 404
 
-#### Scenario: DELETE resource
-- **WHEN** a DELETE request is made to a resource endpoint
-- **THEN** the system deletes the resource
-- **AND** the response status is 204 if successful
-- **AND** the response status is 404 if not found
+#### 场景：DELETE 资源
+- **当** 向资源端点发出 DELETE 请求时
+- **则** 系统删除资源
+- **且** 如果成功，响应状态为 204
+- **且** 如果未找到，响应状态为 404
 
-### Requirement: Runtime configuration
-The system SHALL configure API routes to use Node.js runtime (required for SQLite).
+### 需求：运行时配置
+系统应将 API 路由配置为使用 Node.js 运行时（SQLite 所需）。
 
-#### Scenario: Runtime is Node.js
-- **WHEN** an API route using the database is created
-- **THEN** the route exports `export const runtime = 'nodejs'`
-- **AND** the route can access SQLite through `better-sqlite3`
+#### 场景：运行时为 Node.js
+- **当** 创建使用数据库的 API 路由时
+- **则** 路由导出 `export const runtime = 'nodejs'`
+- **且** 路由可以通过 `better-sqlite3` 访问 SQLite
 
-### Requirement: Error handling
-The system SHALL provide consistent error responses from API routes.
+### 需求：错误处理
+系统应从 API 路由提供一致的错误响应。
 
-#### Scenario: Database error
-- **WHEN** a database operation fails
-- **THEN** the API returns a 500 status code
-- **AND** the response includes an error message
+#### 场景：数据库错误
+- **当** 数据库操作失败时
+- **则** API 返回 500 状态码
+- **且** 响应包含错误消息
 
-#### Scenario: Validation error
-- **WHEN** invalid request data is provided
-- **THEN** the API returns a 400 status code
-- **AND** the response includes validation error details
+#### 场景：验证错误
+- **当** 提供无效请求数据时
+- **则** API 返回 400 状态码
+- **且** 响应包含验证错误详细信息
 
-### Requirement: JSON request/response format
-The system SHALL use JSON for all API request and response bodies.
+### 需求：JSON 请求/响应格式
+系统应将 JSON 用于所有 API 请求和响应体。
 
-#### Scenario: Accept JSON requests
-- **WHEN** a request is made with `Content-Type: application/json`
-- **THEN** the request body is parsed as JSON
+#### 场景：接受 JSON 请求
+- **当** 使用 `Content-Type: application/json` 发出请求时
+- **则** 请求体被解析为 JSON
 
-#### Scenario: Return JSON responses
-- **WHEN** an API route responds
-- **THEN** the response has `Content-Type: application/json`
-- **AND** the body is valid JSON
+#### 场景：返回 JSON 响应
+- **当** API 路由响应时
+- **则** 响应具有 `Content-Type: application/json`
+- **且** 主体是有效的 JSON
 
-### Requirement: Database integration
-The system SHALL allow API routes to access the database through the centralized client.
+### 需求：数据库集成
+系统应允许 API 路由通过集中式客户端访问数据库。
 
-#### Scenario: Import database client
-- **WHEN** an API route handler needs database access
-- **THEN** it imports the database client from `@/lib/db`
-- **AND** it can perform queries using Drizzle ORM
+#### 场景：导入数据库客户端
+- **当** API 路由处理器需要数据库访问时
+- **则** 它从 `@/lib/db` 导入数据库客户端
+- **且** 它可以使用 Drizzle ORM 执行查询
 
-#### Scenario: Query within request handler
-- **WHEN** an API request is received
-- **THEN** the handler can query the database
-- **AND** results are returned in the response
+#### 场景：在请求处理器中查询
+- **当** 收到 API 请求时
+- **则** 处理器可以查询数据库
+- **且** 结果在响应中返回

@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { locales, type Locale, localeFlags, localeNames } from '@/locales'
 import { useState, useEffect } from 'react'
-import { Link } from '@/app/i18n/routing'
+import { Link, useRouter } from '@/app/i18n/routing'
 
 /**
  * 语言切换器组件
@@ -13,8 +13,9 @@ import { Link } from '@/app/i18n/routing'
  * 遵循 frontend-design 美学规范
  */
 export function LanguageSwitcher() {
-  const locale = useLocale() as Locale
+  const locale = useLocale()
   const pathname = usePathname()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -27,9 +28,12 @@ export function LanguageSwitcher() {
     )
   }
 
-  // 保存偏好到 localStorage
-  const handleLocaleChange = (newLocale: Locale) => {
+  const switchLocale = (newLocale: Locale) => {
+    // 保存偏好到 localStorage
     localStorage.setItem('blog-locale', newLocale)
+
+    // 使用 router.replace 切换语言环境
+    router.replace(pathname, { locale: newLocale })
   }
 
   return (
@@ -39,11 +43,9 @@ export function LanguageSwitcher() {
         const isActive = locale === loc
 
         return (
-          <Link
+          <button
             key={loc}
-            href={pathname}
-            locale={loc}
-            onClick={() => handleLocaleChange(loc)}
+            onClick={() => switchLocale(loc)}
             className={`
               relative w-7 h-7 flex items-center justify-center rounded-full
               transition-all duration-200 text-sm
@@ -54,10 +56,9 @@ export function LanguageSwitcher() {
             `}
             title={`${flag} ${localeNames[loc]}`}
             aria-label={localeNames[loc]}
-            scroll={false}
           >
             {flag}
-          </Link>
+          </button>
         )
       })}
     </div>

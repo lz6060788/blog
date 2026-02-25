@@ -10,18 +10,18 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale
   }
 
-  // 加载所有命名空间的翻译文件
+  // 加载所有命名空间的翻译文件，使用嵌套结构
   const [common, nav, home] = await Promise.all([
     import(`@/locales/${locale}/common.json`),
     import(`@/locales/${locale}/nav.json`),
     import(`@/locales/${locale}/home.json`),
   ])
 
-  // 合并所有翻译消息
+  // 使用嵌套结构，这样 useTranslations('nav') 可以正常工作
   const messages = {
-    ...common.default,
-    ...nav.default,
-    ...home.default,
+    common: common.default,
+    nav: nav.default,
+    home: home.default,
   }
 
   return {

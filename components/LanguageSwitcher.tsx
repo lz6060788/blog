@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { locales, type Locale, localeFlags, localeNames } from '@/locales'
 import { useState, useEffect } from 'react'
-import { Link, useRouter } from '@/app/i18n/routing'
+import { useRouter } from '@/app/i18n/routing'
 
 /**
  * 语言切换器组件
@@ -32,8 +32,19 @@ export function LanguageSwitcher() {
     // 保存偏好到 localStorage
     localStorage.setItem('blog-locale', newLocale)
 
-    // 使用 router.replace 切换语言环境
-    router.replace(pathname, { locale: newLocale })
+    // 获取不含 locale 的路径
+    const segments = pathname.split('/').filter(Boolean)
+
+    // 如果第一段是 locale，移除它
+    if (segments.length > 0 && (segments[0] === 'en' || segments[0] === 'zh')) {
+      segments.shift()
+    }
+
+    // 构建新路径
+    const newPath = segments.length > 0 ? `/${segments.join('/')}` : '/'
+
+    // 使用 router.replace 切换语言环境，传入不含 locale 的路径
+    router.replace(newPath, { locale: newLocale })
   }
 
   return (

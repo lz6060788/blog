@@ -24,7 +24,9 @@ export default function Navigation() {
   const getPathnameWithoutLocale = (path: string) => {
     const segments = path.split('/')
     // 移除开头的 locale 段（如果是有效的 locale）
+    console.log(segments)
     if (segments.length > 1 && (segments[1] === 'en' || segments[1] === 'zh')) {
+      console.log('/' + segments.slice(2).join('/'))
       return '/' + segments.slice(2).join('/')
     }
     return path
@@ -61,10 +63,9 @@ export default function Navigation() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="relative px-4 py-2 flex items-center gap-2 text-sm font-medium"
                 >
                   <motion.div
-                    className="flex items-center gap-2"
+                    className="relative px-4 py-2 flex items-center gap-2 text-sm font-medium"
                     whileHover={{ y: -1 }}
                     whileTap={{ scale: 0.97 }}
                   >

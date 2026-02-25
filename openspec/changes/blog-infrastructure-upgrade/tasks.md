@@ -3,21 +3,21 @@
 - [x] 1.1 创建 .gitignore 文件，包含 Next.js 排除项（node_modules、.next、.env 文件、构建产物）
 - [x] 1.2 使用 `git init` 命令初始化 Git 仓库
 - [x] 1.3 配置远程仓库到 https://github.com/lz6060788/blog
-- [ ] 1.4 暂存所有项目文件，遵循 .gitignore 规则
-- [ ] 1.5 在 main 分支创建初始提交，提交消息为 "Initial commit: blog infrastructure setup"
-- [ ] 1.6 使用 `git push -u origin main` 推送到远程仓库
+- [x] 1.4 暂存所有项目文件，遵循 .gitignore 规则
+- [x] 1.5 在 main 分支创建初始提交，提交消息为 "Initial commit: blog infrastructure setup"
+- [x] 1.6 使用 `git push -u origin main` 推送到远程仓库
 
 ## 2. 主题系统实现
 
-- [ ] 2.1 使用 `npm install next-themes` 安装 next-themes 包
-- [ ] 2.2 创建 theme.config.ts，定义浅色和深色模式颜色（浅色主题必须完全保留当前项目的 zinc 色系：zinc-50 背景、white 卡片、zinc-900 文本、zinc-200 边框、emerald 强调色）
-- [ ] 2.3 更新 tailwind.config.ts，使用 css() 函数引用 CSS 变量并启用 darkMode: 'class'，确保现有 zinc 颜色类继续工作
-- [ ] 2.4 创建 components/ThemeProvider.tsx，包装 next-themes 的 ThemeProvider 组件，设置默认主题为 'light'
-- [ ] 2.5 更新 app/layout.tsx，用 ThemeProvider 包装 children 并在 html 标签上添加 suppressHydrationWarning
-- [ ] 2.6 更新 app/globals.css，注册语义化 CSS 自定义属性（--bg-primary、--text-primary 等），设置 300ms ease-in-out 过渡效果
-- [ ] 2.7 为暗色主题精心设计颜色（zinc-950 主背景、zinc-900 卡片、zinc-50 文本、zinc-400 次级文本、zinc-800 边框、调整后的 emerald 强调色）
-- [ ] 2.8 创建 components/ThemeToggle.tsx，包含浅色/深色/自动模式选项，遵循 frontend-design 美学规范
-- [ ] 2.9 将 ThemeToggle 组件添加到 Navigation.tsx
+- [x] 2.1 使用 `npm install next-themes` 安装 next-themes 包
+- [x] 2.2 创建 theme.config.ts，定义浅色和深色模式颜色（浅色主题必须完全保留当前项目的 zinc 色系：zinc-50 背景、white 卡片、zinc-900 文本、zinc-200 边框、emerald 强调色）
+- [x] 2.3 更新 tailwind.config.ts，使用 css() 函数引用 CSS 变量并启用 darkMode: 'class'，确保现有 zinc 颜色类继续工作
+- [x] 2.4 创建 components/ThemeProvider.tsx，包装 next-themes 的 ThemeProvider 组件，设置默认主题为 'light'
+- [x] 2.5 更新 app/layout.tsx，用 ThemeProvider 包装 children 并在 html 标签上添加 suppressHydrationWarning
+- [x] 2.6 更新 app/globals.css，注册语义化 CSS 自定义属性（--bg-primary、--text-primary 等），设置 300ms ease-in-out 过渡效果
+- [x] 2.7 为暗色主题精心设计颜色（zinc-950 主背景、zinc-900 卡片、zinc-50 文本、zinc-400 次级文本、zinc-800 边框、调整后的 emerald 强调色）
+- [x] 2.8 创建 components/ThemeToggle.tsx，包含浅色/深色/自动模式选项，遵循 frontend-design 美学规范
+- [x] 2.9 将 ThemeToggle 组件添加到 Navigation.tsx
 - [ ] 2.10 在浏览器中测试主题切换功能（验证亮色主题与原项目完全一致、暗色主题视觉效果良好、localStorage 持久化、平滑过渡、无 FOUC）
 
 ## 3. 国际化设置

@@ -3,8 +3,54 @@
 @tailwind utilities;
 
 @layer base {
+  /* 浅色主题 CSS 变量 */
+  :root {
+    --bg-primary: #fafafa;      /* zinc-50 */
+    --bg-secondary: #ffffff;    /* white */
+    --bg-tertiary: #f4f4f5;     /* zinc-100 */
+
+    --text-primary: #18181b;    /* zinc-900 */
+    --text-secondary: #71717a;  /* zinc-500 */
+    --text-tertiary: #a1a1aa;   /* zinc-400 */
+
+    --border-default: #e4e4e7;  /* zinc-200 */
+
+    --accent-primary: #059669;  /* emerald-600 */
+    --accent-secondary: #34d399; /* emerald-400 */
+    --accent-bg: #ecfdf5;       /* emerald-50 */
+  }
+
+  /* 深色主题 CSS 变量 */
+  .dark {
+    --bg-primary: #09090b;      /* zinc-950 - 深邃的黑 */
+    --bg-secondary: #18181b;    /* zinc-900 - 稍浅的层次 */
+    --bg-tertiary: #27272a;     /* zinc-800 */
+
+    --text-primary: #fafafa;    /* zinc-50 - 柔和的白 */
+    --text-secondary: #a1a1aa;  /* zinc-400 - 中等灰度 */
+    --text-tertiary: #71717a;   /* zinc-500 */
+
+    --border-default: #27272a;  /* zinc-800 - 微妙的分割 */
+
+    --accent-primary: #34d399;  /* emerald-400 - 更亮以在深色背景上可见 */
+    --accent-secondary: #10b981; /* emerald-500 */
+    --accent-bg: #022c22;       /* emerald-950 - 深色背景 */
+  }
+
   * {
     @apply border-zinc-200;
+  }
+
+  /* 平滑的主题过渡效果 */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+
+  /* 避免对布局相关属性应用过渡 */
+  body, html {
+    transition: none;
   }
 }
 

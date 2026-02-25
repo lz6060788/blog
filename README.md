@@ -67,6 +67,110 @@ npm run db:push
 
 Database tables are defined in `lib/db/schema.ts` using Drizzle ORM schema builders. TypeScript types are automatically inferred from the schema.
 
+## Authentication
+
+This project uses NextAuth.js v5 for user authentication with OAuth providers (GitHub and Google).
+
+### Setup
+
+1. **Install dependencies** (already done):
+   ```bash
+   npm install next-auth@beta @auth/drizzle-adapter
+   ```
+
+2. **Configure environment variables** in `.env.local`:
+   ```bash
+   # Generate with: openssl rand -base64 32
+   AUTH_SECRET=your-auth-secret-here
+
+   # GitHub OAuth
+   GITHUB_CLIENT_ID=your-github-client-id
+   GITHUB_CLIENT_SECRET=your-github-client-secret
+
+   # Google OAuth
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   ```
+
+3. **Run database migrations** to create auth tables:
+   ```bash
+   npm run db:push
+   ```
+
+### Creating OAuth Apps
+
+**GitHub OAuth App:**
+1. Go to https://github.com/settings/developers
+2. Click "New OAuth App"
+3. Set Authorization callback URL: `http://localhost:3000/api/auth/callback/github`
+4. Copy Client ID and Client Secret to `.env.local`
+
+**Google OAuth 2.0:**
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Click "Create Credentials" → "OAuth 2.0 Client ID"
+3. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+4. Copy Client ID and Client Secret to `.env.local`
+
+### Using Authentication
+
+**In Server Components:**
+```typescript
+import { auth } from "@/lib/auth";
+
+export default async function Page() {
+  const session = await auth();
+
+  if (!session) {
+    return <div>Please sign in</div>;
+  }
+
+  return <div>Welcome, {session.user.name}!</div>;
+}
+```
+
+**In Client Components:**
+```typescript
+"use client";
+
+import { useSession } from "next-auth/react";
+
+export function UserProfile() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") return <div>Loading...</div>;
+  if (!session) return <div>Please sign in</div>;
+
+  return <div>Welcome, {session.user.name}!</div>;
+}
+```
+
+**In API Routes:**
+```typescript
+import { auth } from "@/lib/auth";
+import { requireAuth } from "@/lib/middleware-auth";
+
+export async function GET() {
+  // Option 1: Manual check
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Option 2: Using helper
+  const session2 = await requireAuth(); // Throws if not authenticated
+
+  return NextResponse.json({ user: session.user });
+}
+```
+
+### Account Linking
+
+When users sign in with different OAuth providers but the same email, the system automatically links the accounts to a single user profile. For example:
+- User signs in with GitHub (email: user@example.com) → Creates user A
+- User signs in with Google (email: user@example.com) → Links to user A
+
+Both login methods will now access the same account.
+
 ## API Routes
 
 API routes follow Next.js App Router pattern under `/app/api/`.

@@ -5,6 +5,7 @@ import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/app/i18n/routing'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { SessionProvider } from '@/components/auth/SessionProvider'
 import '../globals.css'
 
 const outfit = Outfit({
@@ -54,9 +55,11 @@ export default async function LocaleLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <NextIntlClientProvider messages={messages}>
-            {children}
-          </NextIntlClientProvider>
+          <SessionProvider>
+            <NextIntlClientProvider messages={messages}>
+              {children}
+            </NextIntlClientProvider>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

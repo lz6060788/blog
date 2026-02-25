@@ -24,7 +24,8 @@
       "Bash(npm run:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(openssl rand:*)"
     ]
   }
 }

@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { Clock, Tag } from '@phosphor-icons/react'
 import { format } from 'date-fns'
 import { Link } from '@/app/i18n/routing'
-import { useLocale } from 'next-intl'
 
 interface ArchiveGridProps {
   posts: Post[]
@@ -54,11 +53,11 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
               className="flex items-baseline gap-6 mb-8"
               variants={item}
             >
-              <h2 className="text-6xl md:text-8xl font-bold tracking-tighter text-zinc-100">
+              <h2 className="text-6xl md:text-8xl font-bold tracking-tighter text-theme-text-disabled">
                 {year}
               </h2>
-              <div className="flex-1 h-px bg-zinc-200" />
-              <span className="text-sm font-mono text-zinc-400">
+              <div className="flex-1 h-px bg-theme-border" />
+              <span className="text-sm font-mono text-theme-text-tertiary">
                 {yearPosts.length} {yearPosts.length === 1 ? '篇文章' : '篇文章'}
               </span>
             </motion.div>
@@ -73,29 +72,29 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
                 >
                   <Link href={`/post/${post.id}`} className="block h-full">
                     <motion.div
-                      className="bg-white rounded-[2rem] p-6 border border-zinc-200/50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] transition-all h-full"
+                      className="bg-theme-card-bg rounded-[2rem] p-6 border border-theme-card shadow-card hover:shadow-lg transition-all h-full"
                       whileTap={{ scale: 0.98 }}
                     >
                       {/* Category Badge */}
                       <div className="mb-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-theme-accent-bg text-theme-accent-primary text-xs font-medium">
                           <Tag size={12} weight="fill" />
                           {post.category}
                         </span>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-xl font-semibold tracking-tight text-zinc-900 mb-3 line-clamp-2">
+                      <h3 className="text-xl font-semibold tracking-tight text-theme-text-canvas mb-3 line-clamp-2">
                         {post.title}
                       </h3>
 
                       {/* Excerpt */}
-                      <p className="text-sm text-zinc-500 leading-relaxed mb-4 line-clamp-3">
+                      <p className="text-sm text-theme-text-secondary leading-relaxed mb-4 line-clamp-3">
                         {post.excerpt}
                       </p>
 
                       {/* Meta */}
-                      <div className="flex items-center justify-between text-xs font-mono text-zinc-400 pt-4 border-t border-zinc-100">
+                      <div className="flex items-center justify-between text-xs font-mono text-theme-text-tertiary pt-4 border-t border-theme-border-muted">
                         <div className="flex items-center gap-1.5">
                           <Clock size={12} />
                           {post.readTime} min

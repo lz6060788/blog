@@ -47,7 +47,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body className="bg-zinc-50 text-zinc-900 antialiased">
+      <body className="bg-theme-bg-canvas text-theme-text-canvas antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

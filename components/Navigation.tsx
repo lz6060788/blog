@@ -6,14 +6,11 @@ import { Cursor, List, House } from '@phosphor-icons/react'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Link } from '@/app/i18n/routing'
-import { useTranslations, useLocale } from 'next-intl'
-import { useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 
 export default function Navigation() {
   const pathname = usePathname()
-  const locale = useLocale()
   const t = useTranslations('nav')
-  const [isPending, startTransition] = useTransition()
 
   const navLinks = [
     { href: '/', label: t('home'), icon: House },
@@ -23,10 +20,7 @@ export default function Navigation() {
   // 获取不含 locale 的路径用于活动状态检查
   const getPathnameWithoutLocale = (path: string) => {
     const segments = path.split('/')
-    // 移除开头的 locale 段（如果是有效的 locale）
-    console.log(segments)
     if (segments.length > 1 && (segments[1] === 'en' || segments[1] === 'zh')) {
-      console.log('/' + segments.slice(2).join('/'))
       return '/' + segments.slice(2).join('/')
     }
     return path
@@ -38,7 +32,7 @@ export default function Navigation() {
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-zinc-50/80 backdrop-blur-md border-b border-zinc-200/50"
+      className="fixed top-0 left-0 right-0 z-50 bg-theme-nav backdrop-blur-md border-b border-theme-border"
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
@@ -46,9 +40,9 @@ export default function Navigation() {
             whileHover={{ rotate: 90 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
           >
-            <Cursor size={24} weight="bold" className="text-zinc-900" />
+            <Cursor size={24} weight="bold" className="text-theme-text-canvas" />
           </motion.div>
-          <span className="font-mono text-sm text-zinc-600">alex.blog</span>
+          <span className="font-mono text-sm text-theme-text-secondary">alex.blog</span>
         </Link>
 
         <div className="flex items-center gap-4">
@@ -70,13 +64,13 @@ export default function Navigation() {
                     whileTap={{ scale: 0.97 }}
                   >
                     <Icon size={18} weight={isActive ? 'fill' : 'regular'} />
-                    <span className={isActive ? 'text-zinc-900' : 'text-zinc-500'}>
+                    <span className={isActive ? 'text-theme-text-canvas' : 'text-theme-text-secondary'}>
                       {link.label}
                     </span>
                     {isActive && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-theme-text-canvas"
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                       />
                     )}

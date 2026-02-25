@@ -48,7 +48,7 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-1 bg-white dark:bg-zinc-900 rounded-full p-1 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+    <div className="flex items-center gap-1 bg-theme-bg-surface rounded-full p-1 border border-theme-border shadow-sm">
       {(Object.keys(locales) as Locale[]).map((loc) => {
         const flag = localeFlags[loc]
         const isActive = locale === loc
@@ -61,8 +61,8 @@ export function LanguageSwitcher() {
               relative w-7 h-7 flex items-center justify-center rounded-full
               transition-all duration-200 text-sm
               ${isActive
-                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
-                : 'text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300'
+                ? 'bg-theme-text-canvas text-theme-bg-surface'
+                : 'text-theme-text-tertiary hover:text-theme-text-secondary'
               }
             `}
             title={`${flag} ${localeNames[loc]}`}

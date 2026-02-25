@@ -28,12 +28,12 @@ export default async function HomePage({
             <div className="lg:col-span-8 lg:pl-8">
               {/* Hero Text */}
               <div className="mb-12">
-                <h1 className="text-4xl md:text-6xl tracking-tighter leading-none text-zinc-900 mb-6">
+                <h1 className="text-4xl md:text-6xl tracking-tighter leading-none text-theme-text-canvas mb-6">
                   Thoughts on
                   <br />
-                  <span className="text-zinc-400">{t('title')}</span>
+                  <span className="text-theme-text-tertiary">{t('title')}</span>
                 </h1>
-                <p className="text-lg text-zinc-500 leading-relaxed max-w-[65ch]">
+                <p className="text-lg text-theme-text-secondary leading-relaxed max-w-[65ch]">
                   {t('description')}
                 </p>
               </div>
@@ -41,10 +41,10 @@ export default async function HomePage({
               {/* Timeline */}
               <div>
                 <div className="flex items-center gap-4 mb-8">
-                  <h2 className="text-sm font-mono text-zinc-400 uppercase tracking-wider">
+                  <h2 className="text-sm font-mono text-theme-text-tertiary uppercase tracking-wider">
                     {t('latestPosts')}
                   </h2>
-                  <div className="flex-1 h-px bg-zinc-200" />
+                  <div className="flex-1 h-px bg-theme-border" />
                 </div>
                 <TimelineList posts={posts} />
               </div>

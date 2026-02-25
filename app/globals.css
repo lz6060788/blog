@@ -3,47 +3,185 @@
 @tailwind utilities;
 
 @layer base {
-  /* 浅色主题 CSS 变量 */
+  /* ============================================
+     基础色板 - 浅色主题
+     ============================================ */
   :root {
-    --bg-primary: #fafafa;      /* zinc-50 */
-    --bg-secondary: #ffffff;    /* white */
-    --bg-tertiary: #f4f4f5;     /* zinc-100 */
+    /* === 中性色系统 (Zinc) === */
+    /* 背景色 */
+    --bg-canvas: #fafafa;           /* zinc-50 - 画布背景 */
+    --bg-surface: #ffffff;          /* white - 表面/卡片 */
+    --bg-surface-alt: #f4f4f5;      /* zinc-100 - 交替表面 */
+    --bg-muted: #e4e4e7;           /* zinc-200 - 静音背景 */
+    --bg-subtle: #d4d4d8;           /* zinc-300 - 微妙背景 */
+    --bg-overlay: rgba(0, 0, 0, 0.5); /* 遮罩层 */
 
-    --text-primary: #18181b;    /* zinc-900 */
-    --text-secondary: #71717a;  /* zinc-500 */
-    --text-tertiary: #a1a1aa;   /* zinc-400 */
+    /* 文本色 */
+    --text-canvas: #18181b;         /* zinc-900 - 画布文字（最深） */
+    --text-surface: #27272a;        /* zinc-800 - 表面文字 */
+    --text-primary: #3f3f46;        /* zinc-700 - 主要文字 */
+    --text-secondary: #71717a;      /* zinc-500 - 次要文字 */
+    --text-tertiary: #a1a1aa;       /* zinc-400 - 三级文字 */
+    --text-muted: #d4d4d8;          /* zinc-300 - 静音文字 */
+    --text-disabled: #e4e4e7;       /* zinc-200 - 禁用文字 */
+    --text-reversed: #ffffff;       /* 反转文字（白） */
 
-    --border-default: #e4e4e7;  /* zinc-200 */
+    /* 边框色 */
+    --border-default: #e4e4e7;      /* zinc-200 - 默认边框 */
+    --border-muted: #f4f4f5;        /* zinc-100 - 静音边框 */
+    --border-subtle: #d4d4d8;       /* zinc-300 - 微妙边框 */
+    --border-strong: #a1a1aa;       /* zinc-400 - 强边框 */
 
-    --accent-primary: #059669;  /* emerald-600 */
-    --accent-secondary: #34d399; /* emerald-400 */
-    --accent-bg: #ecfdf5;       /* emerald-50 */
+    /* === 强调色系统 (Emerald) === */
+    --accent-primary: #059669;       /* emerald-600 - 主要强调 */
+    --accent-secondary: #10b981;     /* emerald-500 - 次要强调 */
+    --accent-tertiary: #34d399;      /* emerald-400 - 三级强调 */
+    --accent-bg: #ecfdf5;            /* emerald-50 - 强调背景 */
+    --accent-bg-subtle: #d1fae5;     /* emerald-100 - 强调微妙背景 */
+    --accent-fg: #ffffff;            /* 强调色上的文字 */
+
+    /* === 语义色 === */
+    /* 成功 */
+    --success-primary: #059669;
+    --success-bg: #ecfdf5;
+    --success-text: #065f46;
+
+    /* 警告 */
+    --warning-primary: #d97706;
+    --warning-bg: #fef3c7;
+    --warning-text: #92400e;
+
+    /* 错误 */
+    --error-primary: #dc2626;
+    --error-bg: #fef2f2;
+    --error-text: #991b1b;
+
+    /* 信息 */
+    --info-primary: #0284c7;
+    --info-bg: #e0f2fe;
+    --info-text: #075985;
+
+    /* === 控件色板 === */
+    /* 按钮 */
+    --btn-bg-primary: #18181b;       /* 主要按钮背景 */
+    --btn-bg-primary-hover: #27272a;  /* 主要按钮悬停 */
+    --btn-text-primary: #ffffff;     /* 主要按钮文字 */
+
+    --btn-bg-ghost: transparent;      /* 幽灵按钮背景 */
+    --btn-bg-ghost-hover: #f4f4f5;   /* 幽灵按钮悬停 */
+    --btn-text-ghost: #71717a;       /* 幽灵按钮文字 */
+    --btn-text-ghost-hover: #18181b; /* 幽灵按钮悬停文字 */
+
+    /* 输入框 */
+    --input-bg: #ffffff;             /* 输入框背景 */
+    --input-border: #e4e4e7;          /* 输入框边框 */
+    --input-border-focus: #059669;    /* 输入框聚焦边框 */
+    --input-text: #18181b;            /* 输入框文字 */
+    --input-placeholder: #a1a1aa;     /* 输入框占位符 */
+
+    /* 卡片 */
+    --card-bg: #ffffff;              /* 卡片背景 */
+    --card-border: #e4e4e7;          /* 卡片边框 */
+    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05); /* 卡片阴影 */
+
+    /* 导航 */
+    --nav-bg: rgba(250, 250, 250, 0.8); /* 导航背景（带透明度） */
+    --nav-border: rgba(228, 228, 231, 0.5); /* 导航边框 */
   }
 
-  /* 深色主题 CSS 变量 */
+  /* ============================================
+     基础色板 - 深色主题
+     ============================================ */
   .dark {
-    --bg-primary: #09090b;      /* zinc-950 - 深邃的黑 */
-    --bg-secondary: #18181b;    /* zinc-900 - 稍浅的层次 */
-    --bg-tertiary: #27272a;     /* zinc-800 */
+    /* === 中性色系统 (Zinc) === */
+    /* 背景色 */
+    --bg-canvas: #09090b;           /* zinc-950 - 深邃黑 */
+    --bg-surface: #18181b;          /* zinc-900 - 表面/卡片 */
+    --bg-surface-alt: #27272a;     /* zinc-800 - 交替表面 */
+    --bg-muted: #3f3f46;            /* zinc-700 - 静音背景 */
+    --bg-subtle: #52525b;           /* zinc-600 - 微妙背景 */
+    --bg-overlay: rgba(0, 0, 0, 0.7); /* 遮罩层 */
 
-    --text-primary: #fafafa;    /* zinc-50 - 柔和的白 */
-    --text-secondary: #a1a1aa;  /* zinc-400 - 中等灰度 */
-    --text-tertiary: #71717a;   /* zinc-500 */
+    /* 文本色 */
+    --text-canvas: #fafafa;         /* zinc-50 - 画布文字（最浅） */
+    --text-surface: #f4f4f5;        /* zinc-100 - 表面文字 */
+    --text-primary: #e4e4e7;        /* zinc-200 - 主要文字 */
+    --text-secondary: #a1a1aa;      /* zinc-400 - 次要文字 */
+    --text-tertiary: #71717a;       /* zinc-500 - 三级文字 */
+    --text-muted: #52525b;          /* zinc-600 - 静音文字 */
+    --text-disabled: #3f3f46;       /* zinc-700 - 禁用文字 */
+    --text-reversed: #18181b;       /* 反转文字（深） */
 
-    --border-default: #27272a;  /* zinc-800 - 微妙的分割 */
+    /* 边框色 */
+    --border-default: #27272a;      /* zinc-800 - 默认边框 */
+    --border-muted: #3f3f46;        /* zinc-700 - 静音边框 */
+    --border-subtle: #52525b;       /* zinc-600 - 微妙边框 */
+    --border-strong: #71717a;       /* zinc-500 - 强边框 */
 
-    --accent-primary: #34d399;  /* emerald-400 - 更亮以在深色背景上可见 */
-    --accent-secondary: #10b981; /* emerald-500 */
-    --accent-bg: #022c22;       /* emerald-950 - 深色背景 */
+    /* === 强调色系统 (Emerald) === */
+    --accent-primary: #34d399;      /* emerald-400 - 主要强调（更亮） */
+    --accent-secondary: #10b981;    /* emerald-500 - 次要强调 */
+    --accent-tertiary: #059669;     /* emerald-600 - 三级强调 */
+    --accent-bg: #022c22;           /* emerald-950 - 强调背景（深） */
+    --accent-bg-subtle: #064e3b;    /* emerald-900 - 强调微妙背景 */
+    --accent-fg: #ffffff;           /* 强调色上的文字 */
+
+    /* === 语义色 === */
+    /* 成功 */
+    --success-primary: #34d399;
+    --success-bg: #022c22;
+    --success-text: #6ee7b7;
+
+    /* 警告 */
+    --warning-primary: #f59e0b;
+    --warning-bg: #451a03;
+    --warning-text: #fcd34d;
+
+    /* 错误 */
+    --error-primary: #f87171;
+    --error-bg: #450a0a;
+    --error-text: #fca5a5;
+
+    /* 信息 */
+    --info-primary: #38bdf8;
+    --info-bg: #0c4a6e;
+    --info-text: #7dd3fc;
+
+    /* === 控件色板 === */
+    /* 按钮 */
+    --btn-bg-primary: #fafafa;       /* 主要按钮背景 */
+    --btn-bg-primary-hover: #f4f4f5; /* 主要按钮悬停 */
+    --btn-text-primary: #18181b;     /* 主要按钮文字 */
+
+    --btn-bg-ghost: transparent;     /* 幽灵按钮背景 */
+    --btn-bg-ghost-hover: #27272a;   /* 幽灵按钮悬停 */
+    --btn-text-ghost: #a1a1aa;      /* 幽灵按钮文字 */
+    --btn-text-ghost-hover: #fafafa; /* 幽灵按钮悬停文字 */
+
+    /* 输入框 */
+    --input-bg: #18181b;             /* 输入框背景 */
+    --input-border: #27272a;          /* 输入框边框 */
+    --input-border-focus: #34d399;    /* 输入框聚焦边框 */
+    --input-text: #fafafa;            /* 输入框文字 */
+    --input-placeholder: #71717a;     /* 输入框占位符 */
+
+    /* 卡片 */
+    --card-bg: #18181b;              /* 卡片背景 */
+    --card-border: #27272a;          /* 卡片边框 */
+    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3); /* 卡片阴影 */
+
+    /* 导航 */
+    --nav-bg: rgba(9, 9, 11, 0.8);    /* 导航背景（带透明度） */
+    --nav-border: rgba(39, 39, 42, 0.5); /* 导航边框 */
   }
 
   * {
-    @apply border-zinc-200;
+    border-color: var(--border-default);
   }
 
   /* 平滑的主题过渡效果 */
   *, *::before, *::after {
-    transition-property: background-color, border-color, color, fill, stroke;
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
   }
@@ -52,6 +190,35 @@
   body, html {
     transition: none;
   }
+}
+
+/* ============================================
+   Tailwind 扩展 - 映射 CSS 变量到 Tailwind 类
+   ============================================ */
+@layer base {
+  /* 背景色 */
+  .bg-canvas { background-color: var(--bg-canvas); }
+  .bg-surface { background-color: var(--bg-surface); }
+  .bg-surface-alt { background-color: var(--bg-surface-alt); }
+  .bg-muted { background-color: var(--bg-muted); }
+
+  /* 文本色 */
+  .text-canvas { color: var(--text-canvas); }
+  .text-surface { color: var(--text-surface); }
+  .text-primary { color: var(--text-primary); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-tertiary { color: var(--text-tertiary); }
+  .text-muted { color: var(--text-muted); }
+
+  /* 边框色 */
+  .border-default { border-color: var(--border-default); }
+  .border-muted { border-color: var(--border-muted); }
+  .border-subtle { border-color: var(--border-subtle); }
+
+  /* 强调色 */
+  .bg-accent { background-color: var(--accent-bg); }
+  .text-accent { color: var(--accent-primary); }
+  .border-accent { border-color: var(--accent-primary); }
 }
 
 @layer utilities {

@@ -6,11 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.7",
+    "better-sqlite3": "^12.6.2",
     "date-fns": "^3.6.0",
+    "drizzle-orm": "^0.45.1",
     "framer-motion": "^11.11.17",
     "next": "14.2.18",
     "next-intl": "^4.8.3",
@@ -19,10 +24,12 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "drizzle-kit": "^0.31.9",
     "eslint": "^8",
     "eslint-config-next": "14.2.18",
     "postcss": "^8",

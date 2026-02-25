@@ -36,10 +36,84 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Tech Stack
 
 - **Framework**: Next.js 14 (React Server Components)
+- **Database**: SQLite with Drizzle ORM
 - **Styling**: Tailwind CSS v3
 - **Animation**: Framer Motion
 - **Icons**: Phosphor Icons
 - **Fonts**: Outfit & JetBrains Mono
+
+## Database
+
+This project uses SQLite with Drizzle ORM for data persistence.
+
+### Setup
+
+The database file is automatically created at `./data/db.sqlite` on first run.
+
+### Migration Commands
+
+```bash
+# Generate migration files from schema changes
+npm run db:generate
+
+# Apply migrations to database
+npm run db:migrate
+
+# Push schema changes directly (development only)
+npm run db:push
+```
+
+### Schema Definitions
+
+Database tables are defined in `lib/db/schema.ts` using Drizzle ORM schema builders. TypeScript types are automatically inferred from the schema.
+
+## API Routes
+
+API routes follow Next.js App Router pattern under `/app/api/`.
+
+### Route Structure
+
+```
+app/
+└── api/
+    ├── health/
+    │   └── route.ts       # Health check endpoint
+    └── [resource]/
+        └── route.ts       # CRUD endpoints for resources
+```
+
+### Creating New API Routes
+
+1. Create a new directory under `app/api/`:
+   ```bash
+   mkdir -p app/api/posts
+   ```
+
+2. Create `route.ts` with HTTP method handlers:
+   ```typescript
+   import { NextResponse } from "next/server";
+   import { db } from "@/lib/db";
+
+   // Required for SQLite (better-sqlite3 only works in Node.js)
+   export const runtime = "nodejs";
+
+   export async function GET() {
+     const items = await db.select().from(schema.yourTable);
+     return NextResponse.json(items);
+   }
+
+   export async function POST(request: Request) {
+     const body = await request.json();
+     const item = await db.insert(schema.yourTable).values(body).returning();
+     return NextResponse.json(item, { status: 201 });
+   }
+   ```
+
+### Important Notes
+
+- **Runtime**: All API routes using the database must export `export const runtime = "nodejs"` because `better-sqlite3` only works in Node.js runtime (not Edge)
+- **Database Access**: Import the database client from `@/lib/db`
+- **Type Safety**: TypeScript types are automatically inferred from your Drizzle schema
 
 ## Project Structure
 

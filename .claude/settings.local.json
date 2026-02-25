@@ -16,7 +16,15 @@
       "Bash(git commit:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(cd /d/workspace/git/blog && openspec list --json 2>&1)",
+      "Bash(cd:*)",
+      "Bash(git rm:*)",
+      "Bash(git reset:*)",
+      "Bash(npm run:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }

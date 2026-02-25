@@ -1,42 +1,17 @@
-import type { Metadata } from 'next'
-import { Outfit, JetBrains_Mono } from 'next/font/google'
-import './globals.css'
-import { ThemeProvider } from '@/components/ThemeProvider'
+import { routing } from './i18n/routing'
+import { notFound } from 'next/navigation'
 
-const outfit = Outfit({
-  variable: '--font-outfit',
-  subsets: ['latin'],
-  display: 'swap',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: '--font-jetbrains-mono',
-  subsets: ['latin'],
-  display: 'swap',
-})
-
-export const metadata: Metadata = {
-  title: 'Personal Blog',
-  description: 'A minimalist personal blog with asymmetric design',
-}
+// 此文件用于 next-intl 路由
+// 实际布局在 [locale]/layout.tsx 中
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body className="bg-zinc-50 text-zinc-900 antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange={false}
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
-  )
+  return children
+}
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }))
 }

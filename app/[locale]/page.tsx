@@ -2,8 +2,15 @@ import Navigation from '@/components/Navigation'
 import AuthorCard from '@/components/AuthorCard'
 import TimelineList from '@/components/TimelineList'
 import { author, posts } from '@/lib/data'
+import { getTranslations } from 'next-intl/server'
 
-export default function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const t = await getTranslations('home')
+
   return (
     <>
       <Navigation />
@@ -24,12 +31,10 @@ export default function HomePage() {
                 <h1 className="text-4xl md:text-6xl tracking-tighter leading-none text-zinc-900 mb-6">
                   Thoughts on
                   <br />
-                  <span className="text-zinc-400">Design & Code</span>
+                  <span className="text-zinc-400">{t('title')}</span>
                 </h1>
                 <p className="text-lg text-zinc-500 leading-relaxed max-w-[65ch]">
-                  Exploring the intersection of creativity and technology.
-                  Writing about frontend development, UI design, and the craft
-                  of building digital experiences.
+                  {t('description')}
                 </p>
               </div>
 
@@ -37,7 +42,7 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-4 mb-8">
                   <h2 className="text-sm font-mono text-zinc-400 uppercase tracking-wider">
-                    Recent Posts
+                    {t('latestPosts')}
                   </h2>
                   <div className="flex-1 h-px bg-zinc-200" />
                 </div>

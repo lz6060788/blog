@@ -3,7 +3,7 @@ import ArchiveGrid from '@/components/ArchiveGrid'
 import { posts } from '@/lib/data'
 import ArchiveHeader from '@/components/ArchiveHeader'
 
-export default function ArchivePage() {
+export default async function ArchivePage() {
   return (
     <>
       <Navigation />

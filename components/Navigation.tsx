@@ -1,18 +1,36 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Cursor, List, House } from '@phosphor-icons/react'
 import { ThemeToggle } from './ThemeToggle'
-
-const navLinks = [
-  { href: '/', label: 'Home', icon: House },
-  { href: '/archive', label: 'Archive', icon: List },
-]
+import { LanguageSwitcher } from './LanguageSwitcher'
+import { Link } from '@/app/i18n/routing'
+import { useTranslations, useLocale } from 'next-intl'
+import { useTransition } from 'react'
 
 export default function Navigation() {
   const pathname = usePathname()
+  const locale = useLocale()
+  const t = useTranslations('nav')
+  const [isPending, startTransition] = useTransition()
+
+  const navLinks = [
+    { href: '/', label: t('home'), icon: House },
+    { href: '/archive', label: t('archive'), icon: List },
+  ]
+
+  // 获取不含 locale 的路径用于活动状态检查
+  const getPathnameWithoutLocale = (path: string) => {
+    const segments = path.split('/')
+    // 移除开头的 locale 段（如果是有效的 locale）
+    if (segments.length > 1 && (segments[1] === 'en' || segments[1] === 'zh')) {
+      return '/' + segments.slice(2).join('/')
+    }
+    return path
+  }
+
+  const currentPathname = getPathnameWithoutLocale(pathname)
 
   return (
     <motion.nav
@@ -32,16 +50,21 @@ export default function Navigation() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           <ThemeToggle />
           <div className="flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon
-              const isActive = pathname === link.href
+              const isActive = currentPathname === link.href || (link.href !== '/' && currentPathname.startsWith(link.href))
 
               return (
-                <Link key={link.href} href={link.href}>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="relative px-4 py-2 flex items-center gap-2 text-sm font-medium"
+                >
                   <motion.div
-                    className="relative px-4 py-2 flex items-center gap-2 text-sm font-medium"
+                    className="flex items-center gap-2"
                     whileHover={{ y: -1 }}
                     whileTap={{ scale: 0.97 }}
                   >

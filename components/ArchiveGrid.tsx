@@ -2,9 +2,10 @@
 
 import { Post } from '@/lib/types'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import { Clock, Tag } from '@phosphor-icons/react'
 import { format } from 'date-fns'
+import { Link } from '@/app/i18n/routing'
+import { useLocale } from 'next-intl'
 
 interface ArchiveGridProps {
   posts: Post[]
@@ -58,7 +59,7 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
               </h2>
               <div className="flex-1 h-px bg-zinc-200" />
               <span className="text-sm font-mono text-zinc-400">
-                {yearPosts.length} {yearPosts.length === 1 ? 'post' : 'posts'}
+                {yearPosts.length} {yearPosts.length === 1 ? '篇文章' : '篇文章'}
               </span>
             </motion.div>
 

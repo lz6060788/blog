@@ -7,10 +7,14 @@ import { motion } from 'framer-motion'
 import { Clock, Tag, ArrowLeft } from '@phosphor-icons/react'
 import { format } from 'date-fns'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
+import { Link as IntlLink } from '@/app/i18n/routing'
 
 export default function PostPage() {
   const params = useParams()
   const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations()
   const post = posts.find((p) => p.id === params.id)
 
   if (!post) {
@@ -22,12 +26,12 @@ export default function PostPage() {
             <h1 className="text-4xl font-bold text-zinc-900 mb-4">
               Post not found
             </h1>
-            <Link
+            <IntlLink
               href="/"
               className="text-zinc-500 hover:text-zinc-900 transition-colors"
             >
               Return home
-            </Link>
+            </IntlLink>
           </div>
         </div>
       </>
@@ -182,13 +186,13 @@ export default function PostPage() {
             transition={{ delay: 0.2 }}
             className="mt-12 pt-8 border-t border-zinc-200"
           >
-            <Link
+            <IntlLink
               href="/"
               className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors group"
             >
               <ArrowLeft size={16} />
               <span>Back to all posts</span>
-            </Link>
+            </IntlLink>
           </motion.footer>
         </div>
       </motion.article>

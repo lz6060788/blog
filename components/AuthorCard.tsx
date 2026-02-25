@@ -76,12 +76,12 @@ export default function AuthorCard({ author }: AuthorCardProps) {
         <motion.div variants={item} className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-zinc-50 rounded-2xl p-4">
             <MapPin size={20} className="text-zinc-400 mb-2" />
-            <p className="text-xs font-mono text-zinc-500">Location</p>
+            <p className="text-xs font-mono text-zinc-500">位置</p>
             <p className="text-sm font-medium text-zinc-900">{author.location}</p>
           </div>
           <div className="bg-zinc-50 rounded-2xl p-4">
             <Envelope size={20} className="text-zinc-400 mb-2" />
-            <p className="text-xs font-mono text-zinc-500">Zodiac</p>
+            <p className="text-xs font-mono text-zinc-500">星座</p>
             <p className="text-sm font-medium text-zinc-900">{author.zodiac}</p>
           </div>
         </motion.div>

@@ -1,5 +1,6 @@
 import { getRequestConfig } from 'next-intl/server'
 import { routing } from './routing'
+import { locales } from '@/locales'
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // 这通常对应于 `[locale]` 段
@@ -10,19 +11,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale
   }
 
-  // 加载所有命名空间的翻译文件，使用嵌套结构
-  const [common, nav, home] = await Promise.all([
-    import(`@/locales/${locale}/common.json`),
-    import(`@/locales/${locale}/nav.json`),
-    import(`@/locales/${locale}/home.json`),
-  ])
-
-  // 使用嵌套结构，这样 useTranslations('nav') 可以正常工作
-  const messages = {
-    common: common.default,
-    nav: nav.default,
-    home: home.default,
-  }
+  // 从 TypeScript 文件导入消息
+  const messages = locales[locale as keyof typeof locales]
 
   return {
     locale,

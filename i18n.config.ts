@@ -4,18 +4,13 @@
  * 定义支持的语言环境和默认语言环境
  */
 
-export const locales = ['en', 'zh'] as const
-export type Locale = (typeof locales)[number]
+import { locales as localeMessages, defaultLocale as defLocale, localeNames, localeFlags, type Locale } from '@/locales'
 
-export const defaultLocale: Locale = 'en'
+// 重新导出以便外部使用
+export const locales = Object.keys(localeMessages) as Locale[]
+export const defaultLocale: Locale = defLocale
+export const localesConfig = localeNames
+export const localeFlagsConfig = localeFlags
 
-export const localesConfig = {
-  en: {
-    name: 'English',
-    flag: '🇺🇸',
-  },
-  zh: {
-    name: '中文',
-    flag: '🇨🇳',
-  },
-} as const
+// 类型导出
+export type { Locale }

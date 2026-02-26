@@ -61,35 +61,108 @@
     --info-bg: #e0f2fe;
     --info-text: #075985;
 
-    /* === 控件色板 === */
-    /* 按钮 */
-    --btn-bg-primary: #18181b;       /* 主要按钮背景 */
-    --btn-bg-primary-hover: #27272a;  /* 主要按钮悬停 */
-    --btn-text-primary: #ffffff;     /* 主要按钮文字 */
+    /* ============================================
+       组件颜色系统 - 浅色主题
+       ============================================ */
 
-    --btn-bg-ghost: transparent;      /* 幽灵按钮背景 */
-    --btn-bg-ghost-hover: #f4f4f5;   /* 幽灵按钮悬停 */
-    --btn-text-ghost: #71717a;       /* 幽灵按钮文字 */
-    --btn-text-ghost-hover: #18181b; /* 幽灵按钮悬停文字 */
+    /* === Button (btn) === */
+    /* Default 变体 */
+    --btn-default-bg: #18181b;
+    --btn-default-fg: #ffffff;
+    --btn-default-bg-hover: #27272a;
+    --btn-default-fg-hover: #ffffff;
 
-    /* 输入框 */
-    --input-bg: #ffffff;             /* 输入框背景 */
-    --input-border: #e4e4e7;          /* 输入框边框 */
-    --input-border-focus: #059669;    /* 输入框聚焦边框 */
-    --input-text: #18181b;            /* 输入框文字 */
-    --input-placeholder: #a1a1aa;     /* 输入框占位符 */
+    /* Destructive 变体 */
+    --btn-destructive-bg: #dc2626;
+    --btn-destructive-fg: #ffffff;
+    --btn-destructive-bg-hover: #ef4444;
 
-    /* 卡片 */
-    --card-bg: #ffffff;              /* 卡片背景 */
-    --card-border: #e4e4e7;          /* 卡片边框 */
-    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05); /* 卡片阴影 */
+    /* Outline 变体 */
+    --btn-outline-bg: transparent;
+    --btn-outline-fg: #18181b;
+    --btn-outline-border: #e4e4e7;
+    --btn-outline-bg-hover: #f4f4f5;
+    --btn-outline-fg-hover: #18181b;
 
-    /* 导航 */
-    --nav-bg: rgba(250, 250, 250, 0.8); /* 导航背景（带透明度） */
-    --nav-border: rgba(228, 228, 231, 0.5); /* 导航边框 */
+    /* Secondary 变体 */
+    --btn-secondary-bg: #e4e4e7;
+    --btn-secondary-fg: #18181b;
+    --btn-secondary-bg-hover: #d4d4d8;
+
+    /* Ghost 变体 */
+    --btn-ghost-bg: transparent;
+    --btn-ghost-fg: #71717a;
+    --btn-ghost-bg-hover: #f4f4f5;
+    --btn-ghost-fg-hover: #18181b;
+
+    /* Link 变体 */
+    --btn-link-bg: transparent;
+    --btn-link-fg: #059669;
+
+    /* === Switch (swt) === */
+    --swt-bg-checked: #059669;
+    --swt-bg-checked-hover: #10b981;
+    --swt-bg-unchecked: #e4e4e7;
+    --swt-border-unchecked: #e4e4e7;
+    --swt-thumb-bg: #ffffff;
+    --swt-ring-color: #059669;
+
+    /* === Dialog (dlg) === */
+    --dlg-overlay-bg: rgba(0, 0, 0, 0.8);
+    --dlg-content-bg: #ffffff;
+    --dlg-content-border: #e4e4e7;
+    --dlg-close-bg-hover: #f4f4f5;
+    --dlg-close-fg-hover: #18181b;
+    --dlg-title-fg: #18181b;
+    --dlg-desc-fg: #71717a;
+    --dlg-ring-color: #059669;
+
+    /* === Avatar (avt) === */
+    --avt-fallback-bg: #e4e4e7;
+    --avt-fallback-fg: #71717a;
+
+    /* === DropdownMenu (ddm) === */
+    --ddm-content-bg: #ffffff;
+    --ddm-content-border: #e4e4e7;
+    --ddm-content-fg: #18181b;
+    --ddm-item-bg-hover: #f4f4f5;
+    --ddm-item-fg-hover: #18181b;
+    --ddm-separator-bg: #e4e4e7;
+    --ddm-label-fg: #71717a;
+
+    /* === Table (tbl) === */
+    --tbl-footer-bg: #f4f4f5;
+    --tbl-row-bg-hover: #f4f4f5;
+    --tbl-row-bg-selected: #e4e4e7;
+    --tbl-head-fg: #71717a;
+    --tbl-caption-fg: #71717a;
+
+    /* === Sheet (sht) === */
+    --sht-overlay-bg: rgba(0, 0, 0, 0.8);
+    --sht-content-bg: #ffffff;
+    --sht-content-border: #e4e4e7;
+    --sht-close-bg-hover: #e4e4e7;
+    --sht-title-fg: #18181b;
+    --sht-desc-fg: #71717a;
+
+    /* === 输入框 (保留旧变量以兼容) === */
+    --input-bg: #ffffff;
+    --input-border: #e4e4e7;
+    --input-border-focus: #059669;
+    --input-text: #18181b;
+    --input-placeholder: #a1a1aa;
+
+    /* === 卡片 (保留旧变量以兼容) === */
+    --card-bg: #ffffff;
+    --card-border: #e4e4e7;
+    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+
+    /* === 导航 (保留旧变量以兼容) === */
+    --nav-bg: rgba(250, 250, 250, 0.8);
+    --nav-border: rgba(228, 228, 231, 0.5);
 
     /* === 组件配置 === */
-    --radius: 1rem; /* shadcn/ui 圆角基础值 - rounded-2xl */
+    --radius: 1rem;
   }
 
   /* ============================================
@@ -150,32 +223,105 @@
     --info-bg: #0c4a6e;
     --info-text: #7dd3fc;
 
-    /* === 控件色板 === */
-    /* 按钮 */
-    --btn-bg-primary: #fafafa;       /* 主要按钮背景 */
-    --btn-bg-primary-hover: #f4f4f5; /* 主要按钮悬停 */
-    --btn-text-primary: #18181b;     /* 主要按钮文字 */
+    /* ============================================
+       组件颜色系统 - 深色主题
+       ============================================ */
 
-    --btn-bg-ghost: transparent;     /* 幽灵按钮背景 */
-    --btn-bg-ghost-hover: #27272a;   /* 幽灵按钮悬停 */
-    --btn-text-ghost: #a1a1aa;      /* 幽灵按钮文字 */
-    --btn-text-ghost-hover: #fafafa; /* 幽灵按钮悬停文字 */
+    /* === Button (btn) === */
+    /* Default 变体 */
+    --btn-default-bg: #fafafa;
+    --btn-default-fg: #18181b;
+    --btn-default-bg-hover: #f4f4f5;
+    --btn-default-fg-hover: #18181b;
 
-    /* 输入框 */
-    --input-bg: #18181b;             /* 输入框背景 */
-    --input-border: #27272a;          /* 输入框边框 */
-    --input-border-focus: #34d399;    /* 输入框聚焦边框 */
-    --input-text: #fafafa;            /* 输入框文字 */
-    --input-placeholder: #71717a;     /* 输入框占位符 */
+    /* Destructive 变体 */
+    --btn-destructive-bg: #f87171;
+    --btn-destructive-fg: #ffffff;
+    --btn-destructive-bg-hover: #dc2626;
 
-    /* 卡片 */
-    --card-bg: #18181b;              /* 卡片背景 */
-    --card-border: #27272a;          /* 卡片边框 */
-    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3); /* 卡片阴影 */
+    /* Outline 变体 */
+    --btn-outline-bg: transparent;
+    --btn-outline-fg: #fafafa;
+    --btn-outline-border: #27272a;
+    --btn-outline-bg-hover: #27272a;
+    --btn-outline-fg-hover: #fafafa;
 
-    /* 导航 */
-    --nav-bg: rgba(9, 9, 11, 0.8);    /* 导航背景（带透明度） */
-    --nav-border: rgba(39, 39, 42, 0.5); /* 导航边框 */
+    /* Secondary 变体 */
+    --btn-secondary-bg: #27272a;
+    --btn-secondary-fg: #fafafa;
+    --btn-secondary-bg-hover: #3f3f46;
+
+    /* Ghost 变体 */
+    --btn-ghost-bg: transparent;
+    --btn-ghost-fg: #a1a1aa;
+    --btn-ghost-bg-hover: #27272a;
+    --btn-ghost-fg-hover: #fafafa;
+
+    /* Link 变体 */
+    --btn-link-bg: transparent;
+    --btn-link-fg: #34d399;
+
+    /* === Switch (swt) === */
+    --swt-bg-checked: #34d399;
+    --swt-bg-checked-hover: #10b981;
+    --swt-bg-unchecked: #27272a;
+    --swt-border-unchecked: #27272a;
+    --swt-thumb-bg: #fafafa;
+    --swt-ring-color: #34d399;
+
+    /* === Dialog (dlg) === */
+    --dlg-overlay-bg: rgba(0, 0, 0, 0.8);
+    --dlg-content-bg: #18181b;
+    --dlg-content-border: #27272a;
+    --dlg-close-bg-hover: #27272a;
+    --dlg-close-fg-hover: #fafafa;
+    --dlg-title-fg: #fafafa;
+    --dlg-desc-fg: #a1a1aa;
+    --dlg-ring-color: #34d399;
+
+    /* === Avatar (avt) === */
+    --avt-fallback-bg: #27272a;
+    --avt-fallback-fg: #a1a1aa;
+
+    /* === DropdownMenu (ddm) === */
+    --ddm-content-bg: #18181b;
+    --ddm-content-border: #27272a;
+    --ddm-content-fg: #fafafa;
+    --ddm-item-bg-hover: #27272a;
+    --ddm-item-fg-hover: #fafafa;
+    --ddm-separator-bg: #27272a;
+    --ddm-label-fg: #a1a1aa;
+
+    /* === Table (tbl) === */
+    --tbl-footer-bg: #18181b;
+    --tbl-row-bg-hover: #27272a;
+    --tbl-row-bg-selected: #3f3f46;
+    --tbl-head-fg: #a1a1aa;
+    --tbl-caption-fg: #a1a1aa;
+
+    /* === Sheet (sht) === */
+    --sht-overlay-bg: rgba(0, 0, 0, 0.8);
+    --sht-content-bg: #18181b;
+    --sht-content-border: #27272a;
+    --sht-close-bg-hover: #3f3f46;
+    --sht-title-fg: #fafafa;
+    --sht-desc-fg: #a1a1aa;
+
+    /* === 输入框 (保留旧变量以兼容) === */
+    --input-bg: #18181b;
+    --input-border: #27272a;
+    --input-border-focus: #34d399;
+    --input-text: #fafafa;
+    --input-placeholder: #71717a;
+
+    /* === 卡片 (保留旧变量以兼容) === */
+    --card-bg: #18181b;
+    --card-border: #27272a;
+    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+
+    /* === 导航 (保留旧变量以兼容) === */
+    --nav-bg: rgba(9, 9, 11, 0.8);
+    --nav-border: rgba(39, 39, 42, 0.5);
   }
 
   * {

@@ -11,15 +11,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:shadow-md hover:bg-primary/90",
+          "bg-theme-btn-default-bg text-theme-btn-default-fg shadow hover:shadow-md hover:bg-theme-btn-default-bg-hover hover:text-theme-btn-default-fg-hover",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-theme-btn-destructive-bg text-theme-btn-destructive-fg shadow-sm hover:bg-theme-btn-destructive-bg-hover",
         outline:
-          "border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-theme-btn-outline-border bg-theme-btn-outline-bg shadow-sm hover:bg-theme-btn-outline-bg-hover hover:text-theme-btn-outline-fg-hover",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-theme-btn-secondary-bg text-theme-btn-secondary-fg shadow-sm hover:bg-theme-btn-secondary-bg-hover",
+        ghost: "hover:bg-theme-btn-ghost-bg-hover hover:text-theme-btn-ghost-fg-hover",
+        link: "text-theme-btn-link-fg underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",  // 使用 h-10 匹配项目按钮高度

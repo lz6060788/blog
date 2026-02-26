@@ -27,7 +27,7 @@ const config: Config = {
   				bg: {
   					canvas: 'var(--bg-canvas)',
   					surface: 'var(--bg-surface)',
-  					surfaceAlt: 'var(--bg-surface-alt)',
+  					'surface-alt': 'var(--bg-surface-alt)',
   					muted: 'var(--bg-muted)',
   					subtle: 'var(--bg-subtle)',
   					overlay: 'var(--bg-overlay)'
@@ -53,7 +53,7 @@ const config: Config = {
   					secondary: 'var(--accent-secondary)',
   					tertiary: 'var(--accent-tertiary)',
   					bg: 'var(--accent-bg)',
-  					bgSubtle: 'var(--accent-bg-subtle)',
+  					'bg-subtle': 'var(--accent-bg-subtle)',
   					fg: 'var(--accent-fg)'
   				},
   				success: {
@@ -76,19 +76,94 @@ const config: Config = {
   					bg: 'var(--info-bg)',
   					text: 'var(--info-text)'
   				},
+  				// === 组件颜色系统 === */
+  				// Button (btn)
   				btn: {
-  					bgPrimary: 'var(--btn-bg-primary)',
-  					bgPrimaryHover: 'var(--btn-bg-primary-hover)',
-  					textPrimary: 'var(--btn-text-primary)',
-  					bgGhost: 'var(--btn-bg-ghost)',
-  					bgGhostHover: 'var(--btn-bg-ghost-hover)',
-  					textGhost: 'var(--btn-text-ghost)',
-  					textGhostHover: 'var(--btn-text-ghost-hover)'
+  					// Default 变体
+  					'default-bg': 'var(--btn-default-bg)',
+  					'default-fg': 'var(--btn-default-fg)',
+  					'default-bg-hover': 'var(--btn-default-bg-hover)',
+  					'default-fg-hover': 'var(--btn-default-fg-hover)',
+  					// Destructive 变体
+  					'destructive-bg': 'var(--btn-destructive-bg)',
+  					'destructive-fg': 'var(--btn-destructive-fg)',
+  					'destructive-bg-hover': 'var(--btn-destructive-bg-hover)',
+  					// Outline 变体
+  					'outline-bg': 'var(--btn-outline-bg)',
+  					'outline-fg': 'var(--btn-outline-fg)',
+  					'outline-border': 'var(--btn-outline-border)',
+  					'outline-bg-hover': 'var(--btn-outline-bg-hover)',
+  					'outline-fg-hover': 'var(--btn-outline-fg-hover)',
+  					// Secondary 变体
+  					'secondary-bg': 'var(--btn-secondary-bg)',
+  					'secondary-fg': 'var(--btn-secondary-fg)',
+  					'secondary-bg-hover': 'var(--btn-secondary-bg-hover)',
+  					// Ghost 变体
+  					'ghost-bg': 'var(--btn-ghost-bg)',
+  					'ghost-fg': 'var(--btn-ghost-fg)',
+  					'ghost-bg-hover': 'var(--btn-ghost-bg-hover)',
+  					'ghost-fg-hover': 'var(--btn-ghost-fg-hover)',
+  					// Link 变体
+  					'link-bg': 'var(--btn-link-bg)',
+  					'link-fg': 'var(--btn-link-fg)'
   				},
+  				// Switch (swt)
+  				swt: {
+  					'bg-checked': 'var(--swt-bg-checked)',
+  					'bg-checked-hover': 'var(--swt-bg-checked-hover)',
+  					'bg-unchecked': 'var(--swt-bg-unchecked)',
+  					'border-unchecked': 'var(--swt-border-unchecked)',
+  					'thumb-bg': 'var(--swt-thumb-bg)',
+  					'ring-color': 'var(--swt-ring-color)'
+  				},
+  				// Dialog (dlg)
+  				dlg: {
+  					'overlay-bg': 'var(--dlg-overlay-bg)',
+  					'content-bg': 'var(--dlg-content-bg)',
+  					'content-border': 'var(--dlg-content-border)',
+  					'close-bg-hover': 'var(--dlg-close-bg-hover)',
+  					'close-fg-hover': 'var(--dlg-close-fg-hover)',
+  					'title-fg': 'var(--dlg-title-fg)',
+  					'desc-fg': 'var(--dlg-desc-fg)',
+  					'ring-color': 'var(--dlg-ring-color)'
+  				},
+  				// Avatar (avt)
+  				avt: {
+  					'fallback-bg': 'var(--avt-fallback-bg)',
+  					'fallback-fg': 'var(--avt-fallback-fg)'
+  				},
+  				// DropdownMenu (ddm)
+  				ddm: {
+  					'content-bg': 'var(--ddm-content-bg)',
+  					'content-border': 'var(--ddm-content-border)',
+  					'content-fg': 'var(--ddm-content-fg)',
+  					'item-bg-hover': 'var(--ddm-item-bg-hover)',
+  					'item-fg-hover': 'var(--ddm-item-fg-hover)',
+  					'separator-bg': 'var(--ddm-separator-bg)',
+  					'label-fg': 'var(--ddm-label-fg)'
+  				},
+  				// Table (tbl)
+  				tbl: {
+  					'footer-bg': 'var(--tbl-footer-bg)',
+  					'row-bg-hover': 'var(--tbl-row-bg-hover)',
+  					'row-bg-selected': 'var(--tbl-row-bg-selected)',
+  					'head-fg': 'var(--tbl-head-fg)',
+  					'caption-fg': 'var(--tbl-caption-fg)'
+  				},
+  				// Sheet (sht)
+  				sht: {
+  					'overlay-bg': 'var(--sht-overlay-bg)',
+  					'content-bg': 'var(--sht-content-bg)',
+  					'content-border': 'var(--sht-content-border)',
+  					'close-bg-hover': 'var(--sht-close-bg-hover)',
+  					'title-fg': 'var(--sht-title-fg)',
+  					'desc-fg': 'var(--sht-desc-fg)'
+  				},
+  				// 保留旧变量以兼容
   				input: {
   					bg: 'var(--input-bg)',
   					border: 'var(--input-border)',
-  					borderFocus: 'var(--input-border-focus)',
+  					'border-focus': 'var(--input-border-focus)',
   					text: 'var(--input-text)',
   					placeholder: 'var(--input-placeholder)'
   				},
@@ -101,41 +176,7 @@ const config: Config = {
   					bg: 'var(--nav-bg)',
   					border: 'var(--nav-border)'
   				}
-  			},
-  			// shadcn/ui 颜色映射 - 整合到项目原有主题色系统
-  			background: 'var(--bg-canvas)',
-  			foreground: 'var(--text-canvas)',
-  			card: {
-  				DEFAULT: 'var(--card-bg)',
-  				foreground: 'var(--text-canvas)'
-  			},
-  			popover: {
-  				DEFAULT: 'var(--bg-surface)',
-  				foreground: 'var(--text-canvas)'
-  			},
-  			primary: {
-  				DEFAULT: 'var(--accent-primary)',
-  				foreground: 'var(--accent-fg)'
-  			},
-  			secondary: {
-  				DEFAULT: 'var(--bg-muted)',
-  				foreground: 'var(--text-canvas)'
-  			},
-  			muted: {
-  				DEFAULT: 'var(--bg-muted)',
-  				foreground: 'var(--text-secondary)'
-  			},
-  			accent: {
-  				DEFAULT: 'var(--accent-bg)',
-  				foreground: 'var(--accent-primary)'
-  			},
-  			destructive: {
-  				DEFAULT: 'var(--error-primary)',
-  				foreground: 'var(--text-reversed)'
-  			},
-  			border: 'var(--border-default)',
-  			input: 'var(--input-bg)',
-  			ring: 'var(--accent-primary)'
+  			}
   		},
   		fontFamily: {
   			sans: [

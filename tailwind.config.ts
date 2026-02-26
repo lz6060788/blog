@@ -102,7 +102,7 @@ const config: Config = {
   					border: 'var(--nav-border)'
   				}
   			},
-  			// shadcn/ui 颜色映射 - 使用项目 CSS 变量
+  			// shadcn/ui 颜色映射 - 整合到项目原有主题色系统
   			background: 'var(--bg-canvas)',
   			foreground: 'var(--text-canvas)',
   			card: {
@@ -123,11 +123,11 @@ const config: Config = {
   			},
   			muted: {
   				DEFAULT: 'var(--bg-muted)',
-  				foreground: 'var(--text-tertiary)'
+  				foreground: 'var(--text-secondary)'
   			},
   			accent: {
   				DEFAULT: 'var(--accent-bg)',
-  				foreground: 'var(--accent-fg)'
+  				foreground: 'var(--accent-primary)'
   			},
   			destructive: {
   				DEFAULT: 'var(--error-primary)',

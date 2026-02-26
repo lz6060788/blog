@@ -1,26 +1,26 @@
-"use client";
+"use client"
 
-import { useSession, signOut } from "next-auth/react";
-import { User, SignOut } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/Button";
+import { useSession, signOut } from "next-auth/react"
+import { User, SignOut } from "@phosphor-icons/react"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/DropdownMenu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function UserMenu() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession()
 
   if (status === "loading") {
-    return <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />;
+    return <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
   }
 
   if (!session?.user) {
-    return null;
+    return null
   }
 
   const userInitials = session.user.name
@@ -30,12 +30,12 @@ export function UserMenu() {
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : session.user.email?.slice(0, 2).toUpperCase() || "U";
+    : session.user.email?.slice(0, 2).toUpperCase() || "U"
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
           <Avatar className="h-10 w-10">
             {session.user.image ? (
               <AvatarImage src={session.user.image} alt={session.user.name || "User"} />
@@ -68,5 +68,5 @@ export function UserMenu() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

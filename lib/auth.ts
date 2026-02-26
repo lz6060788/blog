@@ -1,17 +1,16 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
+import { customDrizzleAdapter } from "./auth/drizzle-adapter";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db, {
-    usersTable: schema.users as any,
-    accountsTable: schema.accounts as any,
-    sessionsTable: schema.sessions as any,
-    verificationTokensTable: schema.verificationTokens as any,
+  adapter: customDrizzleAdapter(db, {
+    users: schema.users,
+    sessions: schema.sessions,
+    accounts: schema.accounts,
   }),
   providers: [
     GitHub({

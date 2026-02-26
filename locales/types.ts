@@ -19,10 +19,27 @@ export interface HomeMessages {
   latestPosts: string
 }
 
+export interface LoginMessages {
+  welcome: string
+  subtitle: string
+  github: string
+  google: string
+  brand: {
+    title: string
+    subtitle: string
+  }
+  footer: {
+    terms: string
+    privacy: string
+    backToHome: string
+  }
+}
+
 export interface Messages {
   common: CommonMessages
   nav: NavMessages
   home: HomeMessages
+  login: LoginMessages
 }
 
 export type Locale = 'en' | 'zh'

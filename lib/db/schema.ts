@@ -78,5 +78,4 @@ export const schema = {
   users,
   sessions,
   accounts,
-  verificationTokens,
 };

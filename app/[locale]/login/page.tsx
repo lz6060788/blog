@@ -14,18 +14,19 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const [isClient, setIsClient] = useState(false)
 
-  // 获取 callbackUrl
+  // 获取 callbackUrl 和错误信息
   const callbackUrl = searchParams.get('callbackUrl') || undefined
+  const error = searchParams.get('error')
 
   // 客户端标记（确保水合一致）
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // 已登录用户重定向
+  // 已登录用户重定向到后台
   useEffect(() => {
     if (status === 'authenticated' && isClient) {
-      router.push(callbackUrl || '/')
+      router.push(callbackUrl || '/admin')
     }
   }, [status, isClient, router, callbackUrl])
 
@@ -66,7 +67,7 @@ export default function LoginPage() {
       <VisualSection />
 
       {/* 功能区域 */}
-      <AuthSection callbackUrl={callbackUrl} />
+      <AuthSection callbackUrl={callbackUrl} error={error} />
     </AuthLayout>
   )
 }

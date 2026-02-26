@@ -15,6 +15,20 @@
       "when": 1772085086280,
       "tag": "0001_military_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772095136531,
+      "tag": "0002_dark_odin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1772120107780,
+      "tag": "0003_odd_thunderbird",
+      "breakpoints": true
     }
   ]
 }

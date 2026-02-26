@@ -6,7 +6,6 @@ import { Cursor, List, House } from '@phosphor-icons/react'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { UserMenu } from './auth/UserMenu'
-import { LoginButton } from './auth/LoginButton'
 import { useSession } from 'next-auth/react'
 import { Link } from '@/app/i18n/routing'
 import { useTranslations } from 'next-intl'
@@ -56,11 +55,7 @@ export default function Navigation() {
             <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
           ) : session ? (
             <UserMenu />
-          ) : (
-            <div className="hidden md:block">
-              <LoginButton />
-            </div>
-          )}
+          ) : null}
           <div className="flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon

@@ -35,7 +35,8 @@ export function OAuthButton({ provider, callbackUrl }: OAuthButtonProps) {
   const handleClick = async () => {
     setIsLoading(true)
     try {
-      await signIn(config.id, { callbackUrl: callbackUrl || '/' })
+      // 默认跳转到后台，除非有特定的 callbackUrl
+      await signIn(config.id, { callbackUrl: callbackUrl || '/admin' })
     } catch (error) {
       console.error('OAuth sign-in error:', error)
       setIsLoading(false)

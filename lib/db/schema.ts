@@ -1,15 +1,6 @@
-import {
-  pgTable,
-  index,
-  varchar,
-  timestamp,
-  text,
-  integer,
-  primaryKey,
-} from "drizzle-orm/pg-core";
 // @ts-ignore
 import { relations } from "drizzle-orm";
-import { sqliteTable, text as sqliteText } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text as sqliteText, primaryKey } from "drizzle-orm/sqlite-core";
 
 // ============================================================================
 // NextAuth.js 表定义 (SQLite)

@@ -56,6 +56,7 @@ export function withAuth<T extends any[]>(
       return NextResponse.json({ error: "未认证" }, { status: 401 });
     }
 
+    // @ts-ignore
     return handler(session, ...args);
   };
 }

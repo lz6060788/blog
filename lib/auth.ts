@@ -2,15 +2,16 @@ import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(db, {
-    usersTable: schema.users,
-    accountsTable: schema.accounts,
-    sessionsTable: schema.sessions,
-    verificationTokensTable: schema.verificationTokens,
+    usersTable: schema.users as any,
+    accountsTable: schema.accounts as any,
+    sessionsTable: schema.sessions as any,
+    verificationTokensTable: schema.verificationTokens as any,
   }),
   providers: [
     GitHub({
@@ -39,7 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const existingUser = await db
         .select()
         .from(schema.users)
-        .where((users: any) => users.email === user.email)
+        .where(eq(schema.users.email, user.email))
         .limit(1);
 
       if (existingUser.length > 0) {

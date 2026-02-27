@@ -62,6 +62,10 @@ export default function NewPostPage() {
   const handleAddTag = () => {
     const trimmed = tagInput.trim()
     if (trimmed && !tags.includes(trimmed)) {
+      if (tags.length >= 3) {
+        toast.error('最多只能添加3个标签')
+        return
+      }
       setTags([...tags, trimmed])
       setTagInput('')
     }
@@ -85,6 +89,10 @@ export default function NewPostPage() {
     if (tags.includes(tagName)) {
       setTags(tags.filter(t => t !== tagName))
     } else {
+      if (tags.length >= 3) {
+        toast.error('最多只能添加3个标签')
+        return
+      }
       setTags([...tags, tagName])
     }
   }
@@ -224,13 +232,14 @@ export default function NewPostPage() {
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagKeyDown}
-            placeholder="输入标签按回车"
+            placeholder={tags.length >= 3 ? "已达到标签上限" : "输入标签按回车"}
             className="h-9 flex-1"
+            disabled={tags.length >= 3}
           />
           {/* 已选标签 - 显示在输入框旁边 */}
           {tags.length > 0 && (
             <div className="flex items-center gap-1">
-              {tags.slice(0, 2).map(tag => (
+              {tags.map(tag => (
                 <span
                   key={tag}
                   className="inline-flex items-center gap-1 px-2 py-1 bg-theme-accent-bg text-theme-accent-primary rounded text-xs whitespace-nowrap"
@@ -245,9 +254,7 @@ export default function NewPostPage() {
                   </button>
                 </span>
               ))}
-              {tags.length > 2 && (
-                <span className="text-xs text-theme-text-tertiary">+{tags.length - 2}</span>
-              )}
+              <span className="text-xs text-theme-text-tertiary">({tags.length}/3)</span>
             </div>
           )}
         </div>

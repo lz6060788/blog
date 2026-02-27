@@ -1,0 +1,75 @@
+/* ============================================
+   组件颜色 - Button (btn)
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  /* Default 变体 */
+  --btn-default-bg: var(--neutral-900);
+  --btn-default-fg: var(--neutral-50);
+  --btn-default-bg-hover: var(--neutral-800);
+  --btn-default-fg-hover: var(--neutral-50);
+
+  /* Destructive 变体 */
+  --btn-destructive-bg: var(--danger-600);
+  --btn-destructive-fg: var(--neutral-50);
+  --btn-destructive-bg-hover: var(--danger-500);
+
+  /* Outline 变体 */
+  --btn-outline-bg: transparent;
+  --btn-outline-fg: var(--neutral-900);
+  --btn-outline-border: var(--neutral-200);
+  --btn-outline-bg-hover: var(--neutral-100);
+  --btn-outline-fg-hover: var(--neutral-900);
+
+  /* Secondary 变体 */
+  --btn-secondary-bg: var(--neutral-200);
+  --btn-secondary-fg: var(--neutral-900);
+  --btn-secondary-bg-hover: var(--neutral-300);
+
+  /* Ghost 变体 */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-fg: var(--neutral-500);
+  --btn-ghost-bg-hover: var(--neutral-100);
+  --btn-ghost-fg-hover: var(--neutral-900);
+
+  /* Link 变体 */
+  --btn-link-bg: transparent;
+  --btn-link-fg: var(--accent-600);
+}
+
+/* 深色主题 */
+.dark {
+  /* Default 变体 - 反转 */
+  --btn-default-bg: var(--neutral-50);
+  --btn-default-fg: var(--neutral-900);
+  --btn-default-bg-hover: var(--neutral-100);
+  --btn-default-fg-hover: var(--neutral-900);
+
+  /* Destructive 变体 */
+  --btn-destructive-bg: var(--danger-400);
+  --btn-destructive-fg: var(--neutral-50);
+  --btn-destructive-bg-hover: var(--danger-600);
+
+  /* Outline 变体 */
+  --btn-outline-bg: transparent;
+  --btn-outline-fg: var(--neutral-50);
+  --btn-outline-border: var(--neutral-800);
+  --btn-outline-bg-hover: var(--neutral-800);
+  --btn-outline-fg-hover: var(--neutral-50);
+
+  /* Secondary 变体 */
+  --btn-secondary-bg: var(--neutral-800);
+  --btn-secondary-fg: var(--neutral-50);
+  --btn-secondary-bg-hover: var(--neutral-700);
+
+  /* Ghost 变体 */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-fg: var(--neutral-400);
+  --btn-ghost-bg-hover: var(--neutral-800);
+  --btn-ghost-fg-hover: var(--neutral-50);
+
+  /* Link 变体 */
+  --btn-link-fg: var(--accent-400);
+}

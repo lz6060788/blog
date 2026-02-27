@@ -1,0 +1,174 @@
+/* ============================================
+   三层颜色系统架构
+   ============================================ */
+
+/* ===========================================
+   第一层：基础色板 - 纯色值，无语义含义
+   这些变量提供颜色阶梯，不描述用途
+   =========================================== */
+
+:root {
+  /* === 中性色板 === */
+  --zinc-50: #fafafa;
+  --zinc-100: #f4f4f5;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-400: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-950: #09090b;
+
+  /* === 强调色板 === */
+  --emerald-50: #ecfdf5;
+  --emerald-100: #d1fae5;
+  --emerald-200: #a7f3d0;
+  --emerald-300: #6ee7b7;
+  --emerald-400: #34d399;
+  --emerald-500: #10b981;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --emerald-800: #065f46;
+  --emerald-900: #064e3b;
+  --emerald-950: #022c22;
+
+  /* === 语义色板（状态色） === */
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-200: #fecaca;
+  --red-300: #fca5a5;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --red-800: #991b1b;
+  --red-900: #7f1d1d;
+  --red-950: #450a0a;
+
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-200: #fde68a;
+  --amber-300: #fcd34d;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --amber-900: #78350f;
+  --amber-950: #451a03;
+
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  --blue-950: #172554;
+
+  /* ===========================================
+     第二层：语义角色 - 描述用途，而非颜色
+     这些变量定义颜色的"角色"或"用途"
+     数字保持语义：50=最浅，950=最深
+     =========================================== */
+
+  /* === 中性色角色（用于背景、文字、边框） === */
+  /* 在浅色主题下直接使用 zinc 色板 */
+  --neutral-50: var(--zinc-50);
+  --neutral-100: var(--zinc-100);
+  --neutral-200: var(--zinc-200);
+  --neutral-300: var(--zinc-300);
+  --neutral-400: var(--zinc-400);
+  --neutral-500: var(--zinc-500);
+  --neutral-600: var(--zinc-600);
+  --neutral-700: var(--zinc-700);
+  --neutral-800: var(--zinc-800);
+  --neutral-900: var(--zinc-900);
+  --neutral-950: var(--zinc-950);
+
+  /* === 强调色角色（用于主要操作、高亮等） === */
+  --accent-50: var(--emerald-50);
+  --accent-100: var(--emerald-100);
+  --accent-200: var(--emerald-200);
+  --accent-300: var(--emerald-300);
+  --accent-400: var(--emerald-400);
+  --accent-500: var(--emerald-500);
+  --accent-600: var(--emerald-600);
+  --accent-700: var(--emerald-700);
+  --accent-800: var(--emerald-800);
+  --accent-900: var(--emerald-900);
+  --accent-950: var(--emerald-950);
+
+  /* === 语义状态色角色 === */
+  --success-50: var(--emerald-50);
+  --success-100: var(--emerald-100);
+  --success-200: var(--emerald-200);
+  --success-300: var(--emerald-300);
+  --success-400: var(--emerald-400);
+  --success-500: var(--emerald-500);
+  --success-600: var(--emerald-600);
+  --success-700: var(--emerald-700);
+  --success-800: var(--emerald-800);
+  --success-900: var(--emerald-900);
+  --success-950: var(--emerald-950);
+
+  --danger-50: var(--red-50);
+  --danger-100: var(--red-100);
+  --danger-200: var(--red-200);
+  --danger-300: var(--red-300);
+  --danger-400: var(--red-400);
+  --danger-500: var(--red-500);
+  --danger-600: var(--red-600);
+  --danger-700: var(--red-700);
+  --danger-800: var(--red-800);
+  --danger-900: var(--red-900);
+  --danger-950: var(--red-950);
+
+  --warning-50: var(--amber-50);
+  --warning-100: var(--amber-100);
+  --warning-200: var(--amber-200);
+  --warning-300: var(--amber-300);
+  --warning-400: var(--amber-400);
+  --warning-500: var(--amber-500);
+  --warning-600: var(--amber-600);
+  --warning-700: var(--amber-700);
+  --warning-800: var(--amber-800);
+  --warning-900: var(--amber-900);
+  --warning-950: var(--amber-950);
+
+  --info-50: var(--blue-50);
+  --info-100: var(--blue-100);
+  --info-200: var(--blue-200);
+  --info-300: var(--blue-300);
+  --info-400: var(--blue-400);
+  --info-500: var(--blue-500);
+  --info-600: var(--blue-600);
+  --info-700: var(--blue-700);
+  --info-800: var(--blue-800);
+  --info-900: var(--blue-900);
+  --info-950: var(--blue-950);
+}
+
+/* ===========================================
+   主题说明
+   深色主题的切换在 semantic/*.css 和 components/*.css 中处理
+   这些文件会根据 .dark class 选择不同的基础色板值
+   =========================================== */
+
+/* ===========================================
+   扩展示例：添加新主题（如粉色主题）
+   只需重新映射语义角色，无需修改组件代码
+   =========================================== */
+
+/* .theme-pink {
+  --accent-50: var(--pink-50);
+  --accent-400: var(--pink-400);
+  --accent-600: var(--pink-600);
+  --success-400: var(--pink-400);
+  ...
+} */

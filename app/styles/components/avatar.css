@@ -1,0 +1,16 @@
+/* ============================================
+   组件颜色 - Avatar (avt)
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  --avt-fallback-bg: var(--neutral-200);
+  --avt-fallback-fg: var(--neutral-500);
+}
+
+/* 深色主题 */
+.dark {
+  --avt-fallback-bg: var(--neutral-800);
+  --avt-fallback-fg: var(--neutral-400);
+}

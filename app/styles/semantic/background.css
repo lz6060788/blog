@@ -1,0 +1,24 @@
+/* ============================================
+   语义颜色 - 背景
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  --bg-canvas: var(--neutral-50);     /* 浅色背景 */
+  --bg-surface: var(--neutral-50);     /* 表面背景 */
+  --bg-surface-alt: var(--neutral-100);  /* 交替表面 */
+  --bg-muted: var(--neutral-200);      /* 静音背景 */
+  --bg-subtle: var(--neutral-300);     /* 微妙背景 */
+  --bg-overlay: rgba(0, 0, 0, 0.5);    /* 遮罩层 */
+}
+
+/* 深色主题 - 使用深色值 */
+.dark {
+  --bg-canvas: var(--neutral-950);     /* 深邃黑背景 */
+  --bg-surface: var(--neutral-900);     /* 表面背景 */
+  --bg-surface-alt: var(--neutral-800);  /* 交替表面 */
+  --bg-muted: var(--neutral-700);      /* 静音背景 */
+  --bg-subtle: var(--neutral-600);     /* 微妙背景 */
+  --bg-overlay: rgba(0, 0, 0, 0.7);    /* 遮罩层 */
+}

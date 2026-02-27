@@ -1,0 +1,28 @@
+/* ============================================
+   组件颜色 - Dialog (dlg)
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  --dlg-overlay-bg: rgba(0, 0, 0, 0.8);
+  --dlg-content-bg: var(--neutral-50);
+  --dlg-content-border: var(--neutral-200);
+  --dlg-close-bg-hover: var(--neutral-100);
+  --dlg-close-fg-hover: var(--neutral-900);
+  --dlg-title-fg: var(--neutral-900);
+  --dlg-desc-fg: var(--neutral-500);
+  --dlg-ring-color: var(--accent-600);
+}
+
+/* 深色主题 */
+.dark {
+  --dlg-overlay-bg: rgba(0, 0, 0, 0.8);
+  --dlg-content-bg: var(--neutral-900);
+  --dlg-content-border: var(--neutral-800);
+  --dlg-close-bg-hover: var(--neutral-800);
+  --dlg-close-fg-hover: var(--neutral-50);
+  --dlg-title-fg: var(--neutral-50);
+  --dlg-desc-fg: var(--neutral-400);
+  --dlg-ring-color: var(--accent-400);
+}

@@ -1,0 +1,28 @@
+/* ============================================
+   语义颜色 - 文字
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  --text-canvas: var(--neutral-900);
+  --text-surface: var(--neutral-800);
+  --text-primary: var(--neutral-700);
+  --text-secondary: var(--neutral-500);
+  --text-tertiary: var(--neutral-400);
+  --text-muted: var(--neutral-300);
+  --text-disabled: var(--neutral-200);
+  --text-reversed: var(--neutral-50);
+}
+
+/* 深色主题 */
+.dark {
+  --text-canvas: var(--neutral-50);    /* 最浅文字 */
+  --text-surface: var(--neutral-100);
+  --text-primary: var(--neutral-200);
+  --text-secondary: var(--neutral-400);
+  --text-tertiary: var(--neutral-500);
+  --text-muted: var(--neutral-600);
+  --text-disabled: var(--neutral-700);
+  --text-reversed: var(--neutral-900);  /* 最深文字 */
+}

@@ -1,0 +1,18 @@
+/* ============================================
+   向后兼容 - 卡片
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  --card-bg: var(--neutral-50);
+  --card-border: var(--neutral-200);
+  --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+}
+
+/* 深色主题 */
+.dark {
+  --card-bg: var(--neutral-900);
+  --card-border: var(--neutral-800);
+  --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+}

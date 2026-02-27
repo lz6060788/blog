@@ -1,0 +1,20 @@
+/* ============================================
+   语义颜色 - 边框
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  --border-default: var(--neutral-200);
+  --border-muted: var(--neutral-100);
+  --border-subtle: var(--neutral-300);
+  --border-strong: var(--neutral-400);
+}
+
+/* 深色主题 */
+.dark {
+  --border-default: var(--neutral-800);
+  --border-muted: var(--neutral-700);
+  --border-subtle: var(--neutral-600);
+  --border-strong: var(--neutral-500);
+}

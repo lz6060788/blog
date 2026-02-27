@@ -28,6 +28,11 @@ export default function NewPostPage() {
 
   const editorRef = useRef<CherryEditorRef>(null)
 
+  // 设置页面标题
+  useEffect(() => {
+    document.title = '新建文章 - 管理后台'
+  }, [])
+
   // 加载分类和标签选项
   useEffect(() => {
     async function loadOptions() {

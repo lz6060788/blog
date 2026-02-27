@@ -39,6 +39,11 @@ export default function PostsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
 
+  // 设置页面标题
+  useEffect(() => {
+    document.title = '文章管理 - 管理后台'
+  }, [])
+
   // 加载文章数据
   useEffect(() => {
     async function loadPosts() {

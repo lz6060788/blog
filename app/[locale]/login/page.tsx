@@ -23,6 +23,11 @@ export default function LoginPage() {
     setIsClient(true)
   }, [])
 
+  // 设置页面标题
+  useEffect(() => {
+    document.title = '登录 - 管理后台'
+  }, [])
+
   // 已登录用户重定向到后台
   useEffect(() => {
     if (status === 'authenticated' && isClient) {

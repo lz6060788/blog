@@ -25,6 +25,11 @@ export default function CategoriesPage() {
   const [showDialog, setShowDialog] = useState(false)
   const [editingCategory, setEditingCategory] = useState<any>(null)
 
+  // 设置页面标题
+  useEffect(() => {
+    document.title = '分类管理 - 管理后台'
+  }, [])
+
   useEffect(() => {
     loadCategories()
   }, [])

@@ -24,6 +24,11 @@ export default function TagsPage() {
   const [showDialog, setShowDialog] = useState(false)
   const [editingTag, setEditingTag] = useState<any>(null)
 
+  // 设置页面标题
+  useEffect(() => {
+    document.title = '标签管理 - 管理后台'
+  }, [])
+
   useEffect(() => {
     loadTags()
   }, [])

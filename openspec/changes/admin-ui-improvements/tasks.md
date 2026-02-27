@@ -11,12 +11,13 @@
 
 ## 2. 管理端页面 Title 设置
 
-- [ ] 2.1 为登录页 (`app/admin/login/page.tsx`) 添加 metadata export
-- [ ] 2.2 为文章列表页 (`app/admin/posts/page.tsx`) 添加 metadata export
-- [ ] 2.3 为文章编辑页 (`app/admin/posts/[id]/edit/page.tsx`) 添加动态 metadata export
-- [ ] 2.4 为分类管理页添加 metadata export（如果存在独立页面）
-- [ ] 2.5 为标签管理页添加 metadata export（如果存在独立页面）
-- [ ] 2.6 验证所有页面标题在浏览器标签中正确显示
+- [x] 2.1 为登录页 (`app/[locale]/login/page.tsx`) 添加页面标题
+- [x] 2.2 为文章列表页 (`app/admin/posts/page.tsx`) 添加页面标题
+- [x] 2.3 为文章编辑页 (`app/admin/posts/[id]/edit/page.tsx`) 添加动态页面标题
+- [x] 2.4 为新建文章页 (`app/admin/posts/new/page.tsx`) 添加页面标题
+- [x] 2.5 为分类管理页添加页面标题
+- [x] 2.6 为标签管理页添加页面标题
+- [x] 2.7 验证所有页面标题在浏览器标签中正确显示（通过 useEffect 动态设置）
 
 ## 3. 文章列表信息增强
 

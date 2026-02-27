@@ -35,6 +35,15 @@ export default function EditPostPage() {
   const editorRef = useRef<CherryEditorRef>(null)
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+  // 设置页面标题
+  useEffect(() => {
+    if (title) {
+      document.title = `编辑文章: ${title} - 管理后台`
+    } else {
+      document.title = '编辑文章 - 管理后台'
+    }
+  }, [title])
+
   // 加载文章数据和选项
   useEffect(() => {
     async function loadData() {

@@ -220,6 +220,18 @@
 - **且** 输入框显示为灰色（`--text-disabled`）
 - **且** 用户无法在输入框中输入文本
 
+#### 场景：Input 组件颜色变量
+
+- **当** 使用 Input 组件
+- **则** 组件 SHALL 使用项目的 HSL 颜色变量
+- **包括**: `--background`, `--foreground`, `--primary`, `--border` 等
+
+#### 场景：支持的 Input 变体
+
+- **当** 开发者使用不同变体的 Input
+- **则** 系统 SHALL 支持 `default`, `destructive`, `outline`, `secondary`, `ghost`, `link` 变体
+- **且** 每个变体 SHALL 自动适配主题颜色
+
 ### 需求：Card 组件
 
 系统应提供 Card 相关组件（Card、CardHeader、CardContent、CardFooter）。
@@ -254,6 +266,28 @@
 - **当** 开发者使用 `<Label>邮箱 <span className="text-destructive">*</span></Label>`
 - **则** 系统在标签后显示红色星号
 - **且** 星号颜色使用 `--error-primary`
+
+### 需求：Select 组件
+
+系统应提供 Select 组件，用于下拉选择功能。
+
+#### 场景：Select 组件引入
+
+- **当** 项目需要下拉选择功能
+- **则** 系统 SHALL 使用 `npx shadcn@latest add select` 引入 Select 组件
+- **且** Select 组件 SHALL 完全适配项目主题
+
+#### 场景：Select 组件样式覆盖
+
+- **当** Select 组件默认样式不符合需求
+- **则** 系统 SHALL 通过 CSS 变量覆盖默认样式
+- **且** 保持组件的功能不变
+
+#### 场景：Select 组件主题适配
+
+- **当** 用户切换主题（亮色/暗色）
+- **则** Select 组件 SHALL 自动适配主题颜色
+- **且** 使用项目的 HSL 颜色变量
 
 ### 需求：Table 组件
 

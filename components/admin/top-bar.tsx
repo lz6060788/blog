@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, User, Menu } from 'lucide-react'
+import { LogOut, Menu } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface TopBarProps {
@@ -22,6 +22,7 @@ interface TopBarProps {
 export function TopBar({ onMobileMenuOpen }: TopBarProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { data: session } = useSession()
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -35,12 +36,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     }
   }
 
-  // Get user from session (would need to be passed from parent or use useSession)
-  const user = {
-    name: 'Admin',
-    email: 'admin@blog.com',
-    image: null,
-  }
+  const user = session?.user || { name: 'User', email: '', image: null }
 
   const userInitials = user.name
     ?.split(' ')
@@ -100,16 +96,6 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                 <p className="text-xs text-theme-text-tertiary">{user.email}</p>
               </div>
             </DropdownMenuLabel>
-
-            <DropdownMenuSeparator className="bg-theme-border" />
-
-            <DropdownMenuItem
-              onClick={() => router.push('/admin/profile')}
-              className="text-theme-text-secondary hover:text-theme-text-cursor hover:bg-theme-bg-muted cursor-pointer"
-            >
-              <User className="w-4 h-4 mr-2" strokeWidth={2} />
-              <span>个人资料</span>
-            </DropdownMenuItem>
 
             <DropdownMenuSeparator className="bg-theme-border" />
 

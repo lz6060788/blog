@@ -34,9 +34,9 @@
 /* 深色主题 */
 .dark {
   /* === 强调色系统（深色模式下用更亮的） === */
-  --accent-primary: var(--accent-400);
+  --accent-primary: var(--accent-600);
   --accent-secondary: var(--accent-500);
-  --accent-tertiary: var(--accent-600);
+  --accent-tertiary: var(--accent-400);
   --accent-bg: var(--accent-950);
   --accent-bg-subtle: var(--accent-900);
 

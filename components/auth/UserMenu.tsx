@@ -1,7 +1,8 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
-import { User, SignOut } from "@phosphor-icons/react"
+import { SignOut, Buildings } from "@phosphor-icons/react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -51,10 +52,10 @@ export function UserMenu() {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <button className="flex w-full items-center gap-2">
-            <User className="h-4 w-4" />
-            个人资料
-          </button>
+          <Link href="/admin" className="flex w-full items-center gap-2">
+            <Buildings className="h-4 w-4" />
+            管理端
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

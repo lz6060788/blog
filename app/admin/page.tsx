@@ -96,11 +96,11 @@ export default function AdminPage() {
                 <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors cursor-pointer group">
                   <div className="flex items-center gap-4">
                     <div className="p-3 rounded-lg bg-theme-accent-bg group-hover:bg-theme-accent-primary transition-colors">
-                      <Icon className="w-5 h-5 text-theme-accent-primary group-hover:text-theme-accent-text transition-colors" strokeWidth={2} />
+                      <Icon className="w-5 h-5 text-theme-accent-primary group-hover:text-theme-accent-fg transition-colors" strokeWidth={2} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-theme-text-canvas">{action.label}</h3>
-                      <p className="text-sm text-theme-text-tertiary">{action.description}</p>
+                      <h3 className="font-medium text-theme-text-canvas group-hover:text-theme-text-canvas transition-colors">{action.label}</h3>
+                      <p className="text-sm text-theme-text-tertiary group-hover:text-theme-text-secondary transition-colors">{action.description}</p>
                     </div>
                   </div>
                 </div>

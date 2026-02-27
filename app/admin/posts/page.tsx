@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import {
   DropdownMenu,
@@ -167,12 +168,12 @@ export default function PostsPage() {
       >
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-text-tertiary" strokeWidth={2} />
-          <input
+          <Input
             type="text"
             placeholder="搜索文章..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-theme-bg-surface border border-theme-border rounded-xl text-sm text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+            className="pl-10 rounded-xl"
           />
         </div>
         <div className="flex gap-2">

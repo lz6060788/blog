@@ -248,12 +248,12 @@ export default function EditPostPage() {
       <div className="space-y-4">
         {/* 标题输入 */}
         <div>
-          <input
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="请输入文章标题..."
-            className="w-full px-4 py-3 bg-theme-bg-surface border border-theme-border rounded-xl text-xl font-medium text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+            className="px-4 py-6 text-xl font-medium rounded-xl"
           />
         </div>
 

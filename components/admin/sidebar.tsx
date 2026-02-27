@@ -7,6 +7,8 @@ import {
   FileText,
   FileX,
   Settings,
+  FolderOpen,
+  Tag,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -17,6 +19,8 @@ const navItems = [
   { href: '/admin', label: '首页', icon: LayoutDashboard },
   { href: '/admin/posts', label: '文章管理', icon: FileText },
   { href: '/admin/drafts', label: '草稿箱', icon: FileX },
+  { href: '/admin/categories', label: '分类管理', icon: FolderOpen },
+  { href: '/admin/tags', label: '标签管理', icon: Tag },
   { href: '/admin/settings', label: '设置', icon: Settings },
 ]
 

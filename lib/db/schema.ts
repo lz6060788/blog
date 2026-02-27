@@ -55,6 +55,29 @@ export const verificationTokens = sqliteTable("verification_token", {
 }));
 
 // ============================================================================
+// 分类和标签表定义
+// ============================================================================
+
+// 分类表
+export const categories = sqliteTable("categories", {
+  id: sqliteText("id").primaryKey(),
+  name: sqliteText("name").notNull().unique(),
+  slug: sqliteText("slug").notNull().unique(),
+  description: sqliteText("description"),
+  createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+});
+
+// 标签表
+export const tags = sqliteTable("tags", {
+  id: sqliteText("id").primaryKey(),
+  name: sqliteText("name").notNull().unique(),
+  slug: sqliteText("slug").notNull().unique(),
+  createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+});
+
+// ============================================================================
 // 文章表定义
 // ============================================================================
 
@@ -66,9 +89,22 @@ export const posts = sqliteTable("posts", {
   excerpt: sqliteText("excerpt"),
   published: integer("published", { mode: "boolean" }).notNull().default(false),
   authorId: sqliteText("authorId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  categoryId: sqliteText("categoryId").references(() => categories.id, { onDelete: "set null" }),
+  readTime: integer("read_time").notNull().default(0),
+  publishedDate: sqliteText("published_date"),
   createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
   updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
 });
+
+// 文章-标签关联表（多对多）
+export const postTags = sqliteTable("post_tags", {
+  postId: sqliteText("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  tagId: sqliteText("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+}, (table) => ({
+  compoundKey: primaryKey({
+    columns: [table.postId, table.tagId],
+  }),
+}));
 
 // ============================================================================
 // 设置表定义
@@ -84,10 +120,37 @@ export const settings = sqliteTable("settings", {
 });
 
 // 文章关系定义
-export const postRelations = relations(posts, ({ one }) => ({
+export const postRelations = relations(posts, ({ one, many }) => ({
   author: one(users, {
     fields: [posts.authorId],
     references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [posts.categoryId],
+    references: [categories.id],
+  }),
+  tags: many(postTags),
+}));
+
+// 分类关系定义
+export const categoryRelations = relations(categories, ({ many }) => ({
+  posts: many(posts),
+}));
+
+// 标签关系定义
+export const tagRelations = relations(tags, ({ many }) => ({
+  postTags: many(postTags),
+}));
+
+// 文章-标签关联关系定义
+export const postTagRelations = relations(postTags, ({ one }) => ({
+  post: one(posts, {
+    fields: [postTags.postId],
+    references: [posts.id],
+  }),
+  tag: one(tags, {
+    fields: [postTags.tagId],
+    references: [tags.id],
   }),
 }));
 
@@ -118,4 +181,7 @@ export const schema = {
   accounts,
   posts,
   settings,
+  categories,
+  tags,
+  postTags,
 };

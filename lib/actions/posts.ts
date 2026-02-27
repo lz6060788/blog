@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
-import { posts } from '@/lib/db/schema'
+import { posts, categories, tags, postTags } from '@/lib/db/schema'
 import { auth } from '@/lib/auth'
 import { eq } from 'drizzle-orm'
 
@@ -42,16 +42,28 @@ function generateExcerpt(content: string, maxLength = 150): string {
   return plainText.substring(0, maxLength).trim() + '...'
 }
 
+// 生成 slug
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 // 创建文章
 export async function createPost(data: {
   title: string
   content: string
   excerpt?: string
   published?: boolean
+  categoryId?: string
+  tags?: string[]
+  readTime?: number
+  publishedDate?: string
 }) {
   const user = await getCurrentUser()
 
-  const { title, content, excerpt, published = false } = data
+  const { title, content, excerpt, published = false, categoryId, tags: tagNames, readTime = 0, publishedDate } = data
 
   if (!title.trim()) {
     throw new Error('标题不能为空')
@@ -73,6 +85,9 @@ export async function createPost(data: {
     excerpt?: string
     published: boolean
     authorId: string
+    categoryId?: string | null
+    readTime: number
+    publishedDate?: string | null
     createdAt: string
     updatedAt: string
   } = {
@@ -81,6 +96,9 @@ export async function createPost(data: {
     content: content.trim(),
     published,
     authorId: user.id,
+    categoryId: categoryId || null,
+    readTime,
+    publishedDate: publishedDate || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -91,6 +109,49 @@ export async function createPost(data: {
   }
 
   await db.insert(posts).values(insertData)
+
+  // 处理标签
+  if (tagNames && Array.isArray(tagNames) && tagNames.length > 0) {
+    for (const tagName of tagNames) {
+      if (!tagName || typeof tagName !== 'string') continue
+
+      // 检查标签是否已存在
+      const [existingTag] = await db
+        .select()
+        .from(tags)
+        .where(eq(tags.name, tagName.trim()))
+        .limit(1)
+
+      let tagId: string
+
+      if (existingTag) {
+        tagId = existingTag.id
+      } else {
+        // 创建新标签
+        const newTagId = crypto.randomUUID()
+        const slug = generateSlug(tagName.trim())
+
+        const [newTag] = await db
+          .insert(tags)
+          .values({
+            id: newTagId,
+            name: tagName.trim(),
+            slug,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })
+          .returning()
+
+        tagId = newTag.id
+      }
+
+      // 建立文章-标签关联
+      await db.insert(postTags).values({
+        postId,
+        tagId,
+      })
+    }
+  }
 
   // 重新验证缓存
   revalidatePath('/admin/posts')
@@ -107,6 +168,10 @@ export async function updatePost(
     content?: string
     excerpt?: string
     published?: boolean
+    categoryId?: string
+    tags?: string[]
+    readTime?: number
+    publishedDate?: string
   }
 ) {
   const user = await getCurrentUser()
@@ -127,7 +192,7 @@ export async function updatePost(
     throw new Error('无权修改此文章')
   }
 
-  const { title, content, excerpt, published } = data
+  const { title, content, excerpt, published, categoryId, tags: tagNames, readTime, publishedDate } = data
 
   // 构建更新数据
   const updateData: Record<string, unknown> = {
@@ -160,10 +225,71 @@ export async function updatePost(
     updateData.published = published
   }
 
+  if (categoryId !== undefined) {
+    updateData.categoryId = categoryId
+  }
+
+  if (readTime !== undefined) {
+    updateData.readTime = readTime
+  }
+
+  if (publishedDate !== undefined) {
+    updateData.publishedDate = publishedDate
+  }
+
   await db
     .update(posts)
     .set(updateData)
     .where(eq(posts.id, id))
+
+  // 处理标签（增量更新）
+  if (tagNames !== undefined) {
+    // 删除现有的标签关联
+    await db.delete(postTags).where(eq(postTags.postId, id))
+
+    // 添加新的标签关联
+    if (Array.isArray(tagNames) && tagNames.length > 0) {
+      for (const tagName of tagNames) {
+        if (!tagName || typeof tagName !== 'string') continue
+
+        // 检查标签是否已存在
+        const [existingTag] = await db
+          .select()
+          .from(tags)
+          .where(eq(tags.name, tagName.trim()))
+          .limit(1)
+
+        let tagId: string
+
+        if (existingTag) {
+          tagId = existingTag.id
+        } else {
+          // 创建新标签
+          const newTagId = crypto.randomUUID()
+          const slug = generateSlug(tagName.trim())
+
+          const [newTag] = await db
+            .insert(tags)
+            .values({
+              id: newTagId,
+              name: tagName.trim(),
+              slug,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            })
+            .returning()
+
+          tagId = newTag.id
+        }
+
+        // 建立文章-标签关联
+        await db.insert(postTags).values({
+          postId: id,
+          tagId,
+        })
+      }
+    }
+  }
 
   // 重新验证缓存
   revalidatePath('/admin/posts')
@@ -262,7 +388,39 @@ export async function getPost(id: string) {
     throw new Error('无权访问此文章')
   }
 
-  return post
+  // 获取文章的标签
+  const postTagsList = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+      slug: tags.slug,
+    })
+    .from(postTags)
+    .leftJoin(tags, eq(postTags.tagId, tags.id))
+    .where(eq(postTags.postId, id))
+
+  return {
+    ...post,
+    tags: postTagsList.map(t => t.name),
+  }
+}
+
+// 获取所有分类（用于表单选择）
+export async function getCategoriesForSelect() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized')
+  }
+  return await db.select().from(categories).orderBy(categories.name)
+}
+
+// 获取所有标签（用于表单选择）
+export async function getTagsForSelect() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized')
+  }
+  return await db.select().from(tags).orderBy(tags.name)
 }
 
 // 获取所有文章（支持分页、搜索、筛选）

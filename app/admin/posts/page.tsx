@@ -262,7 +262,13 @@ export default function PostsPage() {
                   className="border-b border-theme-border hover:bg-theme-bg-muted transition-colors"
                 >
                   <TableCell className="font-medium text-theme-text-canvas">
-                    {post.title}
+                    <Link
+                      href={`/admin/posts/${post.id}/edit`}
+                      className="hover:text-theme-accent-primary transition-colors duration-200 underline-offset-4 hover:underline"
+                      aria-label={`编辑文章: ${post.title}`}
+                    >
+                      {post.title}
+                    </Link>
                   </TableCell>
                   <TableCell className="text-theme-text-secondary">
                     {post.category ? (

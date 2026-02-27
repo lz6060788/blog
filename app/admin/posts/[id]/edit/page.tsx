@@ -268,7 +268,7 @@ export default function EditPostPage() {
       </div>
 
       {/* 标题输入 */}
-      <div className="flex-shrink-0">
+      <div className="mb-3 flex-shrink-0">
         <Input
           type="text"
           value={title}
@@ -278,14 +278,14 @@ export default function EditPostPage() {
         />
       </div>
 
-      {/* 分类和标签 - 紧凑布局 */}
-      <div className="space-y-2 flex-shrink-0">
-        {/* 第一行：分类选择 */}
-        <div className="flex items-center gap-2">
-          <FolderOpen className="w-4 h-4 text-theme-text-secondary flex-shrink-0" />
+      {/* 分类和标签 - 同一行布局 */}
+      <div className="flex items-center gap-3 mb-3 flex-shrink-0">
+        {/* 分类选择器 */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <FolderOpen className="w-4 h-4 text-theme-text-secondary" />
           {!isLoadingOptions && (
             <Select value={categoryId || undefined} onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}>
-              <SelectTrigger className="h-9 flex-1 max-w-[200px]">
+              <SelectTrigger className="h-9 w-[160px]">
                 <SelectValue placeholder="选择分类" />
               </SelectTrigger>
               <SelectContent>
@@ -298,80 +298,65 @@ export default function EditPostPage() {
           )}
         </div>
 
-        {/* 第二行：标签输入 */}
-        <div className="flex items-center gap-2">
+        {/* 标签输入框 - 内嵌已选标签 */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <TagIcon className="w-4 h-4 text-theme-text-secondary flex-shrink-0" />
-          <div className="flex-1 flex items-center gap-2">
-            <Input
+          <div className="flex-1 flex items-center gap-2 px-3 py-1.5 h-9 bg-theme-bg-surface border border-theme-border rounded-md text-sm focus-within:ring-2 focus-within:ring-theme-accent-primary focus-within:border-transparent">
+            {/* 已选标签 */}
+            {tags.map(tag => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-theme-accent-bg text-theme-accent-primary rounded text-xs flex-shrink-0"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  className="hover:opacity-70"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+            {/* 输入框 */}
+            <input
+              type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagKeyDown}
-              placeholder={tags.length >= 3 ? "已达到标签上限 (3/3)" : "输入标签按回车添加"}
-              className="h-9"
+              placeholder={tags.length >= 3 ? "已达到标签上限 (3/3)" : "输入标签..."}
+              className="flex-1 min-w-[60px] bg-transparent outline-none placeholder:text-theme-text-tertiary disabled:opacity-50"
               disabled={tags.length >= 3}
             />
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={handleAddTag}
-              disabled={tags.length >= 3 || !tagInput.trim()}
-            >
-              添加
-            </Button>
+            {/* 计数器 */}
+            {tags.length > 0 && (
+              <span className="text-xs text-theme-text-tertiary flex-shrink-0">({tags.length}/3)</span>
+            )}
           </div>
         </div>
-
-        {/* 第三行：已选标签和快速选择 */}
-        {(tags.length > 0 || !isLoadingOptions) && (
-          <div className="flex items-start gap-4 pl-6">
-            {/* 已选标签 */}
-            {tags.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-theme-text-tertiary">已选:</span>
-                {tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-theme-accent-bg text-theme-accent-primary rounded text-xs"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="hover:opacity-70 ml-1"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-                <span className="text-xs text-theme-text-tertiary">({tags.length}/3)</span>
-              </div>
-            )}
-
-            {/* 已有标签快速选择 */}
-            {!isLoadingOptions && existingTags.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-theme-text-tertiary">快速选择:</span>
-                {existingTags.map(tag => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => handleToggleExistingTag(tag.name)}
-                    disabled={tags.length >= 3 && !tags.includes(tag.name)}
-                    className={`px-2 py-1 rounded text-xs transition-colors ${
-                      tags.includes(tag.name)
-                        ? 'bg-theme-accent-primary text-white'
-                        : 'bg-theme-bg-muted text-theme-text-secondary hover:bg-theme-bg-tertiary'
-                    } ${tags.length >= 3 && !tags.includes(tag.name) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* 已有标签快速选择 */}
+      {!isLoadingOptions && existingTags.length > 0 && (
+        <div className="flex items-center gap-2 mb-3 flex-shrink-0 pl-7">
+          <span className="text-xs text-theme-text-tertiary">快速选择:</span>
+          {existingTags.map(tag => (
+            <button
+              key={tag.id}
+              type="button"
+              onClick={() => handleToggleExistingTag(tag.name)}
+              disabled={tags.length >= 3 && !tags.includes(tag.name)}
+              className={`px-2 py-1 rounded text-xs transition-colors ${
+                tags.includes(tag.name)
+                  ? 'bg-theme-accent-primary text-white'
+                  : 'bg-theme-bg-muted text-theme-text-secondary hover:bg-theme-bg-tertiary'
+              } ${tags.length >= 3 && !tags.includes(tag.name) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {tag.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Cherry Markdown 编辑器 */}
       <div className="flex-1 min-h-0 flex-shrink-0">

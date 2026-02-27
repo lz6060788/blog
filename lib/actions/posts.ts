@@ -470,14 +470,57 @@ export async function getPosts(options?: {
 
   const total = Number(countResult[0]?.count || 0)
 
-  // 获取分页数据
-  const data = await db
-    .select()
+  // 获取分页数据，包含分类信息
+  const postsData = await db
+    .select({
+      id: posts.id,
+      title: posts.title,
+      content: posts.content,
+      excerpt: posts.excerpt,
+      published: posts.published,
+      authorId: posts.authorId,
+      categoryId: posts.categoryId,
+      readTime: posts.readTime,
+      publishedDate: posts.publishedDate,
+      createdAt: posts.createdAt,
+      updatedAt: posts.updatedAt,
+      categoryName: categories.name,
+      categorySlug: categories.slug,
+    })
     .from(posts)
+    .leftJoin(categories, eq(posts.categoryId, categories.id))
     .where(whereClause)
     .orderBy(posts.createdAt)
     .limit(pageSize)
     .offset(offset)
+
+  // 为每篇文章获取标签和字数
+  const data = await Promise.all(
+    postsData.map(async (post) => {
+      // 获取标签
+      const postTagsList = await db
+        .select({
+          id: tags.id,
+          name: tags.name,
+          slug: tags.slug,
+        })
+        .from(postTags)
+        .leftJoin(tags, eq(postTags.tagId, tags.id))
+        .where(eq(postTags.postId, post.id))
+
+      // 计算字数（中文字符数）
+      const wordCount = (post.content || '').length
+
+      return {
+        ...post,
+        category: post.categoryName
+          ? { id: post.categoryId, name: post.categoryName, slug: post.categorySlug }
+          : null,
+        tags: postTagsList,
+        wordCount,
+      }
+    })
+  )
 
   return {
     data,

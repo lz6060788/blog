@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,6 +131,14 @@ export default function PostsPage() {
     })
   }
 
+  // 格式化字数
+  const formatWordCount = (count: number) => {
+    if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}k 字`
+    }
+    return `${count} 字`
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -217,6 +226,9 @@ export default function PostsPage() {
           <TableHeader>
             <TableRow className="border-b border-theme-border hover:bg-transparent">
               <TableHead className="text-theme-text-secondary font-medium">标题</TableHead>
+              <TableHead className="text-theme-text-secondary font-medium">分类</TableHead>
+              <TableHead className="text-theme-text-secondary font-medium">标签</TableHead>
+              <TableHead className="text-theme-text-secondary font-medium">字数</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">创建时间</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">状态</TableHead>
               <TableHead className="text-theme-text-secondary font-medium text-right">操作</TableHead>
@@ -225,7 +237,7 @@ export default function PostsPage() {
           <TableBody>
             {posts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-theme-bg-muted flex items-center justify-center">
                       <FileText className="w-5 h-5 text-theme-text-tertiary" />
@@ -251,6 +263,34 @@ export default function PostsPage() {
                 >
                   <TableCell className="font-medium text-theme-text-canvas">
                     {post.title}
+                  </TableCell>
+                  <TableCell className="text-theme-text-secondary">
+                    {post.category ? (
+                      <Badge variant="secondary">{post.category.name}</Badge>
+                    ) : (
+                      <span className="text-theme-text-tertiary">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-theme-text-secondary">
+                    {post.tags && post.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {post.tags.slice(0, 3).map((tag: any) => (
+                          <Badge key={tag.id} variant="outline" className="text-xs">
+                            {tag.name}
+                          </Badge>
+                        ))}
+                        {post.tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{post.tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-theme-text-tertiary">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-theme-text-secondary">
+                    {formatWordCount(post.wordCount)}
                   </TableCell>
                   <TableCell className="text-theme-text-secondary">
                     {formatDate(post.createdAt)}

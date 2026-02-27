@@ -158,9 +158,9 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 h-full flex flex-col">
       {/* 头部 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
           <h1 className="text-2xl font-semibold text-theme-text-canvas">新建文章</h1>
           <p className="text-sm text-theme-text-secondary mt-1">
@@ -180,8 +180,8 @@ export default function NewPostPage() {
         </div>
       </div>
 
-      {/* 编辑器 */}
-      <div className="space-y-4">
+      {/* 编辑器内容区 */}
+      <div className="flex-1 overflow-auto space-y-4">
         {/* 标题输入 */}
         <div>
           <Input
@@ -216,7 +216,7 @@ export default function NewPostPage() {
           </div>
 
           {/* 标签输入 */}
-          <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4">
+          <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 min-h-[140px]">
             <Label className="flex items-center gap-2 mb-3">
               <TagIcon className="w-4 h-4" />
               标签
@@ -235,25 +235,27 @@ export default function NewPostPage() {
                 </Button>
               </div>
               {/* 已选标签 */}
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map(tag => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-theme-accent-bg text-theme-accent-primary rounded-md text-xs"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="hover:opacity-70"
+              <div className="min-h-[32px]">
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map(tag => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-theme-accent-bg text-theme-accent-primary rounded-md text-xs"
                       >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          className="hover:opacity-70"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
               {/* 已有标签快速选择 */}
               {!isLoadingOptions && existingTags.length > 0 && (
                 <div className="flex flex-wrap gap-1">

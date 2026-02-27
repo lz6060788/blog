@@ -1,0 +1,40 @@
+/* ============================================
+   组件颜色 - Input
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  /* 默认状态 */
+  --input-bg: var(--theme-bg-surface);
+  --input-fg: var(--theme-text-canvas);
+  --input-border: var(--theme-border-default);
+  --input-placeholder: var(--theme-text-tertiary);
+
+  /* Focus 状态 */
+  --input-border-focus: var(--theme-accent-primary);
+  --input-ring: var(--theme-accent-primary);
+
+  /* Disabled 状态 */
+  --input-bg-disabled: var(--theme-bg-muted);
+  --input-fg-disabled: var(--theme-text-tertiary);
+  --input-border-disabled: var(--theme-border-subtle);
+}
+
+/* 深色主题 */
+.dark {
+  /* 默认状态 */
+  --input-bg: var(--theme-bg-surface);
+  --input-fg: var(--theme-text-canvas);
+  --input-border: var(--theme-border-default);
+  --input-placeholder: var(--theme-text-tertiary);
+
+  /* Focus 状态 */
+  --input-border-focus: var(--theme-accent-primary);
+  --input-ring: var(--theme-accent-primary);
+
+  /* Disabled 状态 */
+  --input-bg-disabled: var(--theme-bg-muted);
+  --input-fg-disabled: var(--theme-text-tertiary);
+  --input-border-disabled: var(--theme-border-subtle);
+}

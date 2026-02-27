@@ -1,0 +1,50 @@
+/* ============================================
+   组件颜色 - Badge
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  /* Default 变体 */
+  --badge-default-bg: var(--theme-bg-muted);
+  --badge-default-fg: var(--theme-text-secondary);
+  --badge-default-border: transparent;
+
+  /* Secondary 变体 */
+  --badge-secondary-bg: var(--theme-bg-muted);
+  --badge-secondary-fg: var(--theme-text-secondary);
+  --badge-secondary-border: transparent;
+
+  /* Outline 变体 */
+  --badge-outline-bg: transparent;
+  --badge-outline-fg: var(--theme-text-secondary);
+  --badge-outline-border: var(--theme-border-default);
+
+  /* Destructive 变体 */
+  --badge-destructive-bg: var(--theme-error-bg);
+  --badge-destructive-fg: var(--theme-error-primary);
+  --badge-destructive-border: transparent;
+}
+
+/* 深色主题 */
+.dark {
+  /* Default 变体 */
+  --badge-default-bg: var(--theme-bg-muted);
+  --badge-default-fg: var(--theme-text-secondary);
+  --badge-default-border: transparent;
+
+  /* Secondary 变体 */
+  --badge-secondary-bg: var(--theme-bg-muted);
+  --badge-secondary-fg: var(--theme-text-secondary);
+  --badge-secondary-border: transparent;
+
+  /* Outline 变体 */
+  --badge-outline-bg: transparent;
+  --badge-outline-fg: var(--theme-text-secondary);
+  --badge-outline-border: var(--theme-border-default);
+
+  /* Destructive 变体 */
+  --badge-destructive-bg: var(--theme-error-bg);
+  --badge-destructive-fg: var(--theme-error-primary);
+  --badge-destructive-border: transparent;
+}

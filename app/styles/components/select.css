@@ -1,0 +1,56 @@
+/* ============================================
+   组件颜色 - Select
+   使用语义角色变量，便于主题扩展
+   ============================================ */
+
+/* 浅色主题 */
+:root {
+  /* Trigger 默认状态 */
+  --select-trigger-bg: var(--theme-bg-surface);
+  --select-trigger-fg: var(--theme-text-canvas);
+  --select-trigger-border: var(--theme-border-default);
+  --select-trigger-placeholder: var(--theme-text-tertiary);
+
+  /* Trigger Focus 状态 */
+  --select-trigger-border-focus: var(--theme-accent-primary);
+  --select-trigger-ring: var(--theme-accent-primary);
+
+  /* Content */
+  --select-content-bg: var(--theme-bg-surface);
+  --select-content-border: var(--theme-border-default);
+  --select-content-shadow: var(--shadow-lg);
+
+  /* Item 默认状态 */
+  --select-item-fg: var(--theme-text-canvas);
+  --select-item-bg-hover: var(--theme-bg-muted);
+
+  /* Item Selected 状态 */
+  --select-item-fg-selected: var(--theme-accent-primary);
+  --select-item-bg-selected: var(--theme-accent-bg);
+}
+
+/* 深色主题 */
+.dark {
+  /* Trigger 默认状态 */
+  --select-trigger-bg: var(--theme-bg-surface);
+  --select-trigger-fg: var(--theme-text-canvas);
+  --select-trigger-border: var(--theme-border-default);
+  --select-trigger-placeholder: var(--theme-text-tertiary);
+
+  /* Trigger Focus 状态 */
+  --select-trigger-border-focus: var(--theme-accent-primary);
+  --select-trigger-ring: var(--theme-accent-primary);
+
+  /* Content */
+  --select-content-bg: var(--theme-bg-surface);
+  --select-content-border: var(--theme-border-default);
+  --select-content-shadow: var(--shadow-lg);
+
+  /* Item 默认状态 */
+  --select-item-fg: var(--theme-text-canvas);
+  --select-item-bg-hover: var(--theme-bg-muted);
+
+  /* Item Selected 状态 */
+  --select-item-fg-selected: var(--theme-accent-primary);
+  --select-item-bg-selected: var(--theme-accent-bg);
+}

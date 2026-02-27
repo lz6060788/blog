@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -165,9 +164,9 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 h-full flex flex-col">
+    <div className="max-w-5xl mx-auto p-6 h-full flex flex-col">
       {/* 头部 */}
-      <div className="flex items-center justify-between mb-6 flex-shrink-0">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
           <h1 className="text-2xl font-semibold text-theme-text-canvas">新建文章</h1>
           <p className="text-sm text-theme-text-secondary mt-1">
@@ -187,113 +186,81 @@ export default function NewPostPage() {
         </div>
       </div>
 
-      {/* 编辑器内容区 */}
-      <div className="flex-1 overflow-auto space-y-4">
-        {/* 标题输入 */}
-        <div>
-          <Input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="请输入文章标题..."
-            className="px-4 py-6 text-xl font-medium rounded-xl"
-          />
+      {/* 标题输入 */}
+      <div className="flex-shrink-0">
+        <Input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="请输入文章标题..."
+          className="px-4 py-3 text-lg font-medium rounded-xl"
+        />
+      </div>
+
+      {/* 分类和标签 - 紧凑的单行布局 */}
+      <div className="flex items-center gap-4 py-2 flex-shrink-0">
+        {/* 分类选择 */}
+        <div className="flex items-center gap-2 flex-1">
+          <FolderOpen className="w-4 h-4 text-theme-text-secondary flex-shrink-0" />
+          {!isLoadingOptions && (
+            <Select value={categoryId || undefined} onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}>
+              <SelectTrigger className="h-9 flex-1 max-w-[200px]">
+                <SelectValue placeholder="选择分类" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">无分类</SelectItem>
+                {categories.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
-        {/* 分类和标签选择器 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 分类选择 */}
-          <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4">
-            <Label className="flex items-center gap-2 mb-3">
-              <FolderOpen className="w-4 h-4" />
-              分类
-            </Label>
-            {!isLoadingOptions && (
-              <Select value={categoryId || undefined} onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="无分类" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">无分类</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          {/* 标签输入 */}
-          <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 min-h-[140px]">
-            <Label className="flex items-center gap-2 mb-3">
-              <TagIcon className="w-4 h-4" />
-              标签
-            </Label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                  placeholder="输入标签后按回车"
-                  className="flex-1"
-                />
-                <Button type="button" size="sm" variant="outline" onClick={handleAddTag}>
-                  添加
-                </Button>
-              </div>
-              {/* 已选标签 */}
-              <div className="min-h-[32px]">
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-theme-accent-bg text-theme-accent-primary rounded-md text-xs"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="hover:opacity-70"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {/* 已有标签快速选择 */}
-              {!isLoadingOptions && existingTags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {existingTags.map(tag => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => handleToggleExistingTag(tag.name)}
-                      className={`px-2 py-1 rounded text-xs transition-colors ${
-                        tags.includes(tag.name)
-                          ? 'bg-theme-accent-primary text-white'
-                          : 'bg-theme-bg-muted text-theme-text-secondary hover:bg-theme-bg-tertiary'
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
+        {/* 标签输入 */}
+        <div className="flex items-center gap-2 flex-1">
+          <TagIcon className="w-4 h-4 text-theme-text-secondary flex-shrink-0" />
+          <Input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagKeyDown}
+            placeholder="输入标签按回车"
+            className="h-9 flex-1"
+          />
+          {/* 已选标签 - 显示在输入框旁边 */}
+          {tags.length > 0 && (
+            <div className="flex items-center gap-1">
+              {tags.slice(0, 2).map(tag => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-theme-accent-bg text-theme-accent-primary rounded text-xs whitespace-nowrap"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="hover:opacity-70"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {tags.length > 2 && (
+                <span className="text-xs text-theme-text-tertiary">+{tags.length - 2}</span>
               )}
             </div>
-          </div>
+          )}
         </div>
+      </div>
 
-        {/* Cherry Markdown 编辑器 */}
+      {/* Cherry Markdown 编辑器 */}
+      <div className="flex-1 min-h-0 flex-shrink-0">
         <CherryEditor
           ref={editorRef}
           initialValue=""
           onChange={setContent}
-          height="600px"
-          className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden"
+          height="100%"
+          className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden h-full"
         />
       </div>
     </div>

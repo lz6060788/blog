@@ -9,12 +9,15 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { Link as IntlLink } from '@/app/i18n/routing'
+import { CherryPreview } from '@/components/cherry-preview'
+import { useTheme } from 'next-themes'
 
 export default function PostPage() {
   const params = useParams()
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations()
+  const { theme } = useTheme()
   const post = posts.find((p) => p.id === params.id)
 
   if (!post) {
@@ -106,76 +109,11 @@ export default function PostPage() {
             className="prose prose-zinc prose-lg max-w-none"
           >
             <div className="bg-theme-card-bg rounded-[2rem] p-8 md:p-12 border border-theme-card shadow-card">
-              <div className="space-y-6 text-theme-text-primary leading-relaxed">
-                {post.content.split('\n').map((paragraph, index) => {
-                  // Handle headings
-                  if (paragraph.startsWith('# ')) {
-                    return (
-                      <h2
-                        key={index}
-                        className="text-2xl font-semibold text-theme-text-canvas mt-8 mb-4"
-                      >
-                        {paragraph.replace('# ', '')}
-                      </h2>
-                    )
-                  }
-                  if (paragraph.startsWith('## ')) {
-                    return (
-                      <h3
-                        key={index}
-                        className="text-xl font-semibold text-theme-text-canvas mt-6 mb-3"
-                      >
-                        {paragraph.replace('## ', '')}
-                      </h3>
-                    )
-                  }
-
-                  // Handle code blocks
-                  if (paragraph.startsWith('```')) {
-                    return null
-                  }
-                  if (paragraph.startsWith('    ') || paragraph.startsWith('\t')) {
-                    return (
-                      <pre
-                        key={index}
-                        className="bg-theme-bg-canvas text-theme-text-reversed rounded-xl p-4 overflow-x-auto"
-                      >
-                        <code>{paragraph.trim()}</code>
-                      </pre>
-                    )
-                  }
-
-                  // Handle lists
-                  if (paragraph.match(/^\d+\./)) {
-                    return (
-                      <li key={index} className="ml-4">
-                        {paragraph.replace(/^\d+\.\s*/, '')}
-                      </li>
-                    )
-                  }
-                  if (paragraph.startsWith('- ')) {
-                    return (
-                      <li key={index} className="ml-4">
-                        {paragraph.replace('- ', '')}
-                      </li>
-                    )
-                  }
-
-                  // Handle regular paragraphs
-                  if (paragraph.trim()) {
-                    return (
-                      <p
-                        key={index}
-                        className="text-theme-text-primary leading-relaxed"
-                      >
-                        {paragraph}
-                      </p>
-                    )
-                  }
-
-                  return null
-                })}
-              </div>
+              <CherryPreview
+                content={post.content}
+                theme={(theme as 'light' | 'dark') || 'light'}
+                className="cherry-preview-wrapper"
+              />
             </div>
           </motion.div>
 

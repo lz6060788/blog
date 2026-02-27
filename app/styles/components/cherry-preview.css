@@ -1,0 +1,155 @@
+/* ============================================
+   Cherry Markdown 预览样式覆盖
+   使用项目主题系统变量，确保深色/浅色模式兼容
+   ============================================ */
+
+/* 预览容器 */
+.cherry-preview-wrapper {
+  /* 确保容器使用主题背景 */
+  background-color: transparent;
+}
+
+/* 隐藏编辑器部分，只显示预览 */
+.cherry-preview-container .cherry-editor,
+.cherry-preview-container .cherry-toolbar,
+.cherry-preview-container .cherry-textarea,
+.cherry-preview-container .cherry-editor-panel {
+  display: none !important;
+}
+
+/* Cherry Markdown 生成的预览区域 */
+.cherry-preview-container .cherry-markdown {
+  /* 基础颜色 */
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+/* 标题样式 */
+.cherry-preview-container .cherry-markdown h1,
+.cherry-preview-container .cherry-markdown h2,
+.cherry-preview-container .cherry-markdown h3,
+.cherry-preview-container .cherry-markdown h4,
+.cherry-preview-container .cherry-markdown h5,
+.cherry-preview-container .cherry-markdown h6 {
+  color: var(--text-canvas);
+  border-color: var(--border-default);
+}
+
+/* 段落样式 */
+.cherry-preview-container .cherry-markdown p {
+  color: var(--text-primary);
+}
+
+/* 链接样式 */
+.cherry-preview-container .cherry-markdown a {
+  color: var(--accent-600);
+}
+
+.cherry-preview-container .cherry-markdown a:hover {
+  color: var(--accent-400);
+}
+
+/* 列表样式 */
+.cherry-preview-container .cherry-markdown ul,
+.cherry-preview-container .cherry-markdown ol {
+  color: var(--text-primary);
+}
+
+.cherry-preview-container .cherry-markdown li {
+  color: var(--text-primary);
+}
+
+/* 引用块样式 */
+.cherry-preview-container .cherry-markdown blockquote {
+  border-left-color: var(--accent-500);
+  background-color: var(--bg-surface-alt);
+  color: var(--text-secondary);
+}
+
+/* 代码块样式 - 行内代码 */
+.cherry-preview-container .cherry-markdown code {
+  background-color: var(--bg-muted);
+  color: var(--text-canvas);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+}
+
+/* 代码块样式 - 块级代码 */
+.cherry-preview-container .cherry-markdown pre {
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  border-radius: 0.5em;
+  padding: 1em;
+  overflow-x: auto;
+}
+
+.cherry-preview-container .cherry-markdown pre code {
+  background-color: transparent;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+/* 表格样式 */
+.cherry-preview-container .cherry-markdown table {
+  border-color: var(--border-default);
+}
+
+.cherry-preview-container .cherry-markdown th,
+.cherry-preview-container .cherry-markdown td {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.cherry-preview-container .cherry-markdown th {
+  background-color: var(--bg-surface-alt);
+  color: var(--text-canvas);
+}
+
+.cherry-preview-container .cherry-markdown tr:nth-child(even) {
+  background-color: var(--bg-surface-alt);
+}
+
+/* 水平线样式 */
+.cherry-preview-container .cherry-markdown hr {
+  border-color: var(--border-default);
+}
+
+/* 图片样式 */
+.cherry-preview-container .cherry-markdown img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 任务列表样式 */
+.cherry-preview-container .cherry-markdown .task-list-item {
+  list-style-type: none;
+}
+
+.cherry-preview-container .cherry-markdown input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+/* 数学公式样式 */
+.cherry-preview-container .cherry-markdown .katex {
+  color: var(--text-primary);
+}
+
+/* 脚注样式 */
+.cherry-preview-container .cherry-markdown .footnote {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+/* 高亮标记样式 */
+.cherry-preview-container .cherry-markdown mark {
+  background-color: var(--warning-200);
+  color: var(--text-canvas);
+  padding: 0.1em 0.2em;
+}
+
+/* 删除线样式 */
+.cherry-preview-container .cherry-markdown del,
+.cherry-preview-container .cherry-markdown s {
+  color: var(--text-tertiary);
+}

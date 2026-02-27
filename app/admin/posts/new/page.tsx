@@ -209,12 +209,12 @@ export default function NewPostPage() {
               分类
             </Label>
             {!isLoadingOptions && (
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Select value={categoryId || undefined} onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="无分类" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">无分类</SelectItem>
+                  <SelectItem value="none">无分类</SelectItem>
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}

@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { CherryEditor, CherryEditorRef } from '@/components/admin/cherry-editor'
 import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/lib/actions/posts'
 import { toast } from 'react-hot-toast'
@@ -202,16 +209,17 @@ export default function NewPostPage() {
               分类
             </Label>
             {!isLoadingOptions && (
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 bg-theme-bg-canvas border border-theme-border rounded-lg text-sm text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
-              >
-                <option value="">无分类</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="无分类" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">无分类</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
 

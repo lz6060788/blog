@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createTag, updateTag } from '@/lib/actions/tags'
+import { createTag, updateTag } from '@/server/actions/tags'
 import { toast } from 'react-hot-toast'
 
 // 生成 slug 辅助函数

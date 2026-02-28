@@ -1,4 +1,4 @@
-import { auth } from "./auth";
+import { auth } from "./config";
 import { NextResponse } from "next/server";
 
 /**
@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
  *
  * @example
  * ```ts
- * import { requireAuth } from "@/lib/middleware-auth";
+ * import { requireAuth } from "@/server/auth/middleware";
  *
  * export async function GET() {
  *   const session = await requireAuth();
@@ -39,7 +39,7 @@ export async function getOptionalAuth() {
  *
  * @example
  * ```ts
- * import { withAuth } from "@/lib/middleware-auth";
+ * import { withAuth } from "@/server/auth/middleware";
  *
  * export const GET = withAuth(async (session) => {
  *   return NextResponse.json({ user: session.user });

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import { ArticleWrapper } from '@/components/article-wrapper'
-import { getPost } from '@/lib/get-post'
+import { getPost } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
 
 // 生成 SEO 元数据

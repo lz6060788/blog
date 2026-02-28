@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { posts, categories, tags, postTags, users } from "@/lib/db/schema";
+import { auth } from "@/server/auth";
+import { db } from "@/server/db";
+import { posts, categories, tags, postTags, users } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 // 必须使用 Node.js 运行时（SQLite 需要）

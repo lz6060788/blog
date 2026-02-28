@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getCategories, deleteCategory } from '@/lib/actions/categories'
+import { getCategories, deleteCategory } from '@/server/actions/categories'
 import { toast } from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import CategoryForm from '@/components/admin/category-form'

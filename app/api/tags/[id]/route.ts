@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { tags } from "@/lib/db/schema";
+import { auth } from "@/server/auth";
+import { db } from "@/server/db";
+import { tags } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 // 必须使用 Node.js 运行时（SQLite 需要）
@@ -93,7 +93,7 @@ export async function PUT(
         .where(eq(tags.name, name))
         .limit(1);
 
-      if (duplicateName.length > 0 && duplicateName[0].id !== params.id)) {
+      if (duplicateName.length > 0 && duplicateName[0].id !== params.id) {
         return NextResponse.json(
           { error: "标签名称已被使用" },
           { status: 400 }

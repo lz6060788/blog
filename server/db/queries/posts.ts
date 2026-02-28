@@ -1,5 +1,5 @@
-import { posts } from './data'
-import { Post } from './types'
+import { posts } from '@/lib/data'
+import { Post } from '@/lib/types'
 
 /**
  * 服务端数据获取函数：根据 ID 获取文章

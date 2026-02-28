@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { createCategory, updateCategory } from '@/lib/actions/categories'
+import { createCategory, updateCategory } from '@/server/actions/categories'
 import { toast } from 'react-hot-toast'
 
 // 生成 slug 辅助函数

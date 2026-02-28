@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CherryEditor, CherryEditorRef } from '@/components/admin/cherry-editor'
-import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/lib/actions/posts'
+import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, Tag as TagIcon, FolderOpen } from 'lucide-react'
 import { useTheme } from 'next-themes'

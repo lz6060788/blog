@@ -5,7 +5,7 @@ import { FileX } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
-import { getPosts, togglePostStatus } from '@/lib/actions/posts'
+import { getPosts, togglePostStatus } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 
 // Force dynamic rendering for admin pages

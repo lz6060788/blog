@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getSettings, updateSettings } from '@/lib/actions/settings'
+import { getSettings, updateSettings } from '@/server/actions/settings'
 import { toast } from 'react-hot-toast'
 
 // Force dynamic rendering for admin pages

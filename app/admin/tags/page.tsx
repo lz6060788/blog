@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getTags, deleteTag } from '@/lib/actions/tags'
+import { getTags, deleteTag } from '@/server/actions/tags'
 import { toast } from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import TagForm from '@/components/admin/tag-form'

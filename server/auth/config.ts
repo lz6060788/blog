@@ -2,9 +2,9 @@ import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import * as schema from "@/lib/db/schema";
-import { customDrizzleAdapter } from "./auth/drizzle-adapter";
+import { db } from "@/server/db";
+import * as schema from "@/server/db/schema";
+import { customDrizzleAdapter } from "./drizzle-adapter";
 
 // 验证必需的环境变量
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;

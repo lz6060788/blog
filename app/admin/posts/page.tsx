@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Edit, Trash2, FileText } from 'lucide-react'
-import { getPosts, togglePostStatus, deletePost } from '@/lib/actions/posts'
+import { getPosts, togglePostStatus, deletePost } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 
 // Force dynamic rendering for admin pages

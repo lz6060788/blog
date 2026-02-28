@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db } from "@/server/db";
 
 // 必须使用 Node.js 运行时（SQLite 需要）
 export const runtime = "nodejs";

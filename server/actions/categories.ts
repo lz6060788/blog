@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { db } from '@/lib/db'
-import { categories } from '@/lib/db/schema'
-import { auth } from '@/lib/auth'
+import { db } from '@/server/db'
+import { categories } from '@/server/db/schema'
+import { auth } from '@/server/auth'
 import { eq } from 'drizzle-orm'
 
 async function getCurrentUser() {

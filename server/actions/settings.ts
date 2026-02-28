@@ -1,10 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { db } from '@/lib/db'
-import { settings } from '@/lib/db/schema'
+import { db } from '@/server/db'
+import { settings } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
-import { auth } from '@/lib/auth'
+import { auth } from '@/server/auth'
 
 // 获取当前用户
 async function getCurrentUser() {

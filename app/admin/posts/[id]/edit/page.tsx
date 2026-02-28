@@ -15,6 +15,7 @@ import { CherryEditor, CherryEditorRef } from '@/components/admin/cherry-editor'
 import { updatePost, getPost, getCategoriesForSelect, getTagsForSelect } from '@/lib/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, FolderOpen, Tag as TagIcon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -23,6 +24,7 @@ export default function EditPostPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
+  const { theme } = useTheme()
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -36,6 +38,7 @@ export default function EditPostPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [existingTags, setExistingTags] = useState<any[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
   const initialContentRef = useRef<string>('')
   const editorRef = useRef<CherryEditorRef>(null)
@@ -49,6 +52,16 @@ export default function EditPostPage() {
       document.title = '编辑文章 - 管理后台'
     }
   }, [title])
+
+  // 解析主题
+  useEffect(() => {
+    if (theme === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      setResolvedTheme(isDark ? 'dark' : 'light')
+    } else {
+      setResolvedTheme((theme as 'light' | 'dark') || 'light')
+    }
+  }, [theme])
 
   // 加载文章数据和选项
   useEffect(() => {
@@ -365,6 +378,7 @@ export default function EditPostPage() {
           initialValue={initialContentRef.current}
           onChange={setContent}
           height="100%"
+          theme={resolvedTheme}
           className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden h-full"
         />
       </div>

@@ -1,19 +1,4 @@
-## 新增需求
-
-### 需求：Cherry Markdown 预览组件以只读模式渲染 Markdown 内容
-系统应提供 CherryPreview 组件，以只读模式渲染 Markdown 内容，支持完整的 Cherry Markdown 功能集，包括语法高亮、表格、引用块、任务列表和数学公式。
-
-#### 场景：组件渲染基础 Markdown
-- **当** CherryPreview 组件接收到包含标题、段落、列表和代码块的 Markdown 内容时
-- **那么** 组件应以正确的格式和样式渲染内容
-
-#### 场景：组件渲染高级 Markdown 特性
-- **当** CherryPreview 组件接收到包含表格、引用块、任务列表或数学公式的 Markdown 内容时
-- **那么** 组件应使用适当的样式正确渲染这些特性
-
-#### 场景：组件为只读模式
-- **当** 用户与 CherryPreview 组件交互时
-- **那么** 组件不提供编辑功能，仅用于展示
+## MODIFIED Requirements
 
 ### 需求：预览组件遵循主题系统
 CherryPreview 组件应实时调整其样式以匹配当前主题（深色/浅色模式），使用项目的 CSS 变量设置颜色，并确保主题切换时无需刷新页面即可生效。
@@ -39,16 +24,7 @@ CherryPreview 组件应实时调整其样式以匹配当前主题（深色/浅�
 - **那么** 组件应接受服务端传入的初始主题值
 - **并且** 客户端水合后应与实际主题状态同步
 
-### 需求：文章详情页使用 CherryPreview
-系统应将文章详情页中现有的手动 Markdown 解析逻辑替换为 CherryPreview 组件。
-
-#### 场景：文章内容通过 CherryPreview 显示
-- **当** 用户导航到文章详情页时
-- **那么** 文章内容使用 CherryPreview 组件渲染
-
-#### 场景：移除旧的解析逻辑
-- **当** CherryPreview 集成完成后
-- **那么** 从文章详情页中移除基于正则表达式的手动 Markdown 解析逻辑
+## ADDED Requirements
 
 ### 需求：CherryPreview 支持服务端渲染场景
 CherryPreview 组件应设计为独立的客户端组件，能够嵌入到服务端渲染的页面中，并通过 props 接收内容和主题数据。

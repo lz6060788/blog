@@ -15,12 +15,15 @@ import { CherryEditor, CherryEditorRef } from '@/components/admin/cherry-editor'
 import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/lib/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, Tag as TagIcon, FolderOpen } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
 
 export default function NewPostPage() {
   const router = useRouter()
+  const { theme } = useTheme()
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -38,6 +41,16 @@ export default function NewPostPage() {
   useEffect(() => {
     document.title = '新建文章 - 管理后台'
   }, [])
+
+  // 解析主题
+  useEffect(() => {
+    if (theme === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      setResolvedTheme(isDark ? 'dark' : 'light')
+    } else {
+      setResolvedTheme((theme as 'light' | 'dark') || 'light')
+    }
+  }, [theme])
 
   // 加载分类和标签选项
   useEffect(() => {
@@ -292,6 +305,7 @@ export default function NewPostPage() {
           initialValue=""
           onChange={setContent}
           height="100%"
+          theme={resolvedTheme}
           className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden h-full"
         />
       </div>

@@ -23,3 +23,12 @@
     text-wrap: balance;
   }
 }
+
+.cherry-previewer {
+  border-left: none !important;
+  padding: 0 !important;
+}
+.cherry {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

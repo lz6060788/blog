@@ -1,156 +1,181 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useCallback, useRef as useRefCallback } from 'react'
-import Cherry from 'cherry-markdown'
-import 'cherry-markdown/dist/cherry-markdown.css'
+import {
+  useEffect,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  useState,
+  useCallback,
+  useId,
+} from "react";
+import * as echarts from "echarts";
+import 'cherry-markdown/dist/cherry-markdown.css';
 
 export interface CherryPreviewRef {
-  setContent: (content: string) => void
-  getContent: () => string
+  setContent: (content: string) => void;
+  getContent: () => string;
 }
 
 interface CherryPreviewProps {
-  content?: string
-  theme?: 'light' | 'dark'
-  className?: string
+  content?: string;
+  theme?: "light" | "dark";
+  className?: string;
 }
 
-export const CherryPreviewInternal = forwardRef<CherryPreviewRef, CherryPreviewProps>(
-  ({ content = '', theme = 'light', className = '' }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null)
-    const cherryRef = useRef<Cherry | null>(null)
-    const [previewId] = useState(() => `cherry-preview-${Date.now()}-${Math.random().toString(36).substring(7)}`)
-    const [isReady, setIsReady] = useState(false)
+const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
+
+export const CherryPreviewInternal = forwardRef<
+  CherryPreviewRef,
+  CherryPreviewProps
+>(
+  (
+    {
+      content = "",
+      theme = "light",
+      className = "",
+    },
+    ref
+  ) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const cherryRef = useRef<any>(null);
+    const generatedId = useId();
+    const previewId = `cherry-preview-${generatedId}`;
+    const [isMounted, setIsMounted] = useState(false);
 
     // 暴露方法给父组件
     useImperativeHandle(ref, () => ({
       setContent: (markdown: string) => {
-        try {
-          if (cherryRef.current) {
-            cherryRef.current.setMarkdown(markdown)
-          }
-        } catch (e) {
-          console.error('设置预览内容失败:', e)
+        if (cherryRef.current) {
+          cherryRef.current.setMarkdown(markdown);
         }
       },
       getContent: () => {
-        try {
-          return cherryRef.current?.getMarkdown() || content
-        } catch (e) {
-          console.error('获取预览内容失败:', e)
-          return content
-        }
+        return cherryRef.current?.getMarkdown() || content;
       },
-    }))
+    }));
 
-    const initCherry = useCallback(() => {
-      const container = containerRef.current
-      if (!container || cherryRef.current) return
+    // 初始化 Cherry Markdown
+    useEffect(() => {
+      if (!isBrowser || cherryRef.current) return;
 
-      // 检查容器是否在 DOM 中
-      if (!document.body.contains(container)) {
-        console.log('容器尚未挂载到 DOM')
-        return
-      }
+      const container = containerRef.current;
+      if (!container) return;
 
-      try {
-        console.log('开始初始化 Cherry Markdown 预览, previewId:', previewId)
+      let mounted = true;
 
-        const cherry = new Cherry({
-          id: previewId,
-          el: container,
-          value: content,
-          // 只读预览模式配置
-          readonly: true,
-          // 只显示预览，隐藏编辑器
-          preview: true,
-          // 不显示工具栏
-          toolbars: {
-            toolbar: [],
-          },
-          // 隐藏编辑器相关 UI
-          editor: {
-            show: false,
-          },
-          // 主题配置
-          theme: theme,
-          engine: {
-            global: {
-              urlProcessor: (url: string) => url,
+      (async () => {
+        try {
+          const CherryModule = await import("cherry-markdown");
+          const Cherry = CherryModule.default;
+
+          if (!mounted) return;
+
+          const cherry = new Cherry({
+            id: previewId,
+            el: container,
+            value: content,
+            readonly: true,
+            preview: true,
+            toolbars: {
+              toolbar: false,
             },
-          },
-        })
+            externals: { echarts: echarts },
+            editor: {
+              defaultModel: 'previewOnly',
+            },
+            themeSettings: {
+              themeList: [
+                { className: 'default', label: '默认' },
+                { className: 'dark', label: '深色' },
+                { className: 'light', label: '浅色' },
+              ],
+              mainTheme: theme === 'dark' ? 'dark' : 'light',
+              codeBlockTheme: theme === 'dark' ? 'dark' : 'default',
+            },
+            engine: {
+              global: {
+                urlProcessor: (url: string) => url,
+              },
+            },
+          });
 
-        cherryRef.current = cherry
-        setIsReady(true)
-        console.log('Cherry Markdown 预览初始化成功')
-      } catch (error) {
-        console.error('Cherry Markdown 预览初始化失败:', error)
-      }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [previewId, content, theme])
+          if (!mounted) {
+            cherry.destroy();
+            return;
+          }
 
-    // 当 content 或 theme 变化时更新内容
-    useEffect(() => {
-      if (cherryRef.current && isReady) {
-        try {
-          cherryRef.current.setMarkdown(content)
-        } catch (e) {
-          console.error('更新预览内容失败:', e)
+          cherryRef.current = cherry;
+          setIsMounted(true);
+        } catch (error) {
+          console.error("Cherry Markdown 初始化失败:", error);
         }
-      }
-    }, [content, isReady])
-
-    // 当 theme 变化时重新初始化
-    useEffect(() => {
-      if (cherryRef.current && isReady) {
-        try {
-          // Cherry Markdown 需要重新初始化来应用主题变化
-          cherryRef.current.destroy()
-          cherryRef.current = null
-          setIsReady(false)
-        } catch (e) {
-          console.error('销毁预览实例失败:', e)
-        }
-      }
-    }, [theme])
-
-    useEffect(() => {
-      // 使用 requestAnimationFrame 确保 DOM 完全渲染
-      const rafId = requestAnimationFrame(() => {
-        // 再用 setTimeout 确保 Cherry Markdown 的内部逻辑准备就绪
-        const timerId = setTimeout(() => {
-          initCherry()
-        }, 50)
-
-        return () => clearTimeout(timerId)
-      })
+      })();
 
       return () => {
-        cancelAnimationFrame(rafId)
+        mounted = false;
         if (cherryRef.current) {
           try {
-            cherryRef.current.destroy()
-            cherryRef.current = null
+            cherryRef.current.destroy();
+            cherryRef.current = null;
           } catch (e) {
-            console.error('Cherry Markdown 预览清理失败:', e)
+            console.error("Cherry Markdown 清理失败:", e);
           }
         }
+      };
+    }, [previewId]);
+
+    // 更新内容
+    useEffect(() => {
+      if (cherryRef.current && isMounted) {
+        cherryRef.current.setMarkdown(content);
       }
-    }, [initCherry, theme])
+    }, [content, isMounted]);
+
+    // 主题切换时重新初始化
+    useEffect(() => {
+      if (!cherryRef.current || !isMounted) return;
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const mainTheme = theme === 'dark' ? 'dark' : 'light'
+      const codeBlockTheme = theme === 'dark' ? 'dark' : 'default'
+
+      try {
+        cherryRef.current.setTheme(mainTheme)
+        cherryRef.current.setCodeBlockTheme(codeBlockTheme)
+      } catch (error) {
+        console.error('Cherry Markdown 主题切换失败:', error)
+      }
+    }, [theme]);
 
     return (
-      <div
-        ref={containerRef}
-        id={previewId}
-        className={`cherry-preview-container ${className}`}
-        style={{
-          visibility: isReady ? 'visible' : 'hidden',
-          minHeight: '200px',
-        }}
-      />
-    )
+      <div className="cherry-preview-wrapper">
+        {/* 服务端渲染或客户端未初始化时显示原始内容 */}
+        {!isMounted && (
+          <div className={`cherry-preview-fallback ${className}`}>
+            <div className="prose prose-zinc prose-lg max-w-none">
+              <pre className="whitespace-pre-wrap break-words text-theme-text-secondary">
+                {content}
+              </pre>
+            </div>
+          </div>
+        )}
+        {/* Cherry Markdown 容器 - 使用 visibility 而非 display，确保能正确计算宽度 */}
+        <div
+          ref={containerRef}
+          id={previewId}
+          className={`cherry-preview-container ${className}`}
+          style={{
+            visibility: isMounted ? 'visible' : 'hidden',
+            position: isMounted ? 'static' : 'absolute',
+            pointerEvents: isMounted ? 'auto' : 'none',
+          }}
+        />
+      </div>
+    );
   }
-)
+);
 
-CherryPreviewInternal.displayName = 'CherryPreviewInternal'
+CherryPreviewInternal.displayName = "CherryPreviewInternal";

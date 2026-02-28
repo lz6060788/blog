@@ -7,6 +7,7 @@
 .cherry-preview-wrapper {
   /* 确保容器使用主题背景 */
   background-color: transparent;
+  position: relative;
 }
 
 /* 隐藏编辑器部分，只显示预览 */
@@ -22,6 +23,18 @@
   /* 基础颜色 */
   color: var(--text-primary);
   background-color: transparent;
+  /* 主题切换过渡效果 */
+  transition: color 300ms ease-in-out, background-color 300ms ease-in-out;
+}
+
+/* 主题切换加载提示 */
+.cherry-preview-loading {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg-surface);
+  border-radius: 2rem;
+  z-index: 10;
+  transition: opacity 300ms ease-in-out;
 }
 
 /* 标题样式 */

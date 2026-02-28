@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useCallback, useRef as useRefCallback } from 'react'
+import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useId } from 'react'
 import Cherry from 'cherry-markdown'
-import 'cherry-markdown/dist/cherry-markdown.css';
-import * as echarts from 'echarts';
+import 'cherry-markdown/dist/cherry-markdown.css'
+import * as echarts from 'echarts'
 
 export interface CherryEditorRef {
   getContent: () => string
@@ -15,15 +15,18 @@ interface CherryEditorProps {
   onChange?: (content: string) => void
   height?: string
   className?: string
+  theme?: 'light' | 'dark'
 }
 
 export const CherryEditorInternal = forwardRef<CherryEditorRef, CherryEditorProps>(
-  ({ initialValue = '', onChange, height = '500px', className = '' }, ref) => {
+  ({ initialValue = '', onChange, height = '500px', className = '', theme = 'light' }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const cherryRef = useRef<Cherry | null>(null)
-    const onChangeRef = useRefCallback(onChange)
-    const [editorId] = useState(() => `cherry-editor-${Date.now()}-${Math.random().toString(36).substring(7)}`)
+    const onChangeRef = useRef(onChange)
+    const generatedId = useId()
+    const editorId = `cherry-editor-${generatedId}`
     const [isReady, setIsReady] = useState(false)
+    const currentContentRef = useRef(initialValue)
 
     // 保持 onChange 引用最新
     useEffect(() => {
@@ -34,14 +37,15 @@ export const CherryEditorInternal = forwardRef<CherryEditorRef, CherryEditorProp
     useImperativeHandle(ref, () => ({
       getContent: () => {
         try {
-          return cherryRef.current?.getMarkdown() || ''
+          return cherryRef.current?.getMarkdown() || currentContentRef.current
         } catch (e) {
           console.error('获取内容失败:', e)
-          return ''
+          return currentContentRef.current
         }
       },
       setContent: (content: string) => {
         try {
+          currentContentRef.current = content
           if (cherryRef.current) {
             cherryRef.current.setMarkdown(content)
           }
@@ -51,112 +55,108 @@ export const CherryEditorInternal = forwardRef<CherryEditorRef, CherryEditorProp
       },
     }))
 
-    const initCherry = useCallback(() => {
-      const container = containerRef.current
-      if (!container || cherryRef.current) return
-
-      // 检查容器是否在 DOM 中
-      if (!document.body.contains(container)) {
-        console.log('容器尚未挂载到 DOM')
-        return
-      }
-
-      try {
-        console.log('开始初始化 Cherry Markdown, editorId:', editorId)
-
-        const cherry = new Cherry({
-          id: editorId,
-          el: container,
-          value: initialValue,
-          height,
-          autoSave: false,
-          externals: {
-            echarts: echarts,
-          },
-          toolbars: {
-            toolbar: [
-              'bold',
-              'italic',
-              {
-                strikethrough: ['strikethrough', 'underline', 'sub', 'sup', 'ruby', 'customMenuAName'],
-              },
-              'size',
-              '|',
-              'color',
-              'header',
-              '|',
-              'drawIo',
-              '|',
-              'ol',
-              'ul',
-              'checklist',
-              'panel',
-              'align',
-              'detail',
-              '|',
-              'formula',
-              {
-                insert: [
-                  'image',
-                  'audio',
-                  'video',
-                  'link',
-                  'hr',
-                  'br',
-                  'code',
-                  'inlineCode',
-                  'formula',
-                  'toc',
-                  'table',
-                  'pdf',
-                  'word',
-                  'file',
-                ],
-              },
-              'graph',
-              'proTable',
-              // 'customMenuTable',
-              'togglePreview',
-              'search',
-              'shortcutKey',
-            ],
-          },
-          engine: {
-            global: {
-              urlProcessor: (url: string) => url,
-            },
-          },
-          callback: {
-            afterChange: (markdown: string) => {
-              // 使用 ref 中最新的 onChange
-              onChangeRef.current?.(markdown)
-            },
-          },
-        })
-
-        cherryRef.current = cherry
-        setIsReady(true)
-        console.log('Cherry Markdown 初始化成功')
-      } catch (error) {
-        console.error('Cherry Markdown 初始化失败:', error)
-      }
-    // 移除 onChange 依赖，只保留初始化相关的依赖
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [editorId, initialValue, height])
-
+    // 初始化 Cherry Markdown（只执行一次）
     useEffect(() => {
-      // 使用 requestAnimationFrame 确保 DOM 完全渲染
-      const rafId = requestAnimationFrame(() => {
-        // 再用 setTimeout 确保 Cherry Markdown 的内部逻辑准备就绪
-        const timerId = setTimeout(() => {
-          initCherry()
-        }, 50)
+      const container = containerRef.current
+      if (!container) return
 
-        return () => clearTimeout(timerId)
-      })
+      let mounted = true;
+
+      (async () => {
+        try {
+          if (!mounted) return
+
+          const cherry = new Cherry({
+            id: editorId,
+            el: container,
+            value: initialValue,
+            height,
+            autoSave: false,
+            externals: {
+              echarts: echarts,
+            },
+            toolbars: {
+              toolbar: [
+                'bold',
+                'italic',
+                {
+                  strikethrough: ['strikethrough', 'underline', 'sub', 'sup', 'ruby', 'customMenuAName'],
+                },
+                'size',
+                '|',
+                'color',
+                'header',
+                '|',
+                'drawIo',
+                '|',
+                'ol',
+                'ul',
+                'checklist',
+                'panel',
+                'align',
+                'detail',
+                '|',
+                'formula',
+                {
+                  insert: [
+                    'image',
+                    'audio',
+                    'video',
+                    'link',
+                    'hr',
+                    'br',
+                    'code',
+                    'inlineCode',
+                    'formula',
+                    'toc',
+                    'table',
+                    'pdf',
+                    'word',
+                    'file',
+                  ],
+                },
+                'graph',
+                'proTable',
+                'search',
+                'shortcutKey',
+              ],
+            },
+            themeSettings: {
+              themeList: [
+                { className: 'default', label: '默认' },
+                { className: 'dark', label: '深色' },
+                { className: 'light', label: '浅色' },
+              ],
+              mainTheme: theme === 'dark' ? 'dark' : 'light',
+              codeBlockTheme: theme === 'dark' ? 'dark' : 'default',
+            },
+            engine: {
+              global: {
+                urlProcessor: (url: string) => url,
+              },
+            },
+            callback: {
+              afterChange: (markdown: string) => {
+                currentContentRef.current = markdown
+                onChangeRef.current?.(markdown)
+              },
+            },
+          })
+
+          if (!mounted) {
+            cherry.destroy()
+            return
+          }
+
+          cherryRef.current = cherry
+          setIsReady(true)
+        } catch (error) {
+          console.error('Cherry Markdown 初始化失败:', error)
+        }
+      })()
 
       return () => {
-        cancelAnimationFrame(rafId)
+        mounted = false
         if (cherryRef.current) {
           try {
             cherryRef.current.destroy()
@@ -166,7 +166,22 @@ export const CherryEditorInternal = forwardRef<CherryEditorRef, CherryEditorProp
           }
         }
       }
-    }, [initCherry])
+    }, [editorId])
+
+    // 主题切换
+    useEffect(() => {
+      if (!cherryRef.current || !isReady) return
+      
+      const mainTheme = theme === 'dark' ? 'dark' : 'light'
+      const codeBlockTheme = theme === 'dark' ? 'dark' : 'default'
+      
+      try {
+        cherryRef.current.setTheme(mainTheme)
+        cherryRef.current.setCodeBlockTheme(codeBlockTheme)
+      } catch (error) {
+        console.error('Cherry Markdown 主题切换失败:', error)
+      }
+    }, [theme, isReady])
 
     return (
       <div

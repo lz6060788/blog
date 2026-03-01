@@ -54,30 +54,8 @@ export interface AIMessages {
     openai: string
   }
   model: {
-    'deepseek-chat': string
-    'deepseek-coder': string
-    'glm-4-flash': string
-    'glm-4-plus': string
-    'glm-4-air': string
-    'qwen-turbo': string
-    'qwen-plus': string
-    'qwen-max': string
-    'moonshot-v1-8k': string
-    'moonshot-v1-32k': string
-    'moonshot-v1-128k': string
-    'Baichuan2-Turbo': string
-    'Baichuan2-53B': string
-    'Baichuan3-Turbo': string
-    'Baichuan3-53B': string
-    'gpt-4o': string
-    'gpt-4o-mini': string
-    'gpt-4-turbo': string
-    'gpt-4': string
-    'gpt-3.5-turbo': string
-    // i18n 不支持点号，需要使用下划线版本
-    'gpt_4_turbo': string
-    'gpt_4': string
-    'gpt_3_5_turbo': string
+    // 模型名称不需要国际化，直接显示原始模型 ID
+    [key: string]: string
   }
   config: {
     title: string

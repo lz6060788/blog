@@ -98,8 +98,8 @@ export class SummaryService extends AIService {
 
         return {
           summary: text.trim(),
-          inputTokens: usage?.promptTokens || 0,
-          outputTokens: usage?.completionTokens || 0,
+          inputTokens: usage?.inputTokens || 0,
+          outputTokens: usage?.outputTokens || 0,
         }
       },
       modelConfig.id,

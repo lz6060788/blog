@@ -1,10 +1,9 @@
 'use client'
 
 import { useLocale } from 'next-intl'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from '@/app/i18n/routing'
 import { locales, type Locale, localeFlags, localeNames } from '@/locales'
 import { useState, useEffect } from 'react'
-import { useRouter } from '@/app/i18n/routing'
 
 /**
  * 语言切换器组件
@@ -29,22 +28,11 @@ export function LanguageSwitcher() {
   }
 
   const switchLocale = (newLocale: Locale) => {
-    // 保存偏好到 localStorage
+    // 保存偏好到 localStorage (可选，next-intl 中间件会自动处理 cookie)
     localStorage.setItem('blog-locale', newLocale)
 
-    // 获取不含 locale 的路径
-    const segments = pathname.split('/').filter(Boolean)
-
-    // 如果第一段是 locale，移除它
-    if (segments.length > 0 && (segments[0] === 'en' || segments[0] === 'zh')) {
-      segments.shift()
-    }
-
-    // 构建新路径
-    const newPath = segments.length > 0 ? `/${segments.join('/')}` : '/'
-
-    // 使用 router.replace 切换语言环境，传入不含 locale 的路径
-    router.replace(newPath, { locale: newLocale })
+    // 使用 next-intl 的 router 切换语言，它会自动处理路径前缀
+    router.replace(pathname, { locale: newLocale })
   }
 
   return (

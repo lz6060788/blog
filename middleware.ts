@@ -1,6 +1,10 @@
 import { getToken } from 'next-auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 import { locales, defaultLocale } from '@/i18n.config'
+import createMiddleware from 'next-intl/middleware'
+import { routing } from '@/app/i18n/routing'
+
+const intlMiddleware = createMiddleware(routing)
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -27,6 +31,9 @@ export default async function middleware(req: NextRequest) {
   const pathWithoutLocale = getPathWithoutLocale(pathname)
 
   // Check if accessing admin routes (excluding login page)
+  // Note: We check pathWithoutLocale to handle cases like /zh/admin if they existed,
+  // but strictly speaking admin routes are at root /admin in this app.
+  // However, keeping this logic for consistency with existing auth checks.
   const isAdminRoute = pathWithoutLocale.startsWith('/admin')
   const isLoginPage = pathWithoutLocale.includes('/login')
 
@@ -69,30 +76,28 @@ export default async function middleware(req: NextRequest) {
       }
 
       console.log('✅ [Middleware] Auth verified, allowing access')
+      
+      // If authorized admin route, we skip intlMiddleware as admin routes are not localized
+      return NextResponse.next()
     } catch (error) {
       console.error('❌ [Middleware] Auth error:', error)
+      // On error, we might want to redirect to login or just let it fail safely
+      // For now, falling through to next() which might be intlMiddleware or Next.js handler
     }
   }
 
-  // Check if the pathname has a locale prefix
-  const pathnameIsMissingLocale = locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
-  )
-
-  // Redirect to locale-prefixed path if missing
-  if (pathnameIsMissingLocale) {
-    // Special handling for admin routes - don't add locale prefix
-    if (pathname.startsWith('/admin')) {
-      return NextResponse.next()
-    }
-
-    // For other routes, add default locale prefix
-    return NextResponse.redirect(
-      new URL(`/${defaultLocale}${pathname}`, req.url)
-    )
+  // If it's an admin route (even if public like login, though login is excluded above),
+  // we need to decide if we run intlMiddleware.
+  // The login page IS localized (app/[locale]/login), so it needs intlMiddleware.
+  // The admin dashboard (app/admin) is NOT localized, so it should skip intlMiddleware.
+  
+  if (pathname.startsWith('/admin')) {
+    return NextResponse.next()
   }
 
-  return NextResponse.next()
+  // For all other routes (including login), use next-intl middleware
+  // This handles locale detection, redirection, and setting headers for getRequestConfig
+  return intlMiddleware(req)
 }
 
 export const config = {

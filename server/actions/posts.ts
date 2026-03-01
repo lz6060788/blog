@@ -470,7 +470,7 @@ export async function getPosts(options?: {
 
   const total = Number(countResult[0]?.count || 0)
 
-  // 获取分页数据，包含分类信息
+  // 获取分页数据，包含分类信息和 AI 摘要状态
   const postsData = await db
     .select({
       id: posts.id,
@@ -486,6 +486,8 @@ export async function getPosts(options?: {
       updatedAt: posts.updatedAt,
       categoryName: categories.name,
       categorySlug: categories.slug,
+      aiSummary: posts.aiSummary,
+      aiSummaryStatus: posts.aiSummaryStatus,
     })
     .from(posts)
     .leftJoin(categories, eq(posts.categoryId, categories.id))

@@ -16,6 +16,8 @@ import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/server/a
 import { toast } from 'react-hot-toast'
 import { X, Tag as TagIcon, FolderOpen } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { AISummaryEditor } from '@/components/admin/ai-summary-editor'
+import { SummaryStatus } from '@/server/ai/types'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -34,6 +36,16 @@ export default function NewPostPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [existingTags, setExistingTags] = useState<any[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
+
+  // 文章保存状态
+  const [postId, setPostId] = useState<string | null>(null)
+  const [isSaved, setIsSaved] = useState(false)
+  const [aiSummary, setAiSummary] = useState('')
+  const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
+
+  // 各自独立的 loading 状态
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
 
   const editorRef = useRef<CherryEditorRef>(null)
 
@@ -112,6 +124,11 @@ export default function NewPostPage() {
 
   // 保存草稿
   const handleSaveDraft = async () => {
+    // 如果正在执行，直接返回
+    if (isSavingDraft || isPublishing) {
+      return
+    }
+
     if (!title.trim()) {
       toast.error('请输入标题')
       return
@@ -121,28 +138,50 @@ export default function NewPostPage() {
       return
     }
 
-    setIsSaving(true)
+    setIsSavingDraft(true)
+
     try {
-      const result = await createPost({
-        title,
-        content,
-        published: false,
-        categoryId: categoryId || undefined,
-        tags,
-        readTime: Math.ceil(content.length / 400),
-      })
-      toast.success('草稿已保存')
-      router.push(`/admin/posts/${result.postId}/edit`)
+      if (postId) {
+        // 已有 postId，更新现有文章
+        const { updatePost } = await import('@/server/actions/posts')
+        await updatePost(postId, {
+          title,
+          content,
+          published: false,
+          categoryId: categoryId || undefined,
+          tags,
+          readTime: Math.ceil(content.length / 400),
+          aiSummary,
+        })
+        toast.success('草稿已更新')
+      } else {
+        // 没有 postId，创建新文章并跳转到编辑页面
+        const result = await createPost({
+          title,
+          content,
+          published: false,
+          categoryId: categoryId || undefined,
+          tags,
+          readTime: Math.ceil(content.length / 400),
+        })
+        toast.success('草稿已保存')
+        router.push(`/admin/posts/${result.postId}/edit`)
+      }
     } catch (error: any) {
       console.error('保存失败:', error)
       toast.error(error.message || '保存失败')
     } finally {
-      setIsSaving(false)
+      setIsSavingDraft(false)
     }
   }
 
   // 发布文章
   const handlePublish = async () => {
+    // 如果正在执行，直接返回
+    if (isSavingDraft || isPublishing) {
+      return
+    }
+
     if (!title.trim()) {
       toast.error('请输入标题')
       return
@@ -152,24 +191,44 @@ export default function NewPostPage() {
       return
     }
 
-    setIsSaving(true)
+    setIsPublishing(true)
+
     try {
-      await createPost({
-        title,
-        content,
-        published: true,
-        categoryId: categoryId || undefined,
-        tags,
-        readTime: Math.ceil(content.length / 400),
-        publishedDate: new Date().toISOString(),
-      })
-      toast.success('发布成功')
-      router.push('/admin/posts')
+      if (postId) {
+        // 已有 postId，更新现有文章为已发布
+        const { updatePost } = await import('@/server/actions/posts')
+        await updatePost(postId, {
+          title,
+          content,
+          published: true,
+          categoryId: categoryId || undefined,
+          tags,
+          readTime: Math.ceil(content.length / 400),
+          publishedDate: new Date().toISOString(),
+          aiSummary,
+        })
+        setPublished(true)
+        toast.success('发布成功')
+        router.push('/admin/posts')
+      } else {
+        // 没有 postId，创建新文章并发布
+        const result = await createPost({
+          title,
+          content,
+          published: true,
+          categoryId: categoryId || undefined,
+          tags,
+          readTime: Math.ceil(content.length / 400),
+          publishedDate: new Date().toISOString(),
+        })
+        toast.success('发布成功')
+        router.push(`/admin/posts/${result.postId}/edit`)
+      }
     } catch (error: any) {
       console.error('发布失败:', error)
       toast.error(error.message || '发布失败')
     } finally {
-      setIsSaving(false)
+      setIsPublishing(false)
     }
   }
 
@@ -189,20 +248,22 @@ export default function NewPostPage() {
       {/* 头部 */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-semibold text-theme-text-canvas">新建文章</h1>
+          <h1 className="text-2xl font-semibold text-theme-text-canvas">
+            {isSaved ? '编辑文章' : '新建文章'}
+          </h1>
           <p className="text-sm text-theme-text-secondary mt-1">
-            创建并发布新文章
+            {isSaved ? '文章已保存，可以继续编辑或生成摘要' : '创建并发布新文章'}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
             取消
           </Button>
-          <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
-            {isSaving ? '保存中...' : '保存草稿'}
+          <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft}>
+            {isSavingDraft ? '保存中...' : isSaved ? '更新草稿' : '保存草稿'}
           </Button>
-          <Button onClick={handlePublish} disabled={isSaving}>
-            {isSaving ? '发布中...' : '发布'}
+          <Button onClick={handlePublish} disabled={isPublishing}>
+            {isPublishing ? '发布中...' : '发布'}
           </Button>
         </div>
       </div>
@@ -297,6 +358,17 @@ export default function NewPostPage() {
           ))}
         </div>
       )}
+
+      {/* AI 摘要区域 */}
+      <AISummaryEditor
+        postId={postId}
+        initialSummary={aiSummary}
+        initialStatus={aiSummaryStatus}
+        onSummaryChange={setAiSummary}
+        onStatusChange={setAiSummaryStatus}
+        title={title}
+        content={content}
+      />
 
       {/* Cherry Markdown 编辑器 */}
       <div className="flex-1 min-h-0 flex-shrink-0">

@@ -50,30 +50,6 @@ const statConfig = [
 
 const aiStatConfig = [
   {
-    key: 'aiGeneratedPosts' as const,
-    title: 'AI 摘要',
-    change: '已生成',
-    icon: Brain,
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-50 dark:bg-purple-950',
-  },
-  {
-    key: 'aiPendingPosts' as const,
-    title: '生成中',
-    change: '处理中',
-    icon: Zap,
-    color: 'text-theme-accent-primary',
-    bgColor: 'bg-theme-accent-bg',
-  },
-  {
-    key: 'aiFailedPosts' as const,
-    title: '失败',
-    change: '需要处理',
-    icon: AlertCircle,
-    color: 'text-theme-error-primary',
-    bgColor: 'bg-theme-error-bg',
-  },
-  {
     key: 'aiTotalTokens' as const,
     title: '今日 Tokens',
     change: '使用量',
@@ -138,7 +114,7 @@ export default async function AdminPage() {
 
         <div>
           <h2 className="text-lg font-medium text-theme-text-canvas mb-4">AI 统计</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {aiStatConfig.map((stat) => {
               const Icon = stat.icon
               const value = String(stats[stat.key])

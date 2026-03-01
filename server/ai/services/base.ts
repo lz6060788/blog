@@ -14,14 +14,14 @@ export abstract class AIService {
 
   /**
    * 执行带重试的 AI 调用
-   * @param fn AI 调用函数
+   * @param fn AI 调用函数，返回结果和 token 信息
    * @param modelConfigId 模型配置 ID
    * @param action 操作类型
    * @param postId 文章 ID（可选）
    * @returns AI 调用结果
    */
   protected async executeWithRetry<T>(
-    fn: () => Promise<T>,
+    fn: () => Promise<T & { inputTokens?: number; outputTokens?: number }>,
     modelConfigId: string,
     action: string,
     postId?: string
@@ -43,7 +43,7 @@ export abstract class AIService {
       try {
         const result = await fn()
 
-        // 成功后记录日志
+        // 成功后记录日志（包含 token 信息）
         await this.logCall({
           postId,
           modelConfigId,
@@ -51,6 +51,8 @@ export abstract class AIService {
           provider: modelConfig.provider as AIProvider,
           model: modelConfig.model,
           status: AICallStatus.SUCCESS,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
           durationMs: Date.now() - startTime,
         })
 

@@ -1,44 +1,11 @@
-import { FileText, FileX, TrendingUp, PlusCircle } from 'lucide-react'
+import { FileText, FileX, TrendingUp, PlusCircle, Brain, Zap, AlertCircle, Coins } from 'lucide-react'
 import Link from 'next/link'
+import { getDashboardStats } from '@/server/db/queries/stats'
+import { auth } from '@/server/auth'
+import { redirect } from 'next/navigation'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
-
-// Placeholder stats - will be replaced with real data from database
-const stats = [
-  {
-    title: '文章总数',
-    value: '12',
-    change: '+3',
-    icon: FileText,
-    color: 'text-theme-accent-primary',
-    bgColor: 'bg-theme-accent-bg',
-  },
-  {
-    title: '已发布',
-    value: '8',
-    change: '+2',
-    icon: TrendingUp,
-    color: 'text-theme-success-primary',
-    bgColor: 'bg-theme-success-bg',
-  },
-  {
-    title: '草稿',
-    value: '4',
-    change: '+1',
-    icon: FileX,
-    color: 'text-theme-warning-primary',
-    bgColor: 'bg-theme-warning-bg',
-  },
-  {
-    title: '最近7天',
-    value: '2',
-    change: '新增',
-    icon: PlusCircle,
-    color: 'text-theme-info-primary',
-    bgColor: 'bg-theme-info-bg',
-  },
-]
 
 const quickActions = [
   { href: '/admin/posts/new', label: '新建文章', icon: PlusCircle, description: '创建新文章' },
@@ -46,7 +13,86 @@ const quickActions = [
   { href: '/admin/posts', label: '文章管理', icon: FileText, description: '编辑和发布文章' },
 ]
 
-export default function AdminPage() {
+const statConfig = [
+  {
+    key: 'totalPosts' as const,
+    title: '文章总数',
+    change: '总计',
+    icon: FileText,
+    color: 'text-theme-accent-primary',
+    bgColor: 'bg-theme-accent-bg',
+  },
+  {
+    key: 'publishedPosts' as const,
+    title: '已发布',
+    change: '已发布',
+    icon: TrendingUp,
+    color: 'text-theme-success-primary',
+    bgColor: 'bg-theme-success-bg',
+  },
+  {
+    key: 'draftPosts' as const,
+    title: '草稿',
+    change: '草稿',
+    icon: FileX,
+    color: 'text-theme-warning-primary',
+    bgColor: 'bg-theme-warning-bg',
+  },
+  {
+    key: 'recentPosts' as const,
+    title: '最近7天',
+    change: '新增',
+    icon: PlusCircle,
+    color: 'text-theme-info-primary',
+    bgColor: 'bg-theme-info-bg',
+  },
+]
+
+const aiStatConfig = [
+  {
+    key: 'aiGeneratedPosts' as const,
+    title: 'AI 摘要',
+    change: '已生成',
+    icon: Brain,
+    color: 'text-purple-500',
+    bgColor: 'bg-purple-50 dark:bg-purple-950',
+  },
+  {
+    key: 'aiPendingPosts' as const,
+    title: '生成中',
+    change: '处理中',
+    icon: Zap,
+    color: 'text-theme-accent-primary',
+    bgColor: 'bg-theme-accent-bg',
+  },
+  {
+    key: 'aiFailedPosts' as const,
+    title: '失败',
+    change: '需要处理',
+    icon: AlertCircle,
+    color: 'text-theme-error-primary',
+    bgColor: 'bg-theme-error-bg',
+  },
+  {
+    key: 'aiTotalTokens' as const,
+    title: '今日 Tokens',
+    change: '使用量',
+    icon: Coins,
+    color: 'text-theme-success-primary',
+    bgColor: 'bg-theme-success-bg',
+  },
+]
+
+export default async function AdminPage() {
+  // 验证用户登录状态
+  const session = await auth()
+  if (!session) {
+    redirect('/api/auth/signin')
+  }
+
+  // 获取统计数据
+  const stats = await getDashboardStats()
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -60,29 +106,64 @@ export default function AdminPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <div
-              key={stat.title}
-              className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm text-theme-text-secondary">{stat.title}</p>
-                  <p className="text-2xl font-semibold text-theme-text-canvas mt-2">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-theme-text-tertiary mt-1">{stat.change}</p>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-medium text-theme-text-canvas mb-4">内容统计</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statConfig.map((stat) => {
+              const Icon = stat.icon
+              const value = String(stats[stat.key])
+              return (
+                <div
+                  key={stat.key}
+                  className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm text-theme-text-secondary">{stat.title}</p>
+                      <p className="text-2xl font-semibold text-theme-text-canvas mt-2">
+                        {value}
+                      </p>
+                      <p className="text-xs text-theme-text-tertiary mt-1">{stat.change}</p>
+                    </div>
+                    <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`w-5 h-5 ${stat.color}`} strokeWidth={2} />
+                    </div>
+                  </div>
                 </div>
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`w-5 h-5 ${stat.color}`} strokeWidth={2} />
+              )
+            })}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-medium text-theme-text-canvas mb-4">AI 统计</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {aiStatConfig.map((stat) => {
+              const Icon = stat.icon
+              const value = String(stats[stat.key])
+              return (
+                <div
+                  key={stat.key}
+                  className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm text-theme-text-secondary">{stat.title}</p>
+                      <p className="text-2xl font-semibold text-theme-text-canvas mt-2">
+                        {value}
+                      </p>
+                      <p className="text-xs text-theme-text-tertiary mt-1">{stat.change}</p>
+                    </div>
+                    <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`w-5 h-5 ${stat.color}`} strokeWidth={2} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}

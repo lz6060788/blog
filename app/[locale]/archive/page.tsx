@@ -1,9 +1,12 @@
 import Navigation from '@/components/Navigation'
 import ArchiveGrid from '@/components/ArchiveGrid'
-import { posts } from '@/lib/data'
+import { getPublishedPosts } from '@/server/db/queries/posts'
 import ArchiveHeader from '@/components/ArchiveHeader'
 
 export default async function ArchivePage() {
+  // 从数据库获取已发布文章列表
+  const posts = await getPublishedPosts()
+
   return (
     <>
       <Navigation />

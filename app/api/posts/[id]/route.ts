@@ -3,6 +3,7 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { posts, categories, tags, postTags } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
+import { SummaryStatus } from "@/server/ai/types";
 
 // 必须使用 Node.js 运行时（SQLite 需要）
 export const runtime = "nodejs";
@@ -43,6 +44,10 @@ export async function GET(
         publishedDate: posts.publishedDate,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
+        // AI 摘要字段
+        aiSummary: posts.aiSummary,
+        aiSummaryStatus: posts.aiSummaryStatus,
+        aiSummaryGeneratedAt: posts.aiSummaryGeneratedAt,
         // Category fields
         categoryId_val: categories.id,
         categoryName: categories.name,
@@ -132,6 +137,22 @@ export async function PUT(
       return NextResponse.json(
         { error: "文章不存在" },
         { status: 404 }
+      );
+    }
+
+    // 检查是否正在生成摘要（如果是，拒绝更新）
+    if (existingPost.aiSummaryStatus === SummaryStatus.GENERATING) {
+      return NextResponse.json(
+        { error: "AI 摘要生成中，无法更新文章" },
+        { status: 400 }
+      );
+    }
+
+    // 拒绝在生成期间发布文章
+    if (published === true && existingPost.aiSummaryStatus === SummaryStatus.GENERATING) {
+      return NextResponse.json(
+        { error: "AI 摘要生成中，无法发布文章" },
+        { status: 400 }
       );
     }
 
@@ -277,6 +298,14 @@ export async function DELETE(
       return NextResponse.json(
         { error: "文章不存在" },
         { status: 404 }
+      );
+    }
+
+    // 检查是否正在生成摘要（如果是，拒绝删除）
+    if (existingPost.aiSummaryStatus === SummaryStatus.GENERATING) {
+      return NextResponse.json(
+        { error: "AI 摘要生成中，无法删除文章" },
+        { status: 400 }
       );
     }
 

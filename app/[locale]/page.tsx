@@ -1,7 +1,8 @@
 import Navigation from '@/components/Navigation'
 import AuthorCard from '@/components/AuthorCard'
 import TimelineList from '@/components/TimelineList'
-import { author, posts } from '@/lib/data'
+import { getAuthor } from '@/server/db/queries/settings'
+import { getPublishedPosts } from '@/server/db/queries/posts'
 import { getTranslations } from 'next-intl/server'
 
 export default async function HomePage({
@@ -10,6 +11,12 @@ export default async function HomePage({
   params: Promise<{ locale: string }>
 }) {
   const t = await getTranslations('home')
+
+  // 从数据库获取作者信息和文章列表
+  const [author, posts] = await Promise.all([
+    getAuthor(),
+    getPublishedPosts(),
+  ])
 
   return (
     <>

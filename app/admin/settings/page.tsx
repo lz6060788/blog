@@ -5,6 +5,7 @@ import { Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getSettings, updateSettings } from '@/server/actions/settings'
 import { toast } from 'react-hot-toast'
+import { AIConfigCard } from '@/components/admin/ai-config-card'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -134,7 +135,14 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+      </form>
 
+      {/* AI 配置 */}
+      <div className="space-y-6">
+        <AIConfigCard />
+      </div>
+
+      <form onSubmit={handleSave} className="max-w-2xl">
         {/* 保存按钮 */}
         <div className="flex justify-end gap-3">
           <Button type="submit" disabled={isSaving}>

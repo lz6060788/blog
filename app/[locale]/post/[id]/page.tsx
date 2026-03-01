@@ -1,8 +1,22 @@
 import { notFound } from 'next/navigation'
 import Navigation from '@/components/Navigation'
 import { ArticleWrapper } from '@/components/article-wrapper'
-import { getPost } from '@/server/db/queries/posts'
+import { getPost, getAllPublishedPostIds } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
+
+// ISR 配置：每 1 小时重新验证一次
+export const revalidate = 3600
+
+// 生成静态参数（用于 SSG）
+export async function generateStaticParams() {
+  const posts = await getAllPublishedPostIds()
+
+  // 为每个 locale 生成文章路径
+  return posts.flatMap((id) => [
+    { locale: 'en', id },
+    { locale: 'zh', id },
+  ])
+}
 
 // 生成 SEO 元数据
 export async function generateMetadata(

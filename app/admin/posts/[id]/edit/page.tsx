@@ -14,8 +14,10 @@ import {
 import { CherryEditor, CherryEditorRef } from '@/components/admin/cherry-editor'
 import { updatePost, getPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
-import { X, FolderOpen, Tag as TagIcon } from 'lucide-react'
+import { X, FolderOpen, Tag as TagIcon, Wand2, Lock, RefreshCw, Loader2 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { AISummaryStatusLabel } from '@/components/admin/ai-summary-status'
+import { SummaryStatus } from '@/server/ai/types'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -39,6 +41,12 @@ export default function EditPostPage() {
   const [existingTags, setExistingTags] = useState<any[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
+
+  // AI 摘要相关状态
+  const [aiSummary, setAiSummary] = useState('')
+  const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
+  const summaryPollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const initialContentRef = useRef<string>('')
   const editorRef = useRef<CherryEditorRef>(null)
@@ -79,7 +87,15 @@ export default function EditPostPage() {
           initialContentRef.current = postContent
           setPublished(post.published)
           setCategoryId(post.categoryId || '')
-          setTags(post.tags || [])
+          setTags((post.tags?.filter((t): t is string => t !== null) || []) as string[])
+          // 加载 AI 摘要状态
+          setAiSummary(post.aiSummary || '')
+          setAiSummaryStatus((post.aiSummaryStatus || SummaryStatus.PENDING) as SummaryStatus)
+
+          // 如果正在生成，开始轮询状态
+          if (post.aiSummaryStatus === SummaryStatus.GENERATING) {
+            startSummaryPolling()
+          }
         } else {
           toast.error('文章不存在')
           router.push('/admin/posts')
@@ -159,6 +175,92 @@ export default function EditPostPage() {
     }
   }
 
+  // 开始轮询摘要状态
+  const startSummaryPolling = () => {
+    if (summaryPollIntervalRef.current) {
+      clearInterval(summaryPollIntervalRef.current)
+    }
+
+    summaryPollIntervalRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/admin/posts/${id}/ai-summary-status`)
+        if (res.ok) {
+          const data = await res.json()
+          setAiSummaryStatus(data.status)
+          setAiSummary(data.summary || '')
+
+          // 如果生成完成或失败，停止轮询
+          if (data.status === SummaryStatus.DONE || data.status === SummaryStatus.FAILED) {
+            stopSummaryPolling()
+            if (data.status === SummaryStatus.DONE) {
+              toast.success('AI 摘要生成成功')
+            } else {
+              toast.error('AI 摘要生成失败')
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取摘要状态失败:', error)
+      }
+    }, 3000) // 每 3 秒轮询一次
+  }
+
+  // 停止轮询摘要状态
+  const stopSummaryPolling = () => {
+    if (summaryPollIntervalRef.current) {
+      clearInterval(summaryPollIntervalRef.current)
+      summaryPollIntervalRef.current = null
+    }
+  }
+
+  // 清理轮询
+  useEffect(() => {
+    return () => {
+      stopSummaryPolling()
+    }
+  }, [])
+
+  // 生成 AI 摘要
+  const handleGenerateSummary = async () => {
+    if (!title.trim() || !content.trim()) {
+      toast.error('请先填写文章标题和内容')
+      return
+    }
+
+    setIsGeneratingSummary(true)
+    try {
+      const res = await fetch(`/api/admin/posts/${id}/generate-summary`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        if (data.needsConfiguration) {
+          toast.error('请先在设置页面配置 AI 模型')
+          return
+        }
+        throw new Error(data.error || '生成失败')
+      }
+
+      setAiSummaryStatus(SummaryStatus.GENERATING)
+      startSummaryPolling()
+      toast.success('已开始生成 AI 摘要')
+    } catch (error: any) {
+      console.error('生成摘要失败:', error)
+      toast.error(error.message || '生成失败')
+    } finally {
+      setIsGeneratingSummary(false)
+    }
+  }
+
+  // 重新生成 AI 摘要
+  const handleRegenerateSummary = () => {
+    if (!confirm('确定要重新生成 AI 摘要吗？')) {
+      return
+    }
+    handleGenerateSummary()
+  }
+
   // 点击已有标签添加
   const handleToggleExistingTag = (tagName: string) => {
     if (tags.includes(tagName)) {
@@ -180,6 +282,12 @@ export default function EditPostPage() {
     }
     if (!content.trim()) {
       toast.error('请输入内容')
+      return
+    }
+
+    // 检查是否正在生成摘要
+    if (aiSummaryStatus === SummaryStatus.GENERATING) {
+      toast.error('AI 摘要生成中，无法保存')
       return
     }
 
@@ -211,6 +319,12 @@ export default function EditPostPage() {
     }
     if (!content.trim()) {
       toast.error('请输入内容')
+      return
+    }
+
+    // 检查是否正在生成摘要
+    if (aiSummaryStatus === SummaryStatus.GENERATING) {
+      toast.error('AI 摘要生成中，无法发布')
       return
     }
 
@@ -271,10 +385,17 @@ export default function EditPostPage() {
           <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
             取消
           </Button>
-          <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
+          <Button
+            variant="outline"
+            onClick={handleSaveDraft}
+            disabled={isSaving || aiSummaryStatus === SummaryStatus.GENERATING}
+          >
             {isSaving ? '保存中...' : '保存草稿'}
           </Button>
-          <Button onClick={handlePublish} disabled={isSaving}>
+          <Button
+            onClick={handlePublish}
+            disabled={isSaving || aiSummaryStatus === SummaryStatus.GENERATING}
+          >
             {isSaving ? '发布中...' : '发布'}
           </Button>
         </div>
@@ -368,6 +489,100 @@ export default function EditPostPage() {
               {tag.name}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* AI 摘要区域 */}
+      <div className="mb-3 flex-shrink-0">
+        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Wand2 className="w-4 h-4 text-theme-accent-primary" />
+              <h3 className="text-sm font-medium text-theme-text-canvas">AI 摘要</h3>
+              <AISummaryStatusLabel status={aiSummaryStatus} />
+            </div>
+            <div className="flex items-center gap-2">
+              {aiSummaryStatus === SummaryStatus.DONE && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRegenerateSummary}
+                  disabled={isGeneratingSummary}
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  重新生成
+                </Button>
+              )}
+              {aiSummaryStatus === SummaryStatus.PENDING || aiSummaryStatus === SummaryStatus.FAILED ? (
+                <Button
+                  size="sm"
+                  onClick={handleGenerateSummary}
+                  disabled={isGeneratingSummary}
+                >
+                  {isGeneratingSummary ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      生成中...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-3 h-3 mr-1" />
+                      生成摘要
+                    </>
+                  )}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
+          {/* 摘要内容显示/编辑 */}
+          {aiSummary ? (
+            <div className="relative">
+              {aiSummaryStatus === SummaryStatus.GENERATING && (
+                <div className="absolute inset-0 bg-theme-bg-canvas/80 flex items-center justify-center rounded-lg z-10">
+                  <div className="flex items-center gap-2 text-theme-accent-primary">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">正在生成摘要...</span>
+                  </div>
+                </div>
+              )}
+              <textarea
+                value={aiSummary}
+                onChange={(e) => setAiSummary(e.target.value)}
+                className="w-full px-3 py-2 bg-theme-bg-canvas border border-theme-border rounded-lg text-sm text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary resize-none"
+                rows={3}
+                placeholder="生成的摘要将显示在这里..."
+                disabled={aiSummaryStatus === SummaryStatus.GENERATING}
+              />
+            </div>
+          ) : (
+            <div className="text-sm text-theme-text-tertiary py-2 text-center">
+              {aiSummaryStatus === SummaryStatus.GENERATING
+                ? '正在生成摘要...'
+                : aiSummaryStatus === SummaryStatus.FAILED
+                  ? '摘要生成失败，请重试'
+                  : '点击"生成摘要"按钮，AI 将为您的文章生成摘要'}
+            </div>
+          )}
+
+          {/* 生成期间的锁定提示 */}
+          {aiSummaryStatus === SummaryStatus.GENERATING && (
+            <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-bg-muted px-3 py-2 rounded-lg">
+              <Lock className="w-3 h-3" />
+              <span>摘要生成期间，编辑功能已锁定</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 生成期间的遮罩层 */}
+      {aiSummaryStatus === SummaryStatus.GENERATING && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-theme-accent-primary" />
+            <p className="text-sm font-medium text-theme-text-canvas">正在生成 AI 摘要</p>
+            <p className="text-xs text-theme-text-secondary">请稍候，生成期间无法编辑文章</p>
+          </div>
         </div>
       )}
 

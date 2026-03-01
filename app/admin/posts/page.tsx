@@ -25,6 +25,7 @@ import {
 import { MoreHorizontal, Edit, Trash2, FileText } from 'lucide-react'
 import { getPosts, togglePostStatus, deletePost } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
+import { AISummaryStatusIcon } from '@/components/admin/ai-summary-status'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -230,6 +231,7 @@ export default function PostsPage() {
               <TableHead className="text-theme-text-secondary font-medium">标签</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">字数</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">创建时间</TableHead>
+              <TableHead className="text-theme-text-secondary font-medium">AI 摘要</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">状态</TableHead>
               <TableHead className="text-theme-text-secondary font-medium text-right">操作</TableHead>
             </TableRow>
@@ -237,7 +239,7 @@ export default function PostsPage() {
           <TableBody>
             {posts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12">
+                <TableCell colSpan={8} className="text-center py-12">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-theme-bg-muted flex items-center justify-center">
                       <FileText className="w-5 h-5 text-theme-text-tertiary" />
@@ -300,6 +302,9 @@ export default function PostsPage() {
                   </TableCell>
                   <TableCell className="text-theme-text-secondary">
                     {formatDate(post.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <AISummaryStatusIcon status={post.aiSummaryStatus || 'pending'} />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

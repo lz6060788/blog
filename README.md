@@ -14,6 +14,53 @@ A minimalist personal blog with asymmetric design, built with Next.js, Tailwind 
 - **Archive**: Yearly grouped post archive with bento grid
 - **Post Detail**: Clean reading experience with minimal distractions
 - **Animations**: Staggered reveals, magnetic hover effects, spring physics
+- **AI-Powered**: Intelligent article summary generation with multiple AI provider support
+
+## AI Features
+
+This blog includes AI-powered content generation capabilities:
+
+### Supported AI Providers
+
+- **DeepSeek** - Cost-effective Chinese-friendly models
+- **智谱 GLM** (Zhipu) - Mainstream Chinese AI service
+- **通义千问** (Qwen) - Alibaba Cloud AI models
+- **月之暗面 Kimi** (Moonshot) - Long-text processing
+- **百川智能** (Baichuan) - Multimodal capabilities
+- **OpenAI** - International option (GPT-4o, GPT-4o-mini)
+
+### Capabilities
+
+- **Article Summary Generation**: Automatically generate concise article summaries
+- **Multi-Model Support**: Configure different AI models for different functions
+- **Database-Managed Configuration**: All AI settings managed through admin panel
+- **Encrypted API Keys**: AES-256-GCM encryption for secure storage
+- **Usage Analytics**: Track token usage and call statistics
+
+### Setup AI Features
+
+1. **Set up encryption key**:
+   ```bash
+   # Generate a 32-byte hex key
+   openssl rand -hex 32
+   ```
+
+2. **Configure environment variables** in `.env.local`:
+   ```bash
+   # Required for API key encryption (32 bytes hex)
+   ENCRYPTION_KEY=your-32-byte-hex-key
+
+   # Optional: Admin emails (comma-separated)
+   ADMIN_EMAILS=admin@example.com,user@example.com
+   ```
+
+3. **Configure AI models**:
+   - Navigate to `/admin/settings` in your browser
+   - Add AI model configurations with provider, model name, and API key
+   - Test the configuration to verify connectivity
+   - Map AI functions (e.g., summary generation) to your configured models
+
+For detailed setup instructions, see [docs/AI_SETUP.md](docs/AI_SETUP.md).
 
 ## Getting Started
 

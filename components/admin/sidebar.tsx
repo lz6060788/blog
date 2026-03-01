@@ -9,7 +9,9 @@ import {
   Settings,
   FolderOpen,
   Tag,
+  Brain,
 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 interface SidebarProps {
   onClose?: () => void
@@ -21,11 +23,31 @@ const navItems = [
   { href: '/admin/drafts', label: '草稿箱', icon: FileX },
   { href: '/admin/categories', label: '分类管理', icon: FolderOpen },
   { href: '/admin/tags', label: '标签管理', icon: Tag },
+  { href: '/admin/ai/logs', label: 'AI 日志', icon: Brain, adminOnly: true },
   { href: '/admin/settings', label: '设置', icon: Settings },
 ]
 
+/**
+ * 检查用户是否是管理员
+ * 注意：这是客户端的简化检查，实际权限验证在后端
+ */
+function isUserAdmin(email: string): boolean {
+  // 从环境变量读取管理员邮箱
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS || 'admin@example.com'
+  return adminEmails.split(',').map(e => e.trim().toLowerCase()).includes(email.toLowerCase())
+}
+
 export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  // 检查是否是管理员
+  const isAdminUser = session?.user?.email && isUserAdmin(session.user.email)
+
+  // 过滤导航项（AI 日志仅对管理员可见）
+  const visibleNavItems = navItems.filter(
+    item => !item.adminOnly || isAdminUser
+  )
 
   // Get path without locale for active state checking
   const getPathWithoutLocale = (path: string) => {
@@ -54,7 +76,7 @@ export function Sidebar({ onClose }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = currentPath === item.href ||
             (item.href !== '/admin' && currentPath.startsWith(item.href))
           const Icon = item.icon

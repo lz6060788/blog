@@ -1,4 +1,4 @@
-import Navigation from '@/components/Navigation'
+import { Navigation } from '@/components/layout/header'
 import { Link as IntlLink } from '@/app/i18n/routing'
 
 export default function NotFound() {

@@ -1,7 +1,6 @@
-import Navigation from '@/components/Navigation'
-import ArchiveGrid from '@/components/ArchiveGrid'
+import { Navigation } from '@/components/layout/header'
+import { ArchiveGrid, ArchiveHeader } from '@/components/public/archive'
 import { getPublishedPosts } from '@/server/db/queries/posts'
-import ArchiveHeader from '@/components/ArchiveHeader'
 
 export default async function ArchivePage() {
   // 从数据库获取已发布文章列表

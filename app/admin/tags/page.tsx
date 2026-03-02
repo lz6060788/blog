@@ -14,7 +14,7 @@ import {
 import { getTags, deleteTag } from '@/server/actions/tags'
 import { toast } from 'react-hot-toast'
 import { motion } from 'framer-motion'
-import TagForm from '@/components/admin/tag-form'
+import { TagForm } from '@/components/admin/tags'
 
 export const dynamic = 'force-dynamic'
 

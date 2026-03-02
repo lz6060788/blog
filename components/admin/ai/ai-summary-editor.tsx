@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Wand2, Lock, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { AISummaryStatusLabel } from '@/components/admin/ai-summary-status'
+import { AISummaryStatusLabel } from '@/components/admin/ai'
 import { SummaryStatus } from '@/server/ai/types'
 import { toast } from 'react-hot-toast'
 

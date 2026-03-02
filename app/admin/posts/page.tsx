@@ -25,7 +25,7 @@ import {
 import { MoreHorizontal, Edit, Trash2, FileText } from 'lucide-react'
 import { getPosts, togglePostStatus, deletePost } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
-import { AISummaryStatusIcon } from '@/components/admin/ai-summary-status'
+import { AISummaryStatusIcon } from '@/components/admin/ai'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'

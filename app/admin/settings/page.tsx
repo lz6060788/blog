@@ -5,7 +5,7 @@ import { Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getSettings, updateSettings } from '@/server/actions/settings'
 import { toast } from 'react-hot-toast'
-import { AIConfigCard } from '@/components/admin/ai-config-card'
+import { AIConfigCard } from '@/components/admin/ai'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'

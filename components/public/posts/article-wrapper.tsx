@@ -1,9 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArticleHeader } from '@/components/article-header'
-import { ArticleContent } from '@/components/article-content'
-import { ArticleFooter } from '@/components/article-footer'
+import { ArticleHeader } from './article-header'
+import { ArticleContent } from './article-content'
+import { ArticleFooter } from './article-footer'
 
 interface ArticleWrapperProps {
   title: string

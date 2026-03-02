@@ -14,7 +14,7 @@ import {
 import { getCategories, deleteCategory } from '@/server/actions/categories'
 import { toast } from 'react-hot-toast'
 import { motion } from 'framer-motion'
-import CategoryForm from '@/components/admin/category-form'
+import { CategoryForm } from '@/components/admin/categories'
 import { Dialog } from '@/components/ui/dialog'
 
 export const dynamic = 'force-dynamic'

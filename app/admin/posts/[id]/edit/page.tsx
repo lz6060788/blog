@@ -11,12 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CherryEditor, CherryEditorRef } from '@/components/admin/cherry-editor'
+import { CherryEditor, CherryEditorRef } from '@/components/editor/cherry'
 import { updatePost, getPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, FolderOpen, Tag as TagIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { AISummaryEditor } from '@/components/admin/ai-summary-editor'
+import { AISummaryEditor } from '@/components/admin/ai'
 import { SummaryStatus } from '@/server/ai/types'
 
 // Force dynamic rendering for admin pages

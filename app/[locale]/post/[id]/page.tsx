@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
-import Navigation from '@/components/Navigation'
-import { ArticleWrapper } from '@/components/article-wrapper'
+import { Navigation } from '@/components/layout/header'
+import { ArticleWrapper } from '@/components/public/posts'
 import { getPost, getAllPublishedPostIds } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
 

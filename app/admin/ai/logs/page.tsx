@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { AISummaryStatusLabel } from '@/components/admin/ai-summary-status'
+import { AISummaryStatusLabel } from '@/components/admin/ai'
 import { AICallStatus } from '@/server/ai/types'
 
 // Force dynamic rendering for admin pages

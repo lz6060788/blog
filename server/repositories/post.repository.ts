@@ -10,7 +10,7 @@
 
 import { db } from '@/server/db'
 import { posts, categories, tags, postTags } from '@/server/db/schema'
-import { eq, sql, desc } from 'drizzle-orm'
+import { eq, sql, desc, inArray } from 'drizzle-orm'
 import { PaginationHelper, DEFAULT_LIMIT } from '@/lib/types/pagination'
 
 export type { CreatePostInput, UpdatePostInput, ListPostsOptions, PostWithRelations, PaginatedPostsResult } from '@/server/services/post.service'
@@ -246,8 +246,7 @@ export class PostRepository {
             })
             .from(postTags)
             .leftJoin(tags, eq(postTags.tagId, tags.id))
-            .where(sql`${postTags.postId} IN ${sql.placeholder('postIds')}`)
-            .all()
+            .where(inArray(postTags.postId, postIds))
         : []
 
     // 组装数据

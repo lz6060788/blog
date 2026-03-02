@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { getDefaultModelMappings } from '@/server/db/queries/ai-function-mappings'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/ai/default-models - 获取各功能的默认模型
 export async function GET(request: NextRequest) {
   try {

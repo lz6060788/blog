@@ -4,6 +4,9 @@ import { db } from '@/server/db'
 import { posts } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/posts/[id]/ai-summary-status - 获取摘要生成状态
 export async function GET(
   request: NextRequest,

@@ -84,22 +84,19 @@ export class SummaryService extends AIService {
           model: modelConfig.model,
           apiKey,
           baseUrl: modelConfig.baseUrl || undefined,
-          maxTokens: modelConfig.maxTokens || 300,
-          temperature: (modelConfig.temperature || 70) / 100,
         })
 
         const { text, usage } = await generateText({
           model,
           prompt,
           system: SUMMARY_SYSTEM_PROMPT,
-          maxTokens: modelConfig.maxTokens || 300,
           temperature: (modelConfig.temperature || 70) / 100,
         })
 
         return {
           summary: text.trim(),
-          inputTokens: usage?.inputTokens || 0,
-          outputTokens: usage?.outputTokens || 0,
+          inputTokens: (usage as any)?.inputTokens || 0,
+          outputTokens: (usage as any)?.outputTokens || 0,
         }
       },
       modelConfig.id,

@@ -1,7 +1,21 @@
 'use client'
 
 import { useRef, useImperativeHandle, forwardRef } from 'react'
-import { CherryEditorInternal } from './cherry-editor-internal'
+import dynamic from 'next/dynamic'
+import { CherryStylesLoader } from './cherry-styles-loader'
+
+// 动态导入 CherryEditorInternal 以避免 SSR 时的 document 错误
+const CherryEditorInternal = dynamic(
+  () => import('./cherry-editor-internal').then(mod => ({ default: mod.CherryEditorInternal })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[500px] border border-theme-border rounded-lg animate-pulse">
+        <div className="text-theme-text-tertiary">加载编辑器...</div>
+      </div>
+    )
+  }
+)
 
 export interface CherryEditorRef {
   getContent: () => string
@@ -29,6 +43,7 @@ export const CherryEditor = forwardRef<CherryEditorRef, CherryEditorProps>(
 
     return (
       <div className={className}>
+        <CherryStylesLoader />
         <CherryEditorInternal
           ref={cherryRef}
           initialValue={initialValue}

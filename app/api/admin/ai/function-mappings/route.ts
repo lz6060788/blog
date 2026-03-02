@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { getAllFunctionMappings, getFunctionMapping } from '@/server/db/queries/ai-function-mappings'
+import { db } from '@/server/db'
+import { aiFunctionMappings, aiModelConfigs } from '@/server/db/schema'
+import { eq, sql } from 'drizzle-orm'
+
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
 
 // GET /api/admin/ai/function-mappings - 获取所有功能映射
 export async function GET(request: NextRequest) {
@@ -76,9 +82,8 @@ export async function POST(request: NextRequest) {
         modelConfigId: aiFunctionMappings.modelConfigId,
       })
       .from(aiFunctionMappings)
-      .where(sql`${aiFunctionMappings.modelConfigId} IS NOT NULL`)
       .leftJoin(aiModelConfigs, eq(aiFunctionMappings.modelConfigId, aiModelConfigs.id))
-      .where(sql`${aiModelConfigs.id} IS NULL`)
+      .where(sql`${aiFunctionMappings.modelConfigId} IS NOT NULL AND ${aiModelConfigs.id} IS NULL`)
 
     console.log('[POST /api/admin/ai/function-mappings/cleanup] Found invalid mappings:', invalidMappings.length)
 

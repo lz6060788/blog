@@ -1,9 +1,18 @@
 'use client'
 
 import { useEffect, useRef, useImperativeHandle, forwardRef, useState, useId } from 'react'
-import Cherry from 'cherry-markdown'
-import 'cherry-markdown/dist/cherry-markdown.css'
-import * as echarts from 'echarts'
+
+// Cherry 类型定义（仅用于类型注解）
+type Cherry = any
+
+// 动态导入 Cherry Markdown 和 echarts
+const loadCherry = async () => {
+  const [{ default: Cherry }, echarts] = await Promise.all([
+    import('cherry-markdown'),
+    import('echarts')
+  ])
+  return { Cherry, echarts }
+}
 
 export interface CherryEditorRef {
   getContent: () => string
@@ -65,6 +74,9 @@ export const CherryEditorInternal = forwardRef<CherryEditorRef, CherryEditorProp
       (async () => {
         try {
           if (!mounted) return
+
+          // 动态加载 Cherry 和 echarts
+          const { Cherry, echarts } = await loadCherry()
 
           const cherry = new Cherry({
             id: editorId,

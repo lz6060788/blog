@@ -2,6 +2,9 @@ import { NextRequest } from 'next/server'
 import { testModelConfig } from '@/server/db/queries/ai-model-configs'
 import { validateAuth, successResponse, errorResponse, withErrorHandler } from '@/server/ai/api-utils'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // POST /api/admin/ai/model-configs/[id]/test - 测试配置
 export async function POST(
   request: NextRequest,

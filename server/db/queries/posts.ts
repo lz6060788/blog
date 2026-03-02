@@ -1,6 +1,6 @@
 import { db } from '../index'
 import { posts, categories, tags, postTags, users } from '../schema'
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, sql } from 'drizzle-orm'
 import type { Post, Tag } from '@/lib/types'
 
 /**

@@ -6,6 +6,9 @@ import {
   isConfigNameUnique
 } from '@/server/db/queries/ai-model-configs'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/ai/model-configs - 获取所有模型配置
 export async function GET(request: NextRequest) {
   try {

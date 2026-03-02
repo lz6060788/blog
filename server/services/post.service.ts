@@ -19,6 +19,8 @@ export interface CreatePostInput {
   tags?: string[]
   readTime?: number
   publishedDate?: string
+  aiSummary?: string | null
+  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
 }
 
 export interface UpdatePostInput {
@@ -30,6 +32,8 @@ export interface UpdatePostInput {
   tags?: string[]
   readTime?: number
   publishedDate?: string
+  aiSummary?: string | null
+  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
 }
 
 export interface ListPostsOptions {
@@ -63,6 +67,10 @@ export interface PostWithRelations {
     slug: string
   }>
   wordCount?: number
+  // AI 摘要相关字段
+  aiSummary?: string | null
+  aiSummaryGeneratedAt?: string | null
+  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
 }
 
 export interface PaginatedPostsResult {
@@ -91,6 +99,9 @@ export class PostService {
     const postId = await this.postRepository.create({
       ...input,
       excerpt,
+      published: input.published ?? false,
+      readTime: input.readTime ?? 0,
+      publishedDate: input.publishedDate ?? null,
       authorId: userId,
     })
 

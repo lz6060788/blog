@@ -19,7 +19,7 @@ export async function getAllModelConfigs(options?: {
   const query = db.select().from(aiModelConfigs)
 
   if (!options?.includeDisabled) {
-    query.where(eq(aiModelConfigs.enabled, 1))
+    query.where(eq(aiModelConfigs.enabled, true))
   }
 
   return await query.orderBy(desc(aiModelConfigs.createdAt))
@@ -142,8 +142,9 @@ export async function deleteModelConfig(id: string): Promise<boolean> {
   const result = await db
     .delete(aiModelConfigs)
     .where(eq(aiModelConfigs.id, id))
+    .returning()
 
-  return result.rowsAffected > 0
+  return result.length > 0
 }
 
 /**
@@ -207,7 +208,7 @@ export async function getModelConfigsForSelect() {
       enabled: aiModelConfigs.enabled,
     })
     .from(aiModelConfigs)
-    .where(eq(aiModelConfigs.enabled, 1))
+    .where(eq(aiModelConfigs.enabled, true))
     .orderBy(desc(aiModelConfigs.createdAt))
 
   return configs
@@ -254,7 +255,6 @@ async function performAIModelTest(options: {
   const { text } = await generateText({
     model: aiModel,
     prompt: "Say 'OK'",
-    maxTokens: 20,
   })
 
   const duration = Date.now() - startTime

@@ -6,6 +6,9 @@ import { eq, and } from 'drizzle-orm'
 import { SummaryStatus } from '@/server/ai/types'
 import { summaryService } from '@/server/ai/services/summary'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // POST /api/admin/posts/[id]/generate-summary - 生成 AI 摘要
 export async function POST(
   request: NextRequest,

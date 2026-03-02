@@ -207,7 +207,6 @@ export default function NewPostPage() {
           publishedDate: new Date().toISOString(),
           aiSummary,
         })
-        setPublished(true)
         toast.success('发布成功')
         router.push('/admin/posts')
       } else {

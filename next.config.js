@@ -18,6 +18,17 @@ const nextConfig = {
       },
     ],
   },
+  // 排除 Cherry Markdown 在服务端的打包
+  experimental: {
+    serverComponentsExternalPackages: ['cherry-markdown', 'echarts'],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // 在服务端构建时排除 Cherry Markdown
+      config.externals = [...(config.externals || []), 'cherry-markdown', 'echarts']
+    }
+    return config
+  },
 }
 
 module.exports = withNextIntl(nextConfig)

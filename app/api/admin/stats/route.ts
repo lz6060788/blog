@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { statsService } from '@/server/services/stats.service'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // 必须使用 Node.js 运行时（SQLite 需要）
 export const runtime = 'nodejs'
 

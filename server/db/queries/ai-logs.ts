@@ -64,14 +64,14 @@ export async function getCallLogs(options?: {
   for (const log of logs) {
     if (log.modelConfigId) {
       const modelConfig = await db.query.aiModelConfigs.findFirst({
-        where: (table, { eq }) => eq(table.id, log.modelConfigId),
+        where: (table, { eq }) => eq(table.id, log.modelConfigId!),
       })
       ;(log as any).configName = modelConfig?.name || 'Unknown'
     }
 
     if (log.postId) {
       const post = await db.query.posts.findFirst({
-        where: (table, { eq }) => eq(table.id, log.postId),
+        where: (table, { eq }) => eq(table.id, log.postId!),
       })
       ;(log as any).postTitle = post?.title || 'Unknown'
     }

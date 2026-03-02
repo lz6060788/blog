@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { getModelConfigById, toggleModelConfig } from '@/server/db/queries/ai-model-configs'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // PATCH /api/admin/ai/model-configs/[id]/toggle - 启用/禁用配置
 export async function PATCH(
   request: NextRequest,

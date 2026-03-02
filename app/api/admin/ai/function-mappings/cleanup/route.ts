@@ -4,6 +4,9 @@ import { db } from '@/server/db'
 import { aiFunctionMappings, aiModelConfigs } from '@/server/db/schema'
 import { eq, sql } from 'drizzle-orm'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // POST /api/admin/ai/function-mappings/cleanup - 清理无效的功能映射
 export async function POST(request: NextRequest) {
   try {

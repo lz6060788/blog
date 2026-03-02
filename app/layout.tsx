@@ -3,6 +3,8 @@ import { routing } from './i18n/routing'
 import { Outfit, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import './styles/index.css'
+// Cherry Markdown 样式（仅在需要编辑器的页面加载）
+import 'cherry-markdown/dist/cherry-markdown.css'
 import { ToastProvider } from '@/components/providers/toast-provider'
 
 const outfit = Outfit({

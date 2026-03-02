@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { AICallStatus } from '@/server/ai/types'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // GET /api/admin/ai/logs - 获取 AI 调用日志
 export async function GET(request: NextRequest) {
   try {

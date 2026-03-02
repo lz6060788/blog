@@ -8,6 +8,9 @@ import {
 } from '@/server/db/queries/ai-model-configs'
 import { getAllFunctionMappings } from '@/server/db/queries/ai-function-mappings'
 
+// 强制动态渲染（API 路由使用 auth() 需要 headers）
+export const dynamic = 'force-dynamic'
+
 // PUT /api/admin/ai/model-configs/[id] - 更新配置
 export async function PUT(
   request: NextRequest,

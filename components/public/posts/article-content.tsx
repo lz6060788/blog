@@ -1,6 +1,6 @@
 'use client'
 
-import { CherryPreview } from '@/components/cherry-preview'
+import { CherryPreview } from '@/components/editor/preview'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 

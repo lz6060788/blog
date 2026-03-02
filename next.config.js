@@ -22,6 +22,8 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['cherry-markdown', 'echarts'],
   },
+  // 确保 transpilePackages 正确配置
+  transpilePackages: ['@radix-ui/react-avatar'],
   webpack: (config, { isServer }) => {
     if (isServer) {
       // 在服务端构建时排除 Cherry Markdown

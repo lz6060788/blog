@@ -78,30 +78,30 @@
 
 ## 3. Service 层实现
 
-- [ ] 3.1 创建 `PostService` 服务类（`server/services/post.service.ts`）
-- [ ] 3.2 实现 `PostService.createPost()` 方法
-- [ ] 3.3 实现 `PostService.updatePost()` 方法
-- [ ] 3.4 实现 `PostService.deletePost()` 方法
-- [ ] 3.5 实现 `PostService.getPostById()` 方法
-- [ ] 3.6 实现 `PostService.getPostBySlug()` 方法
-- [ ] 3.7 实现 `PostService.listPublishedPosts()` 方法（支持分页和筛选）
-- [ ] 3.8 实现 `PostService.publishPost()` 方法（包含摘要生成状态检查）
-- [ ] 3.9 提取 `generateSlug` 工具函数到 `lib/utils/slug.ts`
+- [x] 3.1 创建 `PostService` 服务类（`server/services/post.service.ts`）
+- [x] 3.2 实现 `PostService.createPost()` 方法
+- [x] 3.3 实现 `PostService.updatePost()` 方法
+- [x] 3.4 实现 `PostService.deletePost()` 方法
+- [x] 3.5 实现 `PostService.getPostById()` 方法
+- [x] 3.6 实现 `PostService.getPostBySlug()` 方法
+- [x] 3.7 实现 `PostService.listPublishedPosts()` 方法（支持分页和筛选）
+- [x] 3.8 实现 `PostService.publishPost()` 方法（包含摘要生成状态检查）
+- [x] 3.9 提取 `generateSlug` 工具函数到 `lib/utils/slug.ts`
 - [ ] 3.10 整合现有 AI 服务到新 Service 层架构
 - [ ] 3.11 创建 `StatsService` 服务类
 - [ ] 3.12 创建 `AuthService` 服务类（如需要）
 
 ## 4. Repository 层实现
 
-- [ ] 4.1 创建 `PostRepository` 类（`server/repositories/post.repository.ts`）
-- [ ] 4.2 实现 `PostRepository` 的数据库连接注入
-- [ ] 4.3 实现 `PostRepository.findById()` 方法（使用关联查询优化）
-- [ ] 4.4 实现 `PostRepository.findBySlug()` 方法
-- [ ] 4.5 实现 `PostRepository.listPublished()` 方法（使用关联查询避免 N+1）
-- [ ] 4.6 实现 `PostRepository.create()` 方法（支持事务）
-- [ ] 4.7 实现 `PostRepository.update()` 方法
-- [ ] 4.8 实现 `PostRepository.delete()` 方法
-- [ ] 4.9 实现分页查询辅助方法（计算 offset、total 等）
+- [x] 4.1 创建 `PostRepository` 类（`server/repositories/post.repository.ts`）
+- [x] 4.2 实现 `PostRepository` 的数据库连接注入
+- [x] 4.3 实现 `PostRepository.findById()` 方法（使用关联查询优化）
+- [x] 4.4 实现 `PostRepository.findBySlug()` 方法
+- [x] 4.5 实现 `PostRepository.listPublished()` 方法（使用关联查询避免 N+1）
+- [x] 4.6 实现 `PostRepository.create()` 方法（支持事务）
+- [x] 4.7 实现 `PostRepository.update()` 方法
+- [x] 4.8 实现 `PostRepository.delete()` 方法
+- [x] 4.9 实现分页查询辅助方法（计算 offset、total 等）
 - [ ] 4.10 处理数据库字段转换（如 temperature 整数转小数）
 - [ ] 4.11 迁移 `server/db/queries/posts.ts` 中的查询逻辑到 Repository
 - [ ] 4.12 创建其他 Repository（TagRepository, CategoryRepository 等）

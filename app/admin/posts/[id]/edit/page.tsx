@@ -88,7 +88,12 @@ export default function EditPostPage() {
           initialContentRef.current = postContent
           setPublished(post.published)
           setCategoryId(post.categoryId || '')
-          setTags((post.tags?.filter((t): t is string => t !== null) || []) as string[])
+          // 处理标签：post.tags 现在是对象数组，需要转换为字符串数组
+          setTags(
+            (post.tags
+              ?.filter((t) => t != null)
+              .map((t) => (typeof t === 'string' ? t : t.name)) || []) as string[]
+          )
           // 加载 AI 摘要状态
           setAiSummary(post.aiSummary || '')
           setAiSummaryStatus((post.aiSummaryStatus || SummaryStatus.PENDING) as SummaryStatus)

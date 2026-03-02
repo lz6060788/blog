@@ -5,7 +5,6 @@
  * 1. Base 基础样式（颜色、主题）
  * 2. Semantic 语义化样式（背景、文本、边框、强调色）
  * 3. Components 组件样式
- * 4. Legacy 遗留样式（待迁移）
  *
  * 添加新样式文件时，请按照上述分类添加到对应区域。
  */
@@ -32,7 +31,3 @@
 @import './components/table.css';
 @import './components/sheet.css';
 @import './components/cherry-preview.css';
-
-/* Legacy 遗留样式（待迁移到 Tailwind 或新的样式系统） */
-@import './legacy/card.css';
-@import './legacy/nav.css';

@@ -124,7 +124,7 @@
 - [x] 6.4 重构 `app/api/posts/[id]/route.ts` PUT 方法，使用 PostService
 - [x] 6.5 重构 `app/api/posts/[id]/route.ts` DELETE 方法，使用 PostService
 - [x] 6.6 重构管理端统计 API，使用 StatsService
-- [ ] 6.7 重构 AI 相关 API，确保使用 AIService
+- [x] 6.7 重构 AI 相关 API，确保使用 AIService
 - [x] 6.8 统一错误处理逻辑（Service 异常 → HTTP 状态码）
 - [x] 6.9 移除 API Routes 中的重复业务逻辑代码
 - [ ] 6.10 测试所有 API 端点，确保行为一致
@@ -139,9 +139,9 @@
 
 ## 8. 查询性能优化
 
-- [ ] 8.1 使用 Drizzle 的 `with` 语法优化文章-分类关联查询
-- [ ] 8.2 使用批量查询策略优化文章-标签多对多查询
-- [ ] 8.3 验证所有查询无 N+1 问题（使用开发日志或 EXPLAIN）
+- [x] 8.1 使用 Drizzle 的 `with` 语法优化文章-分类关联查询
+- [x] 8.2 使用批量查询策略优化文章-标签多对多查询
+- [x] 8.3 验证所有查询无 N+1 问题（使用开发日志或 EXPLAIN）
 - [ ] 8.4 为关键查询添加性能监控日志
 - [ ] 8.5 运行性能测试，对比优化前后响应时间
 
@@ -164,12 +164,12 @@
 
 ## 11. lib 目录规范化
 
-- [ ] 11.1 将 `lib/utils.ts` 内容迁移到 `lib/utils/index.ts`
-- [ ] 11.2 将 `lib/types.ts` 内容迁移到 `lib/types/index.ts`
-- [ ] 11.3 删除根目录下的冗余文件
-- [ ] 11.4 更新所有导入路径，统一使用 `@/lib/utils` 和 `@/lib/types`
-- [ ] 11.5 创建子模块文件（如 `lib/utils/slug.ts`, `lib/utils/date.ts`）
-- [ ] 11.6 在 `lib/utils/index.ts` 中统一导出所有工具函数
+- [x] 11.1 将 `lib/utils.ts` 内容迁移到 `lib/utils/index.ts`
+- [x] 11.2 将 `lib/types.ts` 内容迁移到 `lib/types/index.ts`
+- [x] 11.3 删除根目录下的冗余文件
+- [x] 11.4 更新所有导入路径，统一使用 `@/lib/utils` 和 `@/lib/types`
+- [x] 11.5 创建子模块文件（如 `lib/utils/slug.ts`, `lib/utils/date.ts`）
+- [x] 11.6 在 `lib/utils/index.ts` 中统一导出所有工具函数
 
 ## 12. 测试与验证
 
@@ -194,10 +194,10 @@
 
 ## 14. 清理与收尾
 
-- [ ] 14.1 删除已迁移的旧代码文件
-- [ ] 14.2 删除空的目录
+- [x] 14.1 删除已迁移的旧代码文件
+- [x] 14.2 删除空的目录
 - [ ] 14.3 运行 `npm run lint` 修复代码风格问题
-- [ ] 14.4 运行 TypeScript 编译检查，确保无类型错误
+- [x] 14.4 运行 TypeScript 编译检查，确保无类型错误
 - [ ] 14.5 检查并移除未使用的导入
-- [ ] 14.6 提交代码到 Git（按模块分阶段提交）
+- [x] 14.6 提交代码到 Git（按模块分阶段提交）
 - [ ] 14.7 创建 Pull Request 或合并到主分支

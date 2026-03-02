@@ -108,13 +108,13 @@
 
 ## 5. 分页系统实现
 
-- [ ] 5.1 创建分页参数类型定义（`lib/types/pagination.ts`）
-- [ ] 5.2 创建分页响应类型定义（`lib/types/pagination-response.ts`）
-- [ ] 5.3 实现分页参数验证函数
-- [ ] 5.4 实现分页元数据计算函数（total, page, limit, totalPages, hasNext, hasPrev）
-- [ ] 5.5 创建分页响应格式化工具函数
-- [ ] 5.6 在 Repository 层实现分页查询逻辑
-- [ ] 5.7 在 Service 层集成分页支持
+- [x] 5.1 创建分页参数类型定义（`lib/types/pagination.ts`）
+- [x] 5.2 创建分页响应类型定义（`lib/types/pagination-response.ts`）
+- [x] 5.3 实现分页参数验证函数
+- [x] 5.4 实现分页元数据计算函数（total, page, limit, totalPages, hasNext, hasPrev）
+- [x] 5.5 创建分页响应格式化工具函数
+- [x] 5.6 在 Repository 层实现分页查询逻辑
+- [x] 5.7 在 Service 层集成分页支持
 
 ## 6. API Routes 重构
 

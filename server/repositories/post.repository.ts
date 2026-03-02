@@ -11,6 +11,7 @@
 import { db } from '@/server/db'
 import { posts, categories, tags, postTags } from '@/server/db/schema'
 import { eq, sql, desc } from 'drizzle-orm'
+import { PaginationHelper, DEFAULT_LIMIT } from '@/lib/types/pagination'
 
 export type { CreatePostInput, UpdatePostInput, ListPostsOptions, PostWithRelations, PaginatedPostsResult } from '@/server/services/post.service'
 
@@ -180,9 +181,8 @@ export class PostRepository {
     limit: number
     totalPages: number
   }> {
-    const page = options?.page || 1
-    const limit = options?.limit || 20
-    const offset = (page - 1) * limit
+    // 规范化分页参数
+    const { page, limit, offset } = PaginationHelper.normalizeParams(options)
 
     // 构建 WHERE 条件
     let whereConditions: any[] = []
@@ -264,12 +264,12 @@ export class PostRepository {
       wordCount: (post.content || '').length,
     }))
 
+    // 计算分页元数据
+    const metadata = PaginationHelper.calculateMetadata(total, page, limit)
+
     return {
       data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      ...metadata,
     }
   }
 

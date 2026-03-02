@@ -118,23 +118,23 @@
 
 ## 6. API Routes 重构
 
-- [ ] 6.1 重构 `app/api/posts/route.ts` GET 方法，使用 PostService
-- [ ] 6.2 重构 `app/api/posts/route.ts` POST 方法，使用 PostService
-- [ ] 6.3 重构 `app/api/posts/[id]/route.ts` GET 方法，使用 PostService
-- [ ] 6.4 重构 `app/api/posts/[id]/route.ts` PUT 方法，使用 PostService
-- [ ] 6.5 重构 `app/api/posts/[id]/route.ts` DELETE 方法，使用 PostService
+- [x] 6.1 重构 `app/api/posts/route.ts` GET 方法，使用 PostService
+- [x] 6.2 重构 `app/api/posts/route.ts` POST 方法，使用 PostService
+- [x] 6.3 重构 `app/api/posts/[id]/route.ts` GET 方法，使用 PostService
+- [x] 6.4 重构 `app/api/posts/[id]/route.ts` PUT 方法，使用 PostService
+- [x] 6.5 重构 `app/api/posts/[id]/route.ts` DELETE 方法，使用 PostService
 - [ ] 6.6 重构管理端统计 API，使用 StatsService
 - [ ] 6.7 重构 AI 相关 API，确保使用 AIService
-- [ ] 6.8 统一错误处理逻辑（Service 异常 → HTTP 状态码）
-- [ ] 6.9 移除 API Routes 中的重复业务逻辑代码
+- [x] 6.8 统一错误处理逻辑（Service 异常 → HTTP 状态码）
+- [x] 6.9 移除 API Routes 中的重复业务逻辑代码
 - [ ] 6.10 测试所有 API 端点，确保行为一致
 
 ## 7. Server Actions 重构
 
-- [ ] 7.1 重构 `server/actions/posts.ts`，使用 PostService
-- [ ] 7.2 移除 Server Actions 中的重复业务逻辑
-- [ ] 7.3 确保 Server Actions 与 API Routes 行为一致
-- [ ] 7.4 处理表单状态和错误消息
+- [x] 7.1 重构 `server/actions/posts.ts`，使用 PostService
+- [x] 7.2 移除 Server Actions 中的重复业务逻辑
+- [x] 7.3 确保 Server Actions 与 API Routes 行为一致
+- [x] 7.4 处理表单状态和错误消息
 - [ ] 7.5 测试所有 Server Actions
 
 ## 8. 查询性能优化

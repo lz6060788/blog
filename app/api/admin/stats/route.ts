@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
-import { getDashboardStats } from '@/server/db/queries/stats'
+import { statsService } from '@/server/services/stats.service'
 
 // 必须使用 Node.js 运行时（SQLite 需要）
 export const runtime = 'nodejs'
@@ -22,7 +22,7 @@ export async function GET() {
     }
 
     // 获取统计数据
-    const stats = await getDashboardStats()
+    const stats = await statsService.getDashboardStats()
 
     // 返回 JSON 格式的统计数据
     return NextResponse.json(stats)

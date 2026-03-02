@@ -88,7 +88,7 @@
 - [x] 3.8 实现 `PostService.publishPost()` 方法（包含摘要生成状态检查）
 - [x] 3.9 提取 `generateSlug` 工具函数到 `lib/utils/slug.ts`
 - [ ] 3.10 整合现有 AI 服务到新 Service 层架构
-- [ ] 3.11 创建 `StatsService` 服务类
+- [x] 3.11 创建 `StatsService` 服务类
 - [ ] 3.12 创建 `AuthService` 服务类（如需要）
 
 ## 4. Repository 层实现
@@ -123,7 +123,7 @@
 - [x] 6.3 重构 `app/api/posts/[id]/route.ts` GET 方法，使用 PostService
 - [x] 6.4 重构 `app/api/posts/[id]/route.ts` PUT 方法，使用 PostService
 - [x] 6.5 重构 `app/api/posts/[id]/route.ts` DELETE 方法，使用 PostService
-- [ ] 6.6 重构管理端统计 API，使用 StatsService
+- [x] 6.6 重构管理端统计 API，使用 StatsService
 - [ ] 6.7 重构 AI 相关 API，确保使用 AIService
 - [x] 6.8 统一错误处理逻辑（Service 异常 → HTTP 状态码）
 - [x] 6.9 移除 API Routes 中的重复业务逻辑代码

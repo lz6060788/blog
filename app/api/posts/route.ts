@@ -12,7 +12,27 @@ function createPostService() {
   return new PostService(postRepository);
 }
 
-// GET /api/posts - 获取文章列表
+/**
+ * GET /api/posts - 获取文章列表
+ *
+ * 查询参数：
+ * - page: 页码（默认 1）
+ * - limit: 每页数量（默认 20，最大 100）
+ * - search: 搜索关键词
+ * - published: 是否只显示已发布文章
+ * - drafts: 是否只显示草稿
+ *
+ * 响应格式：
+ * {
+ *   data: Post[],
+ *   total: number,
+ *   page: number,
+ *   limit: number,
+ *   totalPages: number,
+ *   hasNext: boolean,
+ *   hasPrev: boolean
+ * }
+ */
 export async function GET(request: Request) {
   const session = await auth();
 

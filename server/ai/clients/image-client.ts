@@ -1,6 +1,6 @@
 /**
  * AI 图像生成客户端
- * 支持 OpenAI DALL-E 图像生成
+ * 支持多种图像生成服务提供商
  */
 
 import OpenAI from 'openai'
@@ -10,9 +10,11 @@ import { AIProvider, ImageGenerationOptions } from '../types'
  * 图像生成客户端类
  */
 export class ImageGenerationClient {
-  private client: OpenAI
+  private client: OpenAI | null
   private provider: AIProvider
   private model: string
+  private apiKey: string
+  private baseUrl?: string
 
   constructor(options: {
     provider: AIProvider
@@ -22,17 +24,25 @@ export class ImageGenerationClient {
   }) {
     this.provider = options.provider
     this.model = options.model
+    this.apiKey = options.apiKey
+    this.baseUrl = options.baseUrl
 
-    const clientConfig: OpenAI.ClientOptions = {
-      apiKey: options.apiKey,
+    // 只为支持的提供商初始化 OpenAI 客户端
+    // 通义万相等使用兼容 API 的提供商
+    if (this.provider === AIProvider.OPENAI || this.provider === AIProvider.QWEN) {
+      const clientConfig: OpenAI.ClientOptions = {
+        apiKey: options.apiKey,
+      }
+
+      // 如果有自定义 baseUrl，使用它（某些兼容 API 需要）
+      if (options.baseUrl) {
+        clientConfig.baseURL = options.baseUrl
+      }
+
+      this.client = new OpenAI(clientConfig)
+    } else {
+      this.client = null
     }
-
-    // 如果有自定义 baseUrl，使用它（某些兼容 API 需要）
-    if (options.baseUrl) {
-      clientConfig.baseURL = options.baseUrl
-    }
-
-    this.client = new OpenAI(clientConfig)
   }
 
   /**
@@ -45,15 +55,19 @@ export class ImageGenerationClient {
     prompt: string,
     options: ImageGenerationOptions = {}
   ): Promise<{ url: string; revisedPrompt?: string }> {
-    const { size = '1024x1024', quality = 'standard', style = 'vivid', format = 'url' } = options
+    const { size = '1024x1024' } = options
 
     try {
-      // 根据模型选择生成方法
-      if (this.model === 'dall-e-3' || this.model === 'dall-e-2') {
-        return await this.generateDALL_E(prompt, { size, quality, style, format })
+      // 根据提供商选择生成方法
+      if (this.provider === AIProvider.OPENAI && (this.model === 'dall-e-3' || this.model === 'dall-e-2')) {
+        return await this.generateDALL_E(prompt, options)
       }
 
-      // 其他模型的图像生成可以在这里添加
+      if (this.provider === AIProvider.QWEN && this.model.startsWith('wanx')) {
+        return await this.generateWanX(prompt, { size })
+      }
+
+      // 其他模型的图像生成
       throw new Error(`Unsupported image generation model: ${this.model}`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
@@ -66,26 +80,27 @@ export class ImageGenerationClient {
    */
   private async generateDALL_E(
     prompt: string,
-    options: {
-      size: string
-      quality: string
-      style: string
-      format: string
-    }
+    options: ImageGenerationOptions
   ): Promise<{ url: string; revisedPrompt?: string }> {
+    if (!this.client) {
+      throw new Error('OpenAI client not initialized')
+    }
+
+    const { size = '1024x1024', quality = 'standard', style = 'vivid' } = options
+
     const params: OpenAI.ImageGenerateParams = {
       model: this.model as 'dall-e-2' | 'dall-e-3',
       prompt,
       n: 1,
-      size: options.size as OpenAI.ImageSize,
+      size: size as OpenAI.ImageSize,
     }
 
     // DALL-E 3 支持额外的参数
     if (this.model === 'dall-e-3') {
       // @ts-ignore - quality 是 DALL-E 3 特有的参数
-      params.quality = options.quality as 'standard' | 'hd'
+      params.quality = quality as 'standard' | 'hd'
       // @ts-ignore - style 是 DALL-E 3 特有的参数
-      params.style = options.style as 'vivid' | 'natural'
+      params.style = style as 'vivid' | 'natural'
     }
 
     const response = await this.client.images.generate(params)
@@ -100,11 +115,9 @@ export class ImageGenerationClient {
 
     // 如果返回的是 base64 数据
     if (data.b64_json) {
-      // 将 base64 转换为 data URL
       const base64Data = data.b64_json
-      const mimeType = this.getImageMimeType()
       return {
-        url: `data:${mimeType};base64,${base64Data}`,
+        url: `data:image/png;base64,${base64Data}`,
       }
     }
 
@@ -112,10 +125,68 @@ export class ImageGenerationClient {
   }
 
   /**
-   * 根据模型获取图像 MIME 类型
+   * 使用通义万相生成图像
    */
-  private getImageMimeType(): string {
-    return 'image/png'
+  private async generateWanX(
+    prompt: string,
+    options: { size: string }
+  ): Promise<{ url: string }> {
+    // 通义万相 API 端点
+    const apiUrl = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis'
+
+    // 解析尺寸
+    let width = 1024
+    let height = 1024
+    if (options.size === '1792x1024') {
+      width = 1792
+      height = 1024
+    } else if (options.size === '1024x1792') {
+      width = 1024
+      height = 1792
+    } else if (options.size === '1200x675') {
+      width = 1200
+      height = 675
+    }
+
+    const requestBody = {
+      model: this.model,
+      input: {
+        prompt: prompt,
+        size: `${width}*${height}`,
+        n: 1,
+      },
+      parameters: {
+        seed: Math.floor(Math.random() * 1000000),
+      },
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`WanX API error: ${response.status} ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    // 通义万相返回格式
+    if (data.output && data.output.results && data.output.results.length > 0) {
+      const imageUrl = data.output.results[0].url
+      if (imageUrl) {
+        // 通义万相返回的 URL 可能是临时的，需要处理
+        // 直接返回 URL，后续会在 cover service 中下载并上传到 COS
+        return { url: imageUrl }
+      }
+    }
+
+    throw new Error('No image data returned from WanX API')
   }
 
   /**

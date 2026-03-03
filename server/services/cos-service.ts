@@ -50,9 +50,9 @@ const ALLOWED_EXTENSIONS = [
 ];
 
 /**
- * 最大文件大小（5MB）
+ * 最大文件大小（10MB）
  */
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB in bytes
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
 /**
  * 文件魔数（file signature）用于验证真实文件类型

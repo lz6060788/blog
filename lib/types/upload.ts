@@ -101,7 +101,7 @@ export class UploadError extends Error {
  * 将 API 错误代码转换为用户友好的中文消息
  */
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
-  FILE_TOO_LARGE: "文件大小超过 5MB 限制",
+  FILE_TOO_LARGE: "文件大小超过 10MB 限制",
   INVALID_FILE_TYPE: "不支持的文件类型，请上传图片或文档",
   INVALID_FILE_CONTENT: "文件内容验证失败",
   UPLOAD_FAILED: "上传失败，请稍后重试",

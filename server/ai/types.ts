@@ -102,11 +102,15 @@ export const SUGGESTED_MODELS: Record<AIProvider, string[]> = {
  * 仅支持图像生成能力的提供商
  */
 export const SUGGESTED_IMAGE_MODELS: Partial<Record<AIProvider, string[]>> = {
+  [AIProvider.QWEN]: [
+    'wanx-v1',           // 通义万相
+    'wanx-v1-plato',     // 通义万相 Plato 模型
+  ],
   [AIProvider.OPENAI]: [
     'dall-e-3',
     'dall-e-2',
   ],
-  // TODO: 添加更多图像生成提供商（通义万相、百度文心一格等）
+  // TODO: 添加更多图像生成提供商（百度文心一格、Stability AI 等）
 }
 
 /**

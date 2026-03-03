@@ -44,10 +44,22 @@ interface FunctionMapping {
 const PROVIDERS = [
   { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'], type: 'text' },
   { value: 'zhipu', label: '智谱 GLM', models: ['glm-4-flash', 'glm-4-plus', 'glm-4-air'], type: 'text' },
-  { value: 'qwen', label: '通义千问', models: ['qwen-turbo', 'qwen-plus', 'qwen-max'], type: 'text', imageModels: ['wanx-v1'] },
+  {
+    value: 'qwen',
+    label: '通义千问',
+    models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long'],
+    type: 'text',
+    imageModels: ['wanx-v1', 'wanx-v1-plato']
+  },
   { value: 'moonshot', label: '月之暗面 Kimi', models: ['moonshot-v1-8k', 'moonshot-v1-32k'], type: 'text' },
   { value: 'baichuan', label: '百川智能', models: ['Baichuan2-Turbo', 'Baichuan2-53B'], type: 'text' },
-  { value: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'], type: 'text', imageModels: ['dall-e-3', 'dall-e-2'] },
+  {
+    value: 'openai',
+    label: 'OpenAI',
+    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
+    type: 'text',
+    imageModels: ['dall-e-3', 'dall-e-2']
+  },
 ]
 
 const FUNCTION_NAMES = [

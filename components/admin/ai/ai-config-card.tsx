@@ -22,6 +22,7 @@ interface ModelConfig {
   baseUrl: string | null
   maxTokens: number
   temperature: number
+  capabilityType: string
   enabled: number
   createdAt: string
   updatedAt: string
@@ -41,18 +42,18 @@ interface FunctionMapping {
 }
 
 const PROVIDERS = [
-  { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'] },
-  { value: 'zhipu', label: '智谱 GLM', models: ['glm-4-flash', 'glm-4-plus', 'glm-4-air'] },
-  { value: 'qwen', label: '通义千问', models: ['qwen-turbo', 'qwen-plus', 'qwen-max'] },
-  { value: 'moonshot', label: '月之暗面 Kimi', models: ['moonshot-v1-8k', 'moonshot-v1-32k'] },
-  { value: 'baichuan', label: '百川智能', models: ['Baichuan2-Turbo', 'Baichuan2-53B'] },
-  { value: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'gpt_3_5_turbo'] },
+  { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'], type: 'text' },
+  { value: 'zhipu', label: '智谱 GLM', models: ['glm-4-flash', 'glm-4-plus', 'glm-4-air'], type: 'text' },
+  { value: 'qwen', label: '通义千问', models: ['qwen-turbo', 'qwen-plus', 'qwen-max'], type: 'text', imageModels: ['wanx-v1'] },
+  { value: 'moonshot', label: '月之暗面 Kimi', models: ['moonshot-v1-8k', 'moonshot-v1-32k'], type: 'text' },
+  { value: 'baichuan', label: '百川智能', models: ['Baichuan2-Turbo', 'Baichuan2-53B'], type: 'text' },
+  { value: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'], type: 'text', imageModels: ['dall-e-3', 'dall-e-2'] },
 ]
 
 const FUNCTION_NAMES = [
-  { value: 'summary', label: '摘要生成', available: true, icon: '📝' },
-  { value: 'cover', label: '封面生成', available: false, icon: '🎨' },
-  { value: 'search', label: '智能搜索', available: false, icon: '🔍' },
+  { value: 'summary', label: '摘要生成', available: true, icon: '📝', capabilityType: 'text' },
+  { value: 'cover', label: '封面生成', available: true, icon: '🎨', capabilityType: 'image' },
+  { value: 'search', label: '智能搜索', available: false, icon: '🔍', capabilityType: 'text' },
 ]
 
 // 整合的 AI 配置卡片
@@ -324,6 +325,18 @@ export function AIConfigCard() {
 
                   const handleUpdate = async (value: string) => {
                     try {
+                      // 验证模型能力类型与功能类型匹配
+                      if (value) {
+                        const selectedConfig = enabledConfigs.find(c => c.id === value)
+                        const configCapabilityType = selectedConfig?.capabilityType || 'text'
+
+                        // 检查能力类型是否匹配
+                        if (fn.capabilityType && configCapabilityType !== fn.capabilityType) {
+                          toast.error(`${fn.label}需要${fn.capabilityType === 'text' ? '文本生成' : '图像生成'}类型的模型`)
+                          return
+                        }
+                      }
+
                       const res = await fetch('/api/admin/ai/function-mappings', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -348,11 +361,6 @@ export function AIConfigCard() {
                           <label className="text-sm font-medium text-theme-text-canvas">
                             {fn.label}
                           </label>
-                          {!fn.available && (
-                            <span className="px-2 py-0.5 text-xs bg-theme-bg-muted text-theme-text-tertiary rounded">
-                              即将推出
-                            </span>
-                          )}
                         </div>
                         <p className="text-xs text-theme-text-tertiary mt-1">
                           {mapping?.modelConfig
@@ -371,7 +379,13 @@ export function AIConfigCard() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__">未配置</SelectItem>
-                          {enabledConfigs.map(c => (
+                          {enabledConfigs
+                            .filter(c => {
+                              // 只显示匹配能力类型的模型
+                              const configCapabilityType = c.capabilityType || 'text'
+                              return !fn.capabilityType || configCapabilityType === fn.capabilityType
+                            })
+                            .map(c => (
                             <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                           ))}
                         </SelectContent>
@@ -421,6 +435,7 @@ function AIConfigModal({
     baseUrl: config?.baseUrl || '',
     maxTokens: config?.maxTokens || 300,
     temperature: (config?.temperature ?? 70) / 100 || 0.7,
+    capabilityType: config?.capabilityType || 'text',
     enabled: config?.enabled !== 0,
   })
   const [isSaving, setIsSaving] = useState(false)
@@ -496,11 +511,15 @@ function AIConfigModal({
             </label>
             <Select
               value={formData.provider}
-              onValueChange={(value) => setFormData({
-                ...formData,
-                provider: value,
-                model: PROVIDERS.find(p => p.value === value)?.models[0] || '',
-              })}
+              onValueChange={(value) => {
+                const provider = PROVIDERS.find(p => p.value === value)
+                setFormData({
+                  ...formData,
+                  provider: value,
+                  model: provider?.models[0] || '',
+                  capabilityType: provider?.type || 'text',
+                })
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="选择提供商" />
@@ -515,21 +534,69 @@ function AIConfigModal({
 
           <div>
             <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+              能力类型
+            </label>
+            <Select
+              value={formData.capabilityType}
+              onValueChange={(value) => {
+                const provider = PROVIDERS.find(p => p.value === formData.provider)
+                const isImageType = value === 'image'
+                // 切换到图像类型时，自动选择第一个图像模型（如果有）
+                const newModel = isImageType && provider?.imageModels
+                  ? provider.imageModels[0]
+                  : !isImageType && provider?.models
+                    ? provider.models[0]
+                    : formData.model
+
+                setFormData({
+                  ...formData,
+                  capabilityType: value,
+                  model: newModel,
+                })
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="选择能力类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">文本生成</SelectItem>
+                <SelectItem value="image">图像生成</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-theme-text-tertiary mt-1">
+              {formData.capabilityType === 'image'
+                ? '用于生成文章封面图片，需要选择支持图像生成的模型'
+                : '用于生成文章摘要和文本内容'}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-theme-text-secondary mb-2">
               模型
             </label>
             <Select
               value={formData.model}
               onValueChange={(value) => setFormData({ ...formData, model: value })}
+              disabled={formData.capabilityType === 'image' && !selectedProvider?.imageModels}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="选择模型" />
               </SelectTrigger>
               <SelectContent>
-                {recommendedModels.map(m => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
-                ))}
+                {formData.capabilityType === 'image'
+                  ? (selectedProvider?.imageModels || []).map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))
+                  : recommendedModels.map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
               </SelectContent>
             </Select>
+            {formData.capabilityType === 'image' && !selectedProvider?.imageModels && (
+              <p className="text-xs text-theme-text-tertiary mt-1">
+                该提供商暂不支持图像生成模型
+              </p>
+            )}
           </div>
 
           <div>

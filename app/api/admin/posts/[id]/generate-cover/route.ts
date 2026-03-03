@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
+import { posts, tags, postTags } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { CoverStatus } from '@/server/ai/types'
 import { getCoverService } from '@/server/ai/services/cover'
@@ -25,14 +25,22 @@ export async function POST(
     // 查询文章
     const post = await db.query.posts.findFirst({
       where: eq(posts.id, id),
-      with: {
-        tagObjs: true,
-      },
     })
 
     if (!post) {
       return NextResponse.json({ error: '文章不存在' }, { status: 404 })
     }
+
+    // 查询标签（使用 SQL join）
+    const tagRecords = await db
+      .select({
+        name: tags.name,
+      })
+      .from(postTags)
+      .innerJoin(tags, eq(postTags.tagId, tags.id))
+      .where(eq(postTags.postId, id))
+
+    const tagNames = tagRecords.map((t) => t.name)
 
     // 检查当前状态，防止重复生成
     if (post.aiCoverStatus === CoverStatus.GENERATING) {
@@ -71,7 +79,7 @@ export async function POST(
         title: post.title,
         content: post.content,
         excerpt: post.excerpt || undefined,
-        tags: post.tagObjs?.map((t) => t.name),
+        tags: tagNames,
       })
       .catch((error) => {
         console.error(`异步生成封面失败 (post ${id}):`, error)

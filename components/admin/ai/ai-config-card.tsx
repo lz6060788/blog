@@ -41,31 +41,90 @@ interface FunctionMapping {
   }
 }
 
-const PROVIDERS = [
-  { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'], type: 'text' },
-  { value: 'zhipu', label: '智谱 GLM', models: ['glm-4-flash', 'glm-4-plus', 'glm-4-air'], type: 'text' },
+// 模型类型定义
+interface ModelDefinition {
+  name: string
+  type: 'text' | 'image'
+}
+
+// 提供商定义
+interface Provider {
+  value: string
+  label: string
+  models: ModelDefinition[]
+}
+
+const PROVIDERS: Provider[] = [
+  {
+    value: 'deepseek',
+    label: 'DeepSeek',
+    models: [
+      { name: 'deepseek-chat', type: 'text' },
+      { name: 'deepseek-coder', type: 'text' },
+    ],
+  },
+  {
+    value: 'zhipu',
+    label: '智谱 GLM',
+    models: [
+      { name: 'glm-4-flash', type: 'text' },
+      { name: 'glm-4-plus', type: 'text' },
+      { name: 'glm-4-air', type: 'text' },
+    ],
+  },
   {
     value: 'qwen',
     label: '通义千问',
-    models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long'],
-    type: 'text',
-    imageModels: ['wanx-v1', 'wanx-v1-plato']
+    models: [
+      { name: 'qwen-turbo', type: 'text' },
+      { name: 'qwen-plus', type: 'text' },
+      { name: 'qwen-max', type: 'text' },
+      { name: 'qwen-long', type: 'text' },
+      { name: 'qwen-image-max', type: 'image' },
+      { name: 'qwen-image-plus', type: 'image' },
+      { name: 'wanx-v1', type: 'image' },
+    ],
   },
-  { value: 'moonshot', label: '月之暗面 Kimi', models: ['moonshot-v1-8k', 'moonshot-v1-32k'], type: 'text' },
-  { value: 'baichuan', label: '百川智能', models: ['Baichuan2-Turbo', 'Baichuan2-53B'], type: 'text' },
+  {
+    value: 'moonshot',
+    label: '月之暗面 Kimi',
+    models: [
+      { name: 'moonshot-v1-8k', type: 'text' },
+      { name: 'moonshot-v1-32k', type: 'text' },
+    ],
+  },
+  {
+    value: 'baichuan',
+    label: '百川智能',
+    models: [
+      { name: 'Baichuan2-Turbo', type: 'text' },
+      { name: 'Baichuan2-53B', type: 'text' },
+    ],
+  },
   {
     value: 'openai',
     label: 'OpenAI',
-    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
-    type: 'text',
-    imageModels: ['dall-e-3', 'dall-e-2']
+    models: [
+      { name: 'gpt-4o', type: 'text' },
+      { name: 'gpt-4o-mini', type: 'text' },
+      { name: 'gpt-4-turbo', type: 'text' },
+      { name: 'gpt-4', type: 'text' },
+      { name: 'gpt-3.5-turbo', type: 'text' },
+      { name: 'dall-e-3', type: 'image' },
+      { name: 'dall-e-2', type: 'image' },
+    ],
   },
   {
     value: 'gemini',
     label: 'Google Gemini',
-    models: ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-    type: 'text',
-    imageModels: ['imagen-3.0-generate-001', 'imagen-2.0-generate-001']
+    models: [
+      { name: 'gemini-2.0-flash-exp', type: 'text' },
+      { name: 'gemini-1.5-pro', type: 'text' },
+      { name: 'gemini-1.5-flash', type: 'text' },
+      { name: 'gemini-3.1-flash-image-preview', type: 'image' },
+      { name: 'gemini-3-pro-image-preview', type: 'image' },
+      { name: 'imagen-3.0-generate-001', type: 'image' },
+    ],
   },
 ]
 
@@ -132,6 +191,10 @@ export function AIConfigCard() {
         const data = await res.json()
         if (data.success) {
           toast.success(`测试成功！响应时间: ${data.responseTime}ms`)
+          if (data.imageUrl) {
+            window.open(data.imageUrl, '_blank')
+            toast.success('图片已在新标签页打开')
+          }
         } else {
           toast.error(`测试失败: ${data.error || '未知错误'}`)
         }
@@ -462,6 +525,17 @@ function AIConfigModal({
   const selectedProvider = PROVIDERS.find(p => p.value === formData.provider)
   const recommendedModels = selectedProvider?.models || []
 
+  // 辅助函数：根据能力类型筛选模型
+  const getModelsByType = (type: 'text' | 'image') => {
+    return selectedProvider?.models.filter(m => m.type === type) || []
+  }
+
+  // 获取当前模型的类型定义
+  const getCurrentModelType = () => {
+    const modelDef = selectedProvider?.models.find(m => m.name === formData.model)
+    return modelDef?.type || 'text'
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
@@ -532,11 +606,13 @@ function AIConfigModal({
               value={formData.provider}
               onValueChange={(value) => {
                 const provider = PROVIDERS.find(p => p.value === value)
+                // 选择第一个模型作为默认值
+                const firstModel = provider?.models[0]
                 setFormData({
                   ...formData,
                   provider: value,
-                  model: provider?.models[0] || '',
-                  capabilityType: provider?.type || 'text',
+                  model: firstModel?.name || '',
+                  capabilityType: firstModel?.type || 'text',
                 })
               }}
             >
@@ -559,18 +635,15 @@ function AIConfigModal({
               value={formData.capabilityType}
               onValueChange={(value) => {
                 const provider = PROVIDERS.find(p => p.value === formData.provider)
-                const isImageType = value === 'image'
-                // 切换到图像类型时，自动选择第一个图像模型（如果有）
-                const newModel = isImageType && provider?.imageModels
-                  ? provider.imageModels[0]
-                  : !isImageType && provider?.models
-                    ? provider.models[0]
-                    : formData.model
+                const newType: 'text' | 'image' = value as 'text' | 'image'
+                // 根据新类型选择第一个匹配的模型
+                const modelsOfType = provider?.models.filter(m => m.type === newType) || []
+                const firstModelOfType = modelsOfType.length > 0 ? modelsOfType[0].name : formData.model
 
                 setFormData({
                   ...formData,
                   capabilityType: value,
-                  model: newModel,
+                  model: firstModelOfType,
                 })
               }}
             >
@@ -595,25 +668,32 @@ function AIConfigModal({
             </label>
             <Select
               value={formData.model}
-              onValueChange={(value) => setFormData({ ...formData, model: value })}
-              disabled={formData.capabilityType === 'image' && !selectedProvider?.imageModels}
+              onValueChange={(value) => {
+                // 智能识别：根据选择的模型自动更新能力类型
+                const modelDef = selectedProvider?.models.find(m => m.name === value)
+                const newCapabilityType = modelDef?.type || formData.capabilityType
+
+                setFormData({
+                  ...formData,
+                  model: value,
+                  capabilityType: newCapabilityType,
+                })
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="选择模型" />
               </SelectTrigger>
               <SelectContent>
-                {formData.capabilityType === 'image'
-                  ? (selectedProvider?.imageModels || []).map(m => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))
-                  : recommendedModels.map(m => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                {selectedProvider?.models
+                  .filter(m => m.type === formData.capabilityType)
+                  .map(m => (
+                    <SelectItem key={m.name} value={m.name}>{m.name}</SelectItem>
                   ))}
               </SelectContent>
             </Select>
-            {formData.capabilityType === 'image' && !selectedProvider?.imageModels && (
+            {selectedProvider?.models.filter(m => m.type === formData.capabilityType).length === 0 && (
               <p className="text-xs text-theme-text-tertiary mt-1">
-                该提供商暂不支持图像生成模型
+                该提供商暂无{formData.capabilityType === 'image' ? '图像生成' : '文本生成'}模型
               </p>
             )}
           </div>

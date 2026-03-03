@@ -196,7 +196,7 @@ export class CoverGenerationService extends AIService {
     }
 
     return {
-      status: post.aiCoverStatus || 'pending',
+      status: (post.aiCoverStatus || 'pending') as 'pending' | 'generating' | 'done' | 'failed' | 'manual',
       coverImageUrl: post.coverImageUrl,
       aiCoverGeneratedAt: post.aiCoverGeneratedAt,
     }

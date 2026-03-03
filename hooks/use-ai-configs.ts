@@ -12,6 +12,7 @@ interface ModelConfig {
   baseUrl: string | null
   maxTokens: number
   temperature: number
+  capabilityType: string
   enabled: number
   createdAt: string
   updatedAt: string

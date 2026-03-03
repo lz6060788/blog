@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   // 解析请求体
   const body = await request.json()
-  const { provider, model, apiKey, baseUrl } = body
+  const { provider, model, apiKey, baseUrl, capabilityType } = body
 
   console.log('[POST /api/admin/ai/model-configs/test] Request body:', {
     provider,
@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     hasApiKey: !!apiKey,
     apiKeyLength: apiKey?.length,
     baseUrl,
+    capabilityType,
   })
 
   // 验证必填字段
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
       model,
       apiKey,
       baseUrl,
+      capabilityType,
     })
   }, 'testModelConfigTemp')
 

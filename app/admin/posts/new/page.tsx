@@ -44,7 +44,7 @@ export default function NewPostPage() {
   const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
   // 封面状态
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
-  const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | 'pending' | null>(CoverStatus.PENDING)
+  const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | null>(CoverStatus.PENDING)
 
   // 各自独立的 loading 状态
   const [isSavingDraft, setIsSavingDraft] = useState(false)

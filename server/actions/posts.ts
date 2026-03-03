@@ -53,6 +53,8 @@ export async function updatePost(
     publishedDate?: string
     aiSummary?: string | null
     aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
+    coverImageUrl?: string | null
+    aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
   }
 ) {
   const session = await auth()

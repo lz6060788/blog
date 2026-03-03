@@ -47,7 +47,7 @@ export default function EditPostPage() {
 
   // AI 封面状态（由 CoverPreview 组件管理）
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
-  const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | 'pending' | null>(CoverStatus.PENDING)
+  const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | null>(CoverStatus.PENDING)
 
   const initialContentRef = useRef<string>('')
   const editorRef = useRef<CherryEditorRef>(null)
@@ -103,7 +103,7 @@ export default function EditPostPage() {
           setAiSummaryStatus((post.aiSummaryStatus || SummaryStatus.PENDING) as SummaryStatus)
           // 加载 AI 封面状态
           setCoverImageUrl(post.coverImageUrl || null)
-          setAiCoverStatus((post.aiCoverStatus || CoverStatus.PENDING) as CoverStatus | 'pending')
+          setAiCoverStatus((post.aiCoverStatus || CoverStatus.PENDING) as CoverStatus)
         } else {
           toast.error('文章不存在')
           router.push('/admin/posts')

@@ -10,7 +10,7 @@ import { toast } from 'react-hot-toast'
  * 封面状态标签组件
  */
 interface CoverStatusLabelProps {
-  status: CoverStatus | 'pending' | null
+  status: CoverStatus | null
 }
 
 function CoverStatusLabel({ status }: CoverStatusLabelProps) {
@@ -40,11 +40,11 @@ interface CoverPreviewProps {
   /** 初始封面 URL */
   initialCoverUrl?: string | null
   /** 初始封面状态 */
-  initialStatus?: CoverStatus | 'pending' | null
+  initialStatus?: CoverStatus | null
   /** 封面 URL 变化回调 */
   onCoverChange?: (url: string | null) => void
   /** 封面状态变化回调 */
-  onStatusChange?: (status: CoverStatus | 'pending' | null) => void
+  onStatusChange?: (status: CoverStatus | null) => void
   /** 文章标题，用于生成前验证 */
   title?: string
   /** 文章内容，用于生成前验证 */
@@ -54,14 +54,14 @@ interface CoverPreviewProps {
 export function CoverPreview({
   postId,
   initialCoverUrl = null,
-  initialStatus = 'pending',
+  initialStatus = null,
   onCoverChange,
   onStatusChange,
   title = '',
   content = '',
 }: CoverPreviewProps) {
   const [coverUrl, setCoverUrl] = useState<string | null>(initialCoverUrl)
-  const [coverStatus, setCoverStatus] = useState<CoverStatus | 'pending' | null>(initialStatus)
+  const [coverStatus, setCoverStatus] = useState<CoverStatus | null>(initialStatus || CoverStatus.PENDING)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const coverPollIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -129,7 +129,7 @@ export function CoverPreview({
 
   // 如果初始状态是生成中，开始轮询
   useEffect(() => {
-    if (postId && initialStatus === 'generating') {
+    if (postId && initialStatus === CoverStatus.GENERATING) {
       startCoverPolling()
     }
   }, [postId])
@@ -161,7 +161,7 @@ export function CoverPreview({
         throw new Error(data.error || '生成失败')
       }
 
-      setCoverStatus('generating')
+      setCoverStatus(CoverStatus.GENERATING)
       startCoverPolling()
       toast.success('已开始生成 AI 封面')
     } catch (error: any) {
@@ -184,7 +184,7 @@ export function CoverPreview({
   const handleRemoveCover = async () => {
     if (!postId) {
       setCoverUrl(null)
-      setCoverStatus('pending')
+      setCoverStatus(CoverStatus.PENDING)
       return
     }
 
@@ -202,7 +202,7 @@ export function CoverPreview({
       }
 
       setCoverUrl(null)
-      setCoverStatus('pending')
+      setCoverStatus(CoverStatus.PENDING)
       toast.success('封面已删除')
     } catch (error: any) {
       console.error('删除封面失败:', error)
@@ -254,7 +254,7 @@ export function CoverPreview({
 
       const data = await res.json()
       setCoverUrl(data.url)
-      setCoverStatus('manual')
+      setCoverStatus(CoverStatus.MANUAL)
       toast.success('封面上传成功')
     } catch (error: any) {
       console.error('上传封面失败:', error)
@@ -296,13 +296,13 @@ export function CoverPreview({
             <CoverStatusLabel status={coverStatus} />
           </div>
           <div className="flex items-center gap-2">
-            {coverStatus === 'done' || coverStatus === 'manual' ? (
+            {coverStatus === CoverStatus.DONE || coverStatus === CoverStatus.MANUAL ? (
               <>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleUploadClick}
-                  disabled={isUploading || coverStatus === 'generating'}
+                  disabled={isUploading}
                 >
                   <Upload className="w-3 h-3 mr-1" />
                   更换
@@ -311,12 +311,11 @@ export function CoverPreview({
                   size="sm"
                   variant="outline"
                   onClick={handleRemoveCover}
-                  disabled={coverStatus === 'generating'}
                 >
                   <Trash2 className="w-3 h-3 mr-1" />
                   删除
                 </Button>
-                {coverStatus === 'done' && (
+                {coverStatus === CoverStatus.DONE && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -328,7 +327,7 @@ export function CoverPreview({
                   </Button>
                 )}
               </>
-            ) : coverStatus === 'pending' || coverStatus === 'failed' || coverStatus === null ? (
+            ) : coverStatus === CoverStatus.PENDING || coverStatus === CoverStatus.FAILED || coverStatus === null ? (
               <>
                 <Button
                   size="sm"
@@ -373,7 +372,7 @@ export function CoverPreview({
         {/* 封面预览区域 */}
         {coverUrl ? (
           <div className="relative group">
-            {coverStatus === 'generating' && (
+            {coverStatus === CoverStatus.GENERATING && (
               <div className="absolute inset-0 bg-theme-bg-canvas/80 flex items-center justify-center rounded-lg z-10">
                 <div className="flex items-center gap-2 text-theme-accent-primary">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -394,9 +393,9 @@ export function CoverPreview({
           <div className="w-full h-32 rounded-lg border-2 border-dashed border-theme-border flex flex-col items-center justify-center text-theme-text-tertiary">
             <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">
-              {coverStatus === 'generating'
+              {coverStatus === CoverStatus.GENERATING
                 ? '正在生成封面...'
-                : coverStatus === 'failed'
+                : coverStatus === CoverStatus.FAILED
                   ? '封面生成失败，请重试'
                   : '上传封面或使用 AI 生成'}
             </p>
@@ -404,7 +403,7 @@ export function CoverPreview({
         )}
 
         {/* 生成期间的锁定提示 */}
-        {coverStatus === 'generating' && (
+        {coverStatus === CoverStatus.GENERATING && (
           <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-bg-muted px-3 py-2 rounded-lg">
             <Lock className="w-3 h-3" />
             <span>封面生成期间，部分功能受限</span>

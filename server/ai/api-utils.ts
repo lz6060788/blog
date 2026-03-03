@@ -32,11 +32,13 @@ export async function validateAuth(request: Request) {
 export function successResponse(result: {
   responseTime: number
   message: string
+  imageUrl?: string
 }) {
   return NextResponse.json({
     success: true,
     responseTime: result.responseTime,
     message: result.message,
+    imageUrl: result.imageUrl,
   })
 }
 

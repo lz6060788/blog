@@ -3,6 +3,7 @@ import { aiModelConfigs, aiFunctionMappings } from '../schema'
 import { eq, desc, and, sql } from 'drizzle-orm'
 import { AIProvider } from '../../ai/types'
 import { encrypt, maskApiKey } from '../../ai/crypto'
+import { ImageGenerationClient } from '../../ai/clients/image-client'
 
 /**
  * AI 模型配置查询
@@ -224,16 +225,64 @@ async function performAIModelTest(options: {
   apiKey: string
   baseUrl?: string
   configName?: string // 用于日志
+  capabilityType?: string
 }) {
-  const { provider, model, apiKey, baseUrl, configName } = options
+  const { provider, model, apiKey, baseUrl, configName, capabilityType = 'text' } = options
+
+  // 自动修正 capabilityType：如果模型名称包含 image/wanx 等关键字，强制视为图像模型
+  const isImageModel = capabilityType === 'image' || 
+    model.includes('image') || 
+    model.includes('wanx') || 
+    model.includes('dall-e') || 
+    model.includes('imagen')
+  
+  const effectiveCapabilityType = isImageModel ? 'image' : capabilityType
 
   console.log('[performAIModelTest] Testing model:', {
     configName,
     provider,
     model,
     baseUrl,
+    capabilityType: effectiveCapabilityType,
+    originalCapabilityType: capabilityType,
   })
 
+  const startTime = Date.now()
+
+  // 图像生成测试
+  if (effectiveCapabilityType === 'image') {
+    try {
+      const client = new ImageGenerationClient({
+        provider: provider as AIProvider,
+        model,
+        apiKey,
+        baseUrl,
+      })
+
+      console.log('[performAIModelTest] Testing image generation...')
+      // 使用简单的提示词测试，尺寸使用默认或特定模型支持的
+      // Qwen-Image 等模型可能对提示词长度有要求，使用更描述性的提示词
+      // 使用用户提供的中文提示词，以确保长度和内容符合模型偏好
+      const testPrompt = '一副典雅庄重的对联悬挂于厅堂之中，房间是个安静古典的中式布置，桌子上放着一些青花瓷，对联上左书“义本生知人机同道善思新”，右书“通云赋智乾坤启数高志远”， 横批“智启千问”，字体飘逸，在中间挂着一幅中国风的画作，内容是岳阳楼。'
+      console.log('[performAIModelTest] Using test prompt:', testPrompt)
+      const { url } = await client.generateImage(testPrompt, { size: '1024x1024' })
+      
+      const duration = Date.now() - startTime
+      console.log('[performAIModelTest] Image test successful')
+
+      return {
+        success: true as const,
+        responseTime: duration,
+        message: `Image generated successfully. URL: ${url}`,
+        imageUrl: url,
+      }
+    } catch (error: any) {
+      console.error('[performAIModelTest] Image generation failed:', error)
+      throw error // Let the caller handle it
+    }
+  }
+
+  // 文本生成测试
   // 导入必要的模块
   const { getAIModel } = await import('@/server/ai/providers')
   const { parseAIError } = await import('@/server/ai')
@@ -248,8 +297,6 @@ async function performAIModelTest(options: {
   })
 
   console.log('[performAIModelTest] Model created, calling generateText...')
-
-  const startTime = Date.now()
 
   // 发送简单的测试请求（使用 "Say 'OK'" 以获得确定性的响应）
   const { text } = await generateText({
@@ -293,6 +340,7 @@ export async function testModelConfig(id: string) {
       apiKey,
       baseUrl: config.baseUrl || undefined,
       configName: config.name,
+      capabilityType: config.capabilityType,
     })
   } catch (error) {
     const { parseAIError } = await import('@/server/ai')
@@ -318,6 +366,7 @@ export async function testModelConfigTemp(tempConfig: {
   model: string
   apiKey: string
   baseUrl?: string
+  capabilityType?: string
 }) {
   try {
     return await performAIModelTest({
@@ -325,6 +374,7 @@ export async function testModelConfigTemp(tempConfig: {
       model: tempConfig.model,
       apiKey: tempConfig.apiKey,
       baseUrl: tempConfig.baseUrl,
+      capabilityType: tempConfig.capabilityType,
     })
   } catch (error) {
     const { parseAIError } = await import('@/server/ai')

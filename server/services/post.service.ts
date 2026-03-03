@@ -71,6 +71,11 @@ export interface PostWithRelations {
   aiSummary?: string | null
   aiSummaryGeneratedAt?: string | null
   aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
+  // AI 封面相关字段
+  coverImageUrl?: string | null
+  aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
+  aiCoverGeneratedAt?: string | null
+  aiCoverPrompt?: string | null
 }
 
 export interface PaginatedPostsResult {

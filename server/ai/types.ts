@@ -113,16 +113,18 @@ export const SUGGESTED_MODELS: Record<AIProvider, string[]> = {
  */
 export const SUGGESTED_IMAGE_MODELS: Partial<Record<AIProvider, string[]>> = {
   [AIProvider.QWEN]: [
+    'qwen-image-max',    // 通义千问视觉生成旗舰版
+    'qwen-image-plus',   // 通义千问视觉生成增强版
     'wanx-v1',           // 通义万相
-    'wanx-v1-plato',     // 通义万相 Plato 模型
   ],
   [AIProvider.OPENAI]: [
     'dall-e-3',
     'dall-e-2',
   ],
   [AIProvider.GEMINI]: [
-    'imagen-3.0-generate-001',  // Imagen 3
-    'imagen-2.0-generate-001',  // Imagen 2
+    'gemini-3.1-flash-image-preview', // Gemini 3 Flash Image
+    'gemini-3-pro-image-preview',     // Gemini 3 Pro Image (Nano Banana Pro)
+    'imagen-3.0-generate-001',        // Imagen 3
   ],
   // TODO: 添加更多图像生成提供商（百度文心一格、Stability AI 等）
 }

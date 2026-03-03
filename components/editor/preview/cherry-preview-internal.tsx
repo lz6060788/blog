@@ -17,10 +17,12 @@ export interface CherryPreviewRef {
   getContent: () => string;
 }
 
-interface CherryPreviewProps {
+export interface CherryPreviewProps {
   content?: string;
   theme?: "light" | "dark";
   className?: string;
+  // 添加一个可选的 ref 回调 prop
+  onRef?: (ref: CherryPreviewRef | null) => void;
 }
 
 const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
@@ -34,6 +36,7 @@ export const CherryPreviewInternal = forwardRef<
       content = "",
       theme = "light",
       className = "",
+      onRef,
     },
     ref
   ) => {
@@ -107,6 +110,20 @@ export const CherryPreviewInternal = forwardRef<
 
           cherryRef.current = cherry;
           setIsMounted(true);
+
+          // 调用 onRef 回调，传递 ref 对象
+          if (onRef) {
+            onRef({
+              setContent: (markdown: string) => {
+                if (cherryRef.current) {
+                  cherryRef.current.setMarkdown(markdown);
+                }
+              },
+              getContent: () => {
+                return cherryRef.current?.getMarkdown() || content;
+              },
+            });
+          }
         } catch (error) {
           console.error("Cherry Markdown 初始化失败:", error);
         }

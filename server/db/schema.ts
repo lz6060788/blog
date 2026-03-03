@@ -155,6 +155,21 @@ export const aiCallLogs = sqliteTable("ai_call_logs", {
 });
 
 // ============================================================================
+// 文件上传表定义
+// ============================================================================
+
+// 文件上传记录表
+export const fileUploads = sqliteTable("file_uploads", {
+  id: sqliteText("id").primaryKey(),
+  key: sqliteText("key").notNull().unique(), // COS 对象键
+  filename: sqliteText("filename").notNull(), // 原始文件名
+  size: integer("size").notNull(), // 文件大小（字节）
+  mimeType: sqliteText("mime_type").notNull(), // MIME 类型
+  uploaderId: sqliteText("uploader_id").notNull().references(() => users.id, { onDelete: "cascade" }), // 上传者用户 ID
+  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()), // 上传时间
+});
+
+// ============================================================================
 // 设置表定义
 // ============================================================================
 
@@ -212,11 +227,20 @@ export const postTagRelations = relations(postTags, ({ one }) => ({
   }),
 }));
 
+// 文件上传关系定义
+export const fileUploadRelations = relations(fileUploads, ({ one }) => ({
+  uploader: one(users, {
+    fields: [fileUploads.uploaderId],
+    references: [users.id],
+  }),
+}));
+
 // 关系定义
 export const userRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   posts: many(posts),
+  fileUploads: many(fileUploads),
 }));
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
@@ -245,4 +269,5 @@ export const schema = {
   aiModelConfigs,
   aiFunctionMappings,
   aiCallLogs,
+  fileUploads,
 };

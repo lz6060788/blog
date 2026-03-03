@@ -22,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Edit, Trash2, FileText } from 'lucide-react'
+import { MoreHorizontal, Edit, Trash2, FileText, Image as ImageIcon } from 'lucide-react'
 import { getPosts, togglePostStatus, deletePost } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { AISummaryStatusIcon } from '@/components/admin/ai'
@@ -226,6 +226,7 @@ export default function PostsPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-b border-theme-border hover:bg-transparent">
+              <TableHead className="text-theme-text-secondary font-medium w-24">封面</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">标题</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">分类</TableHead>
               <TableHead className="text-theme-text-secondary font-medium">标签</TableHead>
@@ -239,7 +240,7 @@ export default function PostsPage() {
           <TableBody>
             {posts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12">
+                <TableCell colSpan={9} className="text-center py-12">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-theme-bg-muted flex items-center justify-center">
                       <FileText className="w-5 h-5 text-theme-text-tertiary" />
@@ -263,6 +264,20 @@ export default function PostsPage() {
                   key={post.id}
                   className="border-b border-theme-border hover:bg-theme-bg-muted transition-colors"
                 >
+                  <TableCell>
+                    {post.coverImageUrl ? (
+                      <img
+                        src={post.coverImageUrl}
+                        alt={post.title}
+                        className="w-16 h-10 object-cover rounded border border-theme-border"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-16 h-10 rounded border border-dashed border-theme-border flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-theme-text-tertiary" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium text-theme-text-canvas">
                     <Link
                       href={`/admin/posts/${post.id}/edit`}

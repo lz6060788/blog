@@ -40,6 +40,7 @@ export async function generateMetadata(
       type: 'article',
       publishedTime: post.date,
       tags: post.tags,
+      images: post.coverImageUrl ? [post.coverImageUrl] : undefined,
     },
   }
 }
@@ -68,6 +69,7 @@ export default async function PostPage({
         date={post.date}
         tags={post.tags}
         content={post.content}
+        coverImageUrl={post.coverImageUrl}
       />
     </>
   )

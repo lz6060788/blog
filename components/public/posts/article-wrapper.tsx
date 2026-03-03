@@ -13,6 +13,7 @@ interface ArticleWrapperProps {
   date: string
   tags: string[]
   content: string
+  coverImageUrl?: string | null
 }
 
 export function ArticleWrapper({
@@ -23,6 +24,7 @@ export function ArticleWrapper({
   date,
   tags,
   content,
+  coverImageUrl,
 }: ArticleWrapperProps) {
   return (
     <motion.article
@@ -31,6 +33,22 @@ export function ArticleWrapper({
       className="min-h-screen pt-24 pb-16"
     >
       <div className="max-w-4xl mx-auto px-6">
+        {/* 封面图片 */}
+        {coverImageUrl && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-8 rounded-2xl overflow-hidden shadow-lg"
+          >
+            <img
+              src={coverImageUrl}
+              alt={title}
+              className="w-full h-auto object-cover"
+            />
+          </motion.div>
+        )}
+
         {/* Header */}
         <ArticleHeader
           title={title}

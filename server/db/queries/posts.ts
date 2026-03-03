@@ -168,6 +168,8 @@ export async function getPost(id: string): Promise<Post | null> {
     updatedAt: post.updatedAt,
     categoryObj: category?.[0] || null,
     tagObjs: allTags,
+    // Cover image
+    coverImageUrl: post.coverImageUrl,
   }
 }
 

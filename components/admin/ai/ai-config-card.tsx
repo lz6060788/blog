@@ -60,6 +60,13 @@ const PROVIDERS = [
     type: 'text',
     imageModels: ['dall-e-3', 'dall-e-2']
   },
+  {
+    value: 'gemini',
+    label: 'Google Gemini',
+    models: ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+    type: 'text',
+    imageModels: ['imagen-3.0-generate-001', 'imagen-2.0-generate-001']
+  },
 ]
 
 const FUNCTION_NAMES = [

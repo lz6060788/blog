@@ -9,6 +9,7 @@ export enum AIProvider {
   MOONSHOT = 'moonshot',
   BAICHUAN = 'baichuan',
   OPENAI = 'openai',
+  GEMINI = 'gemini', // Google Gemini
 }
 
 /**
@@ -53,6 +54,10 @@ export const PROVIDER_INFO: Record<
     label: 'OpenAI',
     // OpenAI SDK 使用默认端点，无需指定
   },
+  [AIProvider.GEMINI]: {
+    label: 'Google Gemini',
+    defaultBaseUrl: 'https://generativelanguage.googleapis.com',
+  },
 }
 
 /**
@@ -95,6 +100,11 @@ export const SUGGESTED_MODELS: Record<AIProvider, string[]> = {
     'gpt-4',
     'gpt-3.5-turbo',
   ],
+  [AIProvider.GEMINI]: [
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash',
+  ],
 }
 
 /**
@@ -109,6 +119,10 @@ export const SUGGESTED_IMAGE_MODELS: Partial<Record<AIProvider, string[]>> = {
   [AIProvider.OPENAI]: [
     'dall-e-3',
     'dall-e-2',
+  ],
+  [AIProvider.GEMINI]: [
+    'imagen-3.0-generate-001',  // Imagen 3
+    'imagen-2.0-generate-001',  // Imagen 2
   ],
   // TODO: 添加更多图像生成提供商（百度文心一格、Stability AI 等）
 }

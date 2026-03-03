@@ -67,6 +67,10 @@ export class ImageGenerationClient {
         return await this.generateWanX(prompt, { size })
       }
 
+      if (this.provider === AIProvider.GEMINI && this.model.startsWith('imagen')) {
+        return await this.generateImagen(prompt, { size })
+      }
+
       // 其他模型的图像生成
       throw new Error(`Unsupported image generation model: ${this.model}`)
     } catch (error) {
@@ -187,6 +191,70 @@ export class ImageGenerationClient {
     }
 
     throw new Error('No image data returned from WanX API')
+  }
+
+  /**
+   * 使用 Gemini Imagen 生成图像
+   */
+  private async generateImagen(
+    prompt: string,
+    options: { size: string }
+  ): Promise<{ url: string }> {
+    // Gemini Imagen API 端点
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/${this.model}:predict?key=${this.apiKey}`
+
+    // 解析尺寸
+    let aspectRatio = '1:1'
+    if (options.size === '1792x1024' || options.size === '1024x1792') {
+      aspectRatio = '16:9'
+    } else if (options.size === '1200x675') {
+      aspectRatio = '16:9'
+    }
+
+    const requestBody = {
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+      },
+      // Imagen 特定参数
+      aspectRatio: aspectRatio,
+      numberOfImages: 1,
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Imagen API error: ${response.status} ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    // Gemini Imagen 返回格式
+    // 根据 API 文档，返回的是 JSON 格式，包含 base64 编码的图片
+    if (data.candidates && data.candidates.length > 0) {
+      const candidate = data.candidates[0]
+      if (candidate.content && candidate.content.parts) {
+        for (const part of candidate.content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            // 返回 base64 图片数据
+            const base64Data = part.inlineData.data
+            const mimeType = part.inlineData.mimeType || 'image/png'
+            return { url: `data:${mimeType};base64,${base64Data}` }
+          }
+        }
+      }
+    }
+
+    throw new Error('No image data returned from Imagen API')
   }
 
   /**

@@ -96,6 +96,11 @@ export const posts = sqliteTable("posts", {
   aiSummary: sqliteText("ai_summary"),
   aiSummaryGeneratedAt: sqliteText("ai_summary_generated_at"),
   aiSummaryStatus: sqliteText("ai_summary_status"), // 'pending' | 'generating' | 'done' | 'failed'
+  // AI 封面相关字段
+  coverImageUrl: sqliteText("cover_image_url"),
+  aiCoverStatus: sqliteText("ai_cover_status"), // 'pending' | 'generating' | 'done' | 'failed' | 'manual'
+  aiCoverGeneratedAt: sqliteText("ai_cover_generated_at"),
+  aiCoverPrompt: sqliteText("ai_cover_prompt"), // 记录生成封面时使用的 Prompt
   createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
   updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
 });
@@ -124,6 +129,7 @@ export const aiModelConfigs = sqliteTable("ai_model_configs", {
   baseUrl: sqliteText("base_url"),
   maxTokens: integer("max_tokens").notNull().default(300),
   temperature: integer("temperature").notNull().default(7), // stored as integer (0-100, divide by 100 for actual value)
+  capabilityType: sqliteText("capability_type").notNull().default('text'), // 'text' | 'image' - 区分文本生成和图像生成能力
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
   createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
   updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
@@ -151,6 +157,10 @@ export const aiCallLogs = sqliteTable("ai_call_logs", {
   status: sqliteText("status").notNull(), // 'success' | 'failed' | 'retrying'
   errorMessage: sqliteText("error_message"),
   durationMs: integer("duration_ms"),
+  // 图像生成相关字段
+  imageSize: sqliteText("image_size"), // e.g., '1024x1024', '1792x1024'
+  imageFormat: sqliteText("image_format"), // e.g., 'png', 'jpg'
+  imageCost: integer("image_cost"), // 图像生成成本（以分为单位）
   createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
 });
 

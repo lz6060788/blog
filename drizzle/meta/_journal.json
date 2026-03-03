@@ -57,6 +57,20 @@
       "when": 1772472724534,
       "tag": "0007_petite_forgotten_one",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1772522793169,
+      "tag": "0008_clean_texas_twister",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1772522964386,
+      "tag": "0009_ambitious_earthquake",
+      "breakpoints": true
     }
   ]
 }

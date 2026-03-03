@@ -52,4 +52,13 @@ export interface Post {
   updatedAt?: string
   categoryObj?: Category | null
   tagObjs?: Tag[]
+  // AI summary fields
+  aiSummary?: string | null
+  aiSummaryGeneratedAt?: string | null
+  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
+  // AI cover fields
+  coverImageUrl?: string | null
+  aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
+  aiCoverGeneratedAt?: string | null
+  aiCoverPrompt?: string | null
 }

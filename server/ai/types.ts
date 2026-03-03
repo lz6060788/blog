@@ -12,6 +12,15 @@ export enum AIProvider {
 }
 
 /**
+ * AI 能力类型
+ * 区分文本生成和图像生成
+ */
+export enum AICapabilityType {
+  TEXT = 'text',
+  IMAGE = 'image',
+}
+
+/**
  * Provider 信息（显示名称和默认 Base URL）
  * 单一事实来源 (Source of Truth)
  * defaultBaseUrl 为可选的，某些 Provider 使用 SDK 默认端点
@@ -89,6 +98,18 @@ export const SUGGESTED_MODELS: Record<AIProvider, string[]> = {
 }
 
 /**
+ * 推荐的图像生成模型列表
+ * 仅支持图像生成能力的提供商
+ */
+export const SUGGESTED_IMAGE_MODELS: Partial<Record<AIProvider, string[]>> = {
+  [AIProvider.OPENAI]: [
+    'dall-e-3',
+    'dall-e-2',
+  ],
+  // TODO: 添加更多图像生成提供商（通义万相、百度文心一格等）
+}
+
+/**
  * 将模型 ID 转换为 i18n key
  * i18n 不支持点号，需要转换
  * @param modelId 模型 ID
@@ -147,4 +168,50 @@ export enum AICallStatus {
   SUCCESS = 'success',
   FAILED = 'failed',
   RETRYING = 'retrying',
+}
+
+/**
+ * 封面生成状态
+ */
+export enum CoverStatus {
+  PENDING = 'pending',
+  GENERATING = 'generating',
+  DONE = 'done',
+  FAILED = 'failed',
+  MANUAL = 'manual',
+}
+
+/**
+ * AI 封面请求
+ */
+export interface AICoverRequest {
+  postId: string
+  title: string
+  content: string
+  excerpt?: string
+  tags?: string[]
+}
+
+/**
+ * AI 封面响应
+ */
+export interface AICoverResponse {
+  imageUrl: string
+  prompt: string
+  modelConfigId: string
+  provider: AIProvider
+  model: string
+  imageSize?: string
+  imageFormat?: string
+  durationMs: number
+}
+
+/**
+ * 图像生成选项
+ */
+export interface ImageGenerationOptions {
+  size?: '1024x1024' | '1792x1024' | '1024x1792' | '1200x675' // 支持常见的封面尺寸
+  quality?: 'standard' | 'hd'
+  style?: 'vivid' | 'natural'
+  format?: 'url' | 'b64_json'
 }

@@ -20,7 +20,7 @@ const API_BASE_URL = "/api";
 
 // 默认文件验证配置
 const DEFAULT_VALIDATION_CONFIG: FileValidationConfig = {
-  maxSize: 5 * 1024 * 1024, // 5MB
+  maxSize: 10 * 1024 * 1024, // 5MB
   allowedExtensions: ["jpg", "jpeg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "txt", "md"],
 };
 

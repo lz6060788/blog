@@ -16,8 +16,8 @@ import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/server/a
 import { toast } from 'react-hot-toast'
 import { X, Tag as TagIcon, FolderOpen } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { AISummaryEditor } from '@/components/admin/ai'
-import { SummaryStatus } from '@/server/ai/types'
+import { AISummaryEditor, CoverPreview } from '@/components/admin/ai'
+import { SummaryStatus, CoverStatus } from '@/server/ai/types'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -42,6 +42,9 @@ export default function NewPostPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [aiSummary, setAiSummary] = useState('')
   const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
+  // 封面状态
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
+  const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | 'pending' | null>(CoverStatus.PENDING)
 
   // 各自独立的 loading 状态
   const [isSavingDraft, setIsSavingDraft] = useState(false)
@@ -357,6 +360,17 @@ export default function NewPostPage() {
           ))}
         </div>
       )}
+
+      {/* 封面预览区域 */}
+      <CoverPreview
+        postId={postId}
+        initialCoverUrl={coverImageUrl}
+        initialStatus={aiCoverStatus}
+        onCoverChange={setCoverImageUrl}
+        onStatusChange={setAiCoverStatus}
+        title={title}
+        content={content}
+      />
 
       {/* AI 摘要区域 */}
       <AISummaryEditor

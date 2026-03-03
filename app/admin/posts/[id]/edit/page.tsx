@@ -16,8 +16,8 @@ import { updatePost, getPost, getCategoriesForSelect, getTagsForSelect } from '@
 import { toast } from 'react-hot-toast'
 import { X, FolderOpen, Tag as TagIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { AISummaryEditor } from '@/components/admin/ai'
-import { SummaryStatus } from '@/server/ai/types'
+import { AISummaryEditor, CoverPreview } from '@/components/admin/ai'
+import { SummaryStatus, CoverStatus } from '@/server/ai/types'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -44,6 +44,10 @@ export default function EditPostPage() {
   // AI 摘要状态（由 AISummaryEditor 组件管理）
   const [aiSummary, setAiSummary] = useState('')
   const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
+
+  // AI 封面状态（由 CoverPreview 组件管理）
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
+  const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | 'pending' | null>(CoverStatus.PENDING)
 
   const initialContentRef = useRef<string>('')
   const editorRef = useRef<CherryEditorRef>(null)
@@ -97,6 +101,9 @@ export default function EditPostPage() {
           // 加载 AI 摘要状态
           setAiSummary(post.aiSummary || '')
           setAiSummaryStatus((post.aiSummaryStatus || SummaryStatus.PENDING) as SummaryStatus)
+          // 加载 AI 封面状态
+          setCoverImageUrl(post.coverImageUrl || null)
+          setAiCoverStatus((post.aiCoverStatus || CoverStatus.PENDING) as CoverStatus | 'pending')
         } else {
           toast.error('文章不存在')
           router.push('/admin/posts')
@@ -227,6 +234,7 @@ export default function EditPostPage() {
         tags,
         readTime: Math.ceil(content.length / 400),
         aiSummary,
+        coverImageUrl: coverImageUrl || undefined,
       })
       setHasUnsavedChanges(false)
       toast.success('保存成功')
@@ -272,6 +280,7 @@ export default function EditPostPage() {
         readTime: Math.ceil(content.length / 400),
         publishedDate: new Date().toISOString(),
         aiSummary,
+        coverImageUrl: coverImageUrl || undefined,
       })
       setPublished(true)
       setHasUnsavedChanges(false)
@@ -425,6 +434,17 @@ export default function EditPostPage() {
           ))}
         </div>
       )}
+
+      {/* 封面预览区域 */}
+      <CoverPreview
+        postId={id}
+        initialCoverUrl={coverImageUrl}
+        initialStatus={aiCoverStatus}
+        onCoverChange={setCoverImageUrl}
+        onStatusChange={setAiCoverStatus}
+        title={title}
+        content={content}
+      />
 
       {/* AI 摘要区域 */}
       <AISummaryEditor

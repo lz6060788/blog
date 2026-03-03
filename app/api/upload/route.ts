@@ -106,7 +106,7 @@ export async function POST(request: Request) {
           error: ERROR_CODES.FILE_TOO_LARGE,
           message: "文件大小超过限制",
           details: {
-            maxSize: 5 * 1024 * 1024, // 5MB
+            maxSize: 10 * 1024 * 1024, // 5MB
             actualSize: file.size,
           },
         },

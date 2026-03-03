@@ -225,6 +225,10 @@ export class PostRepository {
         publishedDate: posts.publishedDate,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
+        coverImageUrl: posts.coverImageUrl,
+        aiCoverStatus: posts.aiCoverStatus,
+        aiCoverGeneratedAt: posts.aiCoverGeneratedAt,
+        aiCoverPrompt: posts.aiCoverPrompt,
         categoryName: categories.name,
         categorySlug: categories.slug,
       })

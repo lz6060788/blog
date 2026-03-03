@@ -16,6 +16,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'api.dicebear.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.myqcloud.com',
+      },
     ],
   },
   // 排除 Cherry Markdown 在服务端的打包

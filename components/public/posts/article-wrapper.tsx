@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArticleHeader } from './article-header'
 import { ArticleContent } from './article-content'
 import { ArticleFooter } from './article-footer'
+import { ArticleCover } from '@/components/article'
 
 interface ArticleWrapperProps {
   title: string
@@ -40,11 +41,14 @@ export function ArticleWrapper({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
             className="mb-8 rounded-2xl overflow-hidden shadow-lg"
+            style={{ maxHeight: '60vh' }}
           >
-            <img
+            <ArticleCover
               src={coverImageUrl}
               alt={title}
-              className="w-full h-auto object-cover"
+              priority
+              lazy={false}
+              className="w-full"
             />
           </motion.div>
         )}

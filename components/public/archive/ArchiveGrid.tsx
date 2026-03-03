@@ -72,7 +72,7 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
                 >
                   <Link href={`/post/${post.id}`} className="block h-full">
                     <motion.div
-                      className="bg-theme-card-bg rounded-[2rem] p-6 border border-theme-card shadow-card hover:shadow-lg transition-all h-full"
+                      className="bg-theme-card-bg rounded-[2rem] p-6 border border-theme-card shadow-card hover:shadow-lg transition-all h-full flex flex-col"
                       whileTap={{ scale: 0.98 }}
                     >
                       {/* Category Badge */}
@@ -88,13 +88,16 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
                         {post.title}
                       </h3>
 
-                      {/* Excerpt */}
-                      <p className="text-sm text-theme-text-secondary leading-relaxed mb-4 line-clamp-3">
-                        {post.excerpt}
-                      </p>
+                      {/* Content Area - Takes remaining space */}
+                      <div className="flex-1 flex flex-col justify-end">
+                        {/* Excerpt */}
+                        <p className="text-sm text-theme-text-secondary leading-relaxed mb-4 line-clamp-3 min-h-[4.5em]">
+                          {post.excerpt}
+                        </p>
+                      </div>
 
-                      {/* Meta */}
-                      <div className="flex items-center justify-between text-xs font-mono text-theme-text-tertiary pt-4 border-t border-theme-border-muted">
+                      {/* Meta - Always at bottom */}
+                      <div className="flex items-center justify-between text-xs font-mono text-theme-text-tertiary pt-4 border-t border-theme-border-muted mt-auto">
                         <div className="flex items-center gap-1.5">
                           <Clock size={12} />
                           {post.readTime} min

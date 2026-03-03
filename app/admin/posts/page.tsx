@@ -26,6 +26,7 @@ import { MoreHorizontal, Edit, Trash2, FileText, Image as ImageIcon } from 'luci
 import { getPosts, togglePostStatus, deletePost } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { AISummaryStatusIcon } from '@/components/admin/ai'
+import { ArticleCover } from '@/components/article'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -265,18 +266,16 @@ export default function PostsPage() {
                   className="border-b border-theme-border hover:bg-theme-bg-muted transition-colors"
                 >
                   <TableCell>
-                    {post.coverImageUrl ? (
-                      <img
+                    <Link href={`/admin/posts/${post.id}/edit`} className="block w-[160px]">
+                      <ArticleCover
                         src={post.coverImageUrl}
                         alt={post.title}
-                        className="w-16 h-10 object-cover rounded border border-theme-border"
-                        loading="lazy"
+                        width={160}
+                        height={90}
+                        lazy
+                        placeholderVariant="icon"
                       />
-                    ) : (
-                      <div className="w-16 h-10 rounded border border-dashed border-theme-border flex items-center justify-center">
-                        <ImageIcon className="w-4 h-4 text-theme-text-tertiary" />
-                      </div>
-                    )}
+                    </Link>
                   </TableCell>
                   <TableCell className="font-medium text-theme-text-canvas">
                     <Link

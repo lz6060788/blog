@@ -23,6 +23,7 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
       publishedDate: posts.publishedDate,
       createdAt: posts.createdAt,
       updatedAt: posts.updatedAt,
+      coverImageUrl: posts.coverImageUrl,
     })
     .from(posts)
     .where(eq(posts.published, true))
@@ -90,6 +91,7 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         categoryObj: category,
+        coverImageUrl: post.coverImageUrl,
       }
     })
 }

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
-import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { summaryService } from '@/server/ai/services/summary'
 
 // 强制动态渲染（API 路由使用 auth() 需要 headers）
 export const dynamic = 'force-dynamic'
@@ -20,25 +18,11 @@ export async function GET(
 
     const { id } = params
 
-    // 查询文章的摘要状态
-    const post = await db.query.posts.findFirst({
-      where: eq(posts.id, id),
-      columns: {
-        aiSummary: true,
-        aiSummaryStatus: true,
-        aiSummaryGeneratedAt: true,
-      },
-    })
+    // 使用 summaryService 的 getSummaryStatus 方法
+    // 该方法通过查询 ai_call_logs 表判断状态
+    const statusInfo = await summaryService.getSummaryStatus(id)
 
-    if (!post) {
-      return NextResponse.json({ error: '文章不存在' }, { status: 404 })
-    }
-
-    return NextResponse.json({
-      status: post.aiSummaryStatus,
-      summary: post.aiSummary,
-      generatedAt: post.aiSummaryGeneratedAt,
-    })
+    return NextResponse.json(statusInfo)
   } catch (error: any) {
     console.error('获取摘要状态失败:', error)
     return NextResponse.json(

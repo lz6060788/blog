@@ -19,8 +19,6 @@ export interface CreatePostInput {
   tags?: string[]
   readTime?: number
   publishedDate?: string
-  aiSummary?: string | null
-  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
 }
 
 export interface UpdatePostInput {
@@ -32,8 +30,6 @@ export interface UpdatePostInput {
   tags?: string[]
   readTime?: number
   publishedDate?: string
-  aiSummary?: string | null
-  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
 }
 
 export interface ListPostsOptions {
@@ -67,10 +63,6 @@ export interface PostWithRelations {
     slug: string
   }>
   wordCount?: number
-  // AI 摘要相关字段
-  aiSummary?: string | null
-  aiSummaryGeneratedAt?: string | null
-  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
   // AI 封面相关字段
   coverImageUrl?: string | null
   aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
@@ -167,14 +159,10 @@ export class PostService {
    * 发布文章
    */
   async publishPost(postId: string, userId: string): Promise<void> {
-    // 检查文章是否正在生成 AI 摘要
+    // 检查文章是否存在
     const post = await this.postRepository.findById(postId, userId)
     if (!post) {
       throw new Error('文章不存在')
-    }
-
-    if (post.aiSummaryStatus === 'generating') {
-      throw new Error('摘要生成中，请等待完成后再发布')
     }
 
     await this.postRepository.update(postId, userId, { published: true })

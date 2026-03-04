@@ -3,8 +3,9 @@ import { auth } from '@/server/auth'
 import { db } from '@/server/db'
 import { posts } from '@/server/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { SummaryStatus } from '@/server/ai/types'
 import { summaryService } from '@/server/ai/services/summary'
+import { aiCallLogs } from '@/server/db/schema'
+import { desc } from 'drizzle-orm'
 
 // 强制动态渲染（API 路由使用 auth() 需要 headers）
 export const dynamic = 'force-dynamic'
@@ -31,8 +32,16 @@ export async function POST(
       return NextResponse.json({ error: '文章不存在' }, { status: 404 })
     }
 
-    // 检查当前状态，防止重复生成
-    if (post.aiSummaryStatus === SummaryStatus.GENERATING) {
+    // 检查当前状态，防止重复生成（通过查询 ai_call_logs 表）
+    const latestLog = await db.query.aiCallLogs.findFirst({
+      where: and(
+        eq(aiCallLogs.postId, id),
+        eq(aiCallLogs.action, 'generate-summary')
+      ),
+      orderBy: desc(aiCallLogs.createdAt),
+    })
+
+    if (latestLog && latestLog.status === 'retrying') {
       return NextResponse.json(
         { error: '摘要生成中，请稍后...' },
         { status: 400 }
@@ -66,7 +75,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: '已开始生成摘要',
-      status: SummaryStatus.GENERATING,
+      status: 'generating',
     })
   } catch (error: any) {
     console.error('生成摘要失败:', error)

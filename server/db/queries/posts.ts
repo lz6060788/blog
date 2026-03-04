@@ -1,6 +1,6 @@
 import { db } from '../index'
-import { posts, categories, tags, postTags, users } from '../schema'
-import { eq, desc, sql } from 'drizzle-orm'
+import { posts, categories, tags, postTags, users, aiCallLogs } from '../schema'
+import { eq, desc, sql, and } from 'drizzle-orm'
 import type { Post, Tag } from '@/lib/types'
 
 /**
@@ -217,41 +217,29 @@ export async function getAISummaryStats() {
 }
 
 /**
- * 根据文章 ID 更新 AI 摘要
- * @param postId 文章 ID
- * @param data 更新数据
- */
-export async function updatePostAISummary(
-  postId: string,
-  data: {
-    aiSummary?: string
-    aiSummaryGeneratedAt?: string
-    aiSummaryStatus?: string
-  }
-) {
-  await db
-    .update(posts)
-    .set(data)
-    .where(eq(posts.id, postId))
-}
-
-/**
  * 检查文章是否可以编辑或发布
  * @param postId 文章 ID
  * @returns 是否可以编辑（如果正在生成摘要则返回 false）
  */
 export async function canEditPost(postId: string): Promise<boolean> {
-  const post = await db
-    .select({ aiSummaryStatus: posts.aiSummaryStatus })
-    .from(posts)
-    .where(eq(posts.id, postId))
+  // 通过查询 ai_call_logs 判断是否正在生成摘要
+  const summaryLogs = await db
+    .select({ status: aiCallLogs.status })
+    .from(aiCallLogs)
+    .where(
+      and(
+        eq(aiCallLogs.postId, postId),
+        eq(aiCallLogs.action, 'generate-summary')
+      )
+    )
+    .orderBy(desc(aiCallLogs.createdAt))
     .limit(1)
 
-  if (post.length === 0) {
+  if (summaryLogs.length === 0) {
     return true
   }
 
-  // 如果正在生成摘要，不允许编辑
-  return post[0].aiSummaryStatus !== 'generating'
+  // 如果正在重试（生成中），不允许编辑
+  return summaryLogs[0].status !== 'retrying'
 }
 

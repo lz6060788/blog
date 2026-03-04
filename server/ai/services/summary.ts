@@ -2,10 +2,10 @@ import { generateText } from 'ai'
 import { getAIModel } from '../providers'
 import { AIService, getModelConfigByFunction, decryptApiKey } from './base'
 import { getSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from '../prompts/summary'
-import { AIFunction, SummaryStatus } from '../types'
+import { AIFunction, AICallStatus } from '../types'
 import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { posts, aiCallLogs, aiModelConfigs } from '@/server/db/schema'
+import { eq, and, desc, sql } from 'drizzle-orm'
 
 /**
  * 文章语言检测结果
@@ -14,6 +14,12 @@ interface LanguageDetectionResult {
   language: 'zh' | 'en' | 'other'
   confidence: number
 }
+
+/**
+ * AI 摘要生成状态（用于 UI 显示）
+ * 通过 ai_call_logs 表查询得出
+ */
+export type SummaryStatus = 'pending' | 'generating' | 'done' | 'failed'
 
 /**
  * AI 摘要生成服务
@@ -123,39 +129,123 @@ export class SummaryService extends AIService {
     title: string,
     content: string
   ): Promise<void> {
-    try {
-      // 更新状态为 generating
-      await db
-        .update(posts)
-        .set({ aiSummaryStatus: SummaryStatus.GENERATING })
-        .where(eq(posts.id, postId))
+    // 获取摘要功能的模型配置
+    const modelConfig = await getModelConfigByFunction(AIFunction.SUMMARY)
 
+    // 创建 "generating" 状态的日志条目
+    const crypto = require('crypto')
+    const generatingLogId = crypto.randomBytes(16).toString('hex')
+    await db.insert(aiCallLogs).values({
+      id: generatingLogId,
+      postId,
+      modelConfigId: modelConfig.id,
+      action: 'generate-summary',
+      provider: modelConfig.provider as any,
+      model: modelConfig.model,
+      status: 'retrying', // 使用 'retrying' 表示正在生成中
+      createdAt: new Date().toISOString(),
+    })
+
+    try {
       // 生成摘要
       const result = await this.generateSummary(postId, title, content)
 
-      // 更新数据库
+      // 更新数据库 - 直接写入 excerpt 字段
       await db
         .update(posts)
         .set({
-          aiSummary: result.summary,
-          aiSummaryGeneratedAt: new Date().toISOString(),
-          aiSummaryStatus: SummaryStatus.DONE,
+          excerpt: result.summary,
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(posts.id, postId))
 
       console.log(`Summary generated for post ${postId}`)
     } catch (error) {
-      // 失败时更新状态
-      try {
-        await db
-          .update(posts)
-          .set({ aiSummaryStatus: SummaryStatus.FAILED })
-          .where(eq(posts.id, postId))
-      } catch (updateError) {
-        console.error('Failed to update summary status:', updateError)
-      }
-
+      console.error(`Failed to generate summary for post ${postId}:`, error)
       throw error
+    }
+  }
+
+  /**
+   * 获取文章的摘要生成状态
+   * 通过查询 ai_call_logs 表判断当前状态
+   * @param postId 文章 ID
+   * @returns 状态信息
+   */
+  async getSummaryStatus(postId: string): Promise<{
+    status: SummaryStatus
+    summary?: string
+    generatedAt?: string
+    error?: string
+  }> {
+    // 查询最新的摘要生成日志
+    const logs = await db
+      .select({
+        status: aiCallLogs.status,
+        createdAt: aiCallLogs.createdAt,
+        errorMessage: aiCallLogs.errorMessage,
+      })
+      .from(aiCallLogs)
+      .where(
+        and(
+          eq(aiCallLogs.postId, postId),
+          eq(sql`ai_call_logs.action`, 'generate-summary')
+        )
+      )
+      .orderBy(desc(aiCallLogs.createdAt))
+      .limit(5)
+
+    // 获取当前文章的 excerpt
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, postId),
+      columns: {
+        excerpt: true,
+      },
+    })
+
+    // 判断状态
+    if (logs.length === 0) {
+      // 没有任何日志，说明从未生成过
+      return {
+        status: 'pending',
+        summary: post?.excerpt || undefined,
+      }
+    }
+
+    // 检查最新的日志
+    const latestLog = logs[0]
+
+    // 如果最新的日志是 retrying，说明正在生成中
+    if (latestLog.status === 'retrying') {
+      return {
+        status: 'generating',
+        summary: post?.excerpt || undefined,
+      }
+    }
+
+    // 如果最新的日志是 success，说明生成成功
+    if (latestLog.status === 'success') {
+      return {
+        status: 'done',
+        summary: post?.excerpt || undefined,
+        generatedAt: latestLog.createdAt,
+      }
+    }
+
+    // 如果最新的日志是 failed，说明生成失败
+    if (latestLog.status === 'failed') {
+      return {
+        status: 'failed',
+        summary: post?.excerpt || undefined,
+        error: latestLog.errorMessage || undefined,
+        generatedAt: latestLog.createdAt,
+      }
+    }
+
+    // 默认返回 pending
+    return {
+      status: 'pending',
+      summary: post?.excerpt || undefined,
     }
   }
 }

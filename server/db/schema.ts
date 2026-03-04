@@ -92,10 +92,6 @@ export const posts = sqliteTable("posts", {
   categoryId: sqliteText("categoryId").references(() => categories.id, { onDelete: "set null" }),
   readTime: integer("read_time").notNull().default(0),
   publishedDate: sqliteText("published_date"),
-  // AI 摘要相关字段
-  aiSummary: sqliteText("ai_summary"),
-  aiSummaryGeneratedAt: sqliteText("ai_summary_generated_at"),
-  aiSummaryStatus: sqliteText("ai_summary_status"), // 'pending' | 'generating' | 'done' | 'failed'
   // AI 封面相关字段
   coverImageUrl: sqliteText("cover_image_url"),
   aiCoverStatus: sqliteText("ai_cover_status"), // 'pending' | 'generating' | 'done' | 'failed' | 'manual'

@@ -1,7 +1,6 @@
 import { db } from '../index'
-import { posts } from '../schema'
-import { eq, gte, sql, and } from 'drizzle-orm'
-import { SummaryStatus } from '../../ai/types'
+import { posts, aiCallLogs } from '../schema'
+import { eq, gte, sql, and, desc } from 'drizzle-orm'
 
 /**
  * 统计数据类型定义
@@ -104,10 +103,16 @@ export interface AIStats {
  * @returns 已生成摘要的文章数
  */
 export async function getAIGeneratedPostsCount(): Promise<number> {
+  // 统计有成功的摘要生成日志的不同文章数量
   const result = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(posts)
-    .where(eq(posts.aiSummaryStatus, SummaryStatus.DONE))
+    .select({ count: sql<number>`count(distinct post_id)` })
+    .from(aiCallLogs)
+    .where(
+      and(
+        eq(aiCallLogs.action, 'generate-summary'),
+        eq(aiCallLogs.status, 'success')
+      )
+    )
   return result[0]?.count || 0
 }
 
@@ -116,10 +121,16 @@ export async function getAIGeneratedPostsCount(): Promise<number> {
  * @returns 生成中的文章数
  */
 export async function getAIPendingPostsCount(): Promise<number> {
+  // 统计当前正在重试（生成中）的文章数量
   const result = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(posts)
-    .where(eq(posts.aiSummaryStatus, SummaryStatus.GENERATING))
+    .select({ count: sql<number>`count(distinct post_id)` })
+    .from(aiCallLogs)
+    .where(
+      and(
+        eq(aiCallLogs.action, 'generate-summary'),
+        eq(aiCallLogs.status, 'retrying')
+      )
+    )
   return result[0]?.count || 0
 }
 
@@ -128,10 +139,16 @@ export async function getAIPendingPostsCount(): Promise<number> {
  * @returns 失败的文章数
  */
 export async function getAIFailedPostsCount(): Promise<number> {
+  // 统计最新日志为失败的文章数量
   const result = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(posts)
-    .where(eq(posts.aiSummaryStatus, SummaryStatus.FAILED))
+    .select({ count: sql<number>`count(distinct post_id)` })
+    .from(aiCallLogs)
+    .where(
+      and(
+        eq(aiCallLogs.action, 'generate-summary'),
+        eq(aiCallLogs.status, 'failed')
+      )
+    )
   return result[0]?.count || 0
 }
 

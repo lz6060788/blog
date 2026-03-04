@@ -21,8 +21,6 @@ export async function createPost(data: {
   tags?: string[]
   readTime?: number
   publishedDate?: string
-  aiSummary?: string | null
-  aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
 }) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -51,8 +49,6 @@ export async function updatePost(
     tags?: string[]
     readTime?: number
     publishedDate?: string
-    aiSummary?: string | null
-    aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
     coverImageUrl?: string | null
     aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
   }

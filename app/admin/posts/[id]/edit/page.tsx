@@ -42,7 +42,7 @@ export default function EditPostPage() {
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
   // AI 摘要状态（由 AISummaryEditor 组件管理）
-  const [aiSummary, setAiSummary] = useState('')
+  const [excerpt, setExcerpt] = useState('')
   const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
 
   // AI 封面状态（由 CoverPreview 组件管理）
@@ -98,9 +98,10 @@ export default function EditPostPage() {
               ?.filter((t) => t != null)
               .map((t) => (typeof t === 'string' ? t : t.name)) || []) as string[]
           )
-          // 加载 AI 摘要状态
-          setAiSummary(post.aiSummary || '')
-          setAiSummaryStatus((post.aiSummaryStatus || SummaryStatus.PENDING) as SummaryStatus)
+          // 加载 AI 摘要状态（excerpt 现在包含 AI 生成的摘要）
+          setExcerpt(post.excerpt || '')
+          // 状态需要从 API 获取，初始设为 pending
+          setAiSummaryStatus(SummaryStatus.PENDING)
           // 加载 AI 封面状态
           setCoverImageUrl(post.coverImageUrl || null)
           setAiCoverStatus((post.aiCoverStatus || CoverStatus.PENDING) as CoverStatus)
@@ -134,13 +135,13 @@ export default function EditPostPage() {
     }
 
     try {
-      await updatePost(id, { title, content, categoryId, tags, aiSummary })
+      await updatePost(id, { title, content, categoryId, tags, excerpt })
       setHasUnsavedChanges(false)
       toast.success('已自动保存')
     } catch (error) {
       console.error('自动保存失败:', error)
     }
-  }, [id, title, content, categoryId, tags, hasUnsavedChanges, aiSummary, isSavingDraft, isPublishing])
+  }, [id, title, content, categoryId, tags, hasUnsavedChanges, excerpt, isSavingDraft, isPublishing])
 
   // 设置自动保存定时器
   useEffect(() => {
@@ -233,7 +234,7 @@ export default function EditPostPage() {
         categoryId: categoryId || undefined,
         tags,
         readTime: Math.ceil(content.length / 400),
-        aiSummary,
+        excerpt,
         coverImageUrl: coverImageUrl || undefined,
       })
       setHasUnsavedChanges(false)
@@ -279,7 +280,7 @@ export default function EditPostPage() {
         tags,
         readTime: Math.ceil(content.length / 400),
         publishedDate: new Date().toISOString(),
-        aiSummary,
+        excerpt,
         coverImageUrl: coverImageUrl || undefined,
       })
       setPublished(true)
@@ -449,9 +450,9 @@ export default function EditPostPage() {
       {/* AI 摘要区域 */}
       <AISummaryEditor
         postId={id}
-        initialSummary={aiSummary}
+        initialSummary={excerpt}
         initialStatus={aiSummaryStatus}
-        onSummaryChange={setAiSummary}
+        onSummaryChange={setExcerpt}
         onStatusChange={setAiSummaryStatus}
         title={title}
         content={content}

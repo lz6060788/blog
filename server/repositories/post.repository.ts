@@ -70,8 +70,6 @@ export class PostRepository {
       tags?: string[]
       readTime?: number
       publishedDate?: string
-      aiSummary?: string | null
-      aiSummaryStatus?: 'pending' | 'generating' | 'done' | 'failed' | null
     }
   ): Promise<void> {
     // 检查文章是否存在且属于当前用户

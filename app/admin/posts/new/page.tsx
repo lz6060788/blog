@@ -40,7 +40,7 @@ export default function NewPostPage() {
   // 文章保存状态
   const [postId, setPostId] = useState<string | null>(null)
   const [isSaved, setIsSaved] = useState(false)
-  const [aiSummary, setAiSummary] = useState('')
+  const [excerpt, setExcerpt] = useState('')
   const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
   // 封面状态
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
@@ -154,7 +154,7 @@ export default function NewPostPage() {
           categoryId: categoryId || undefined,
           tags,
           readTime: Math.ceil(content.length / 400),
-          aiSummary,
+          excerpt,
         })
         toast.success('草稿已更新')
       } else {
@@ -208,7 +208,7 @@ export default function NewPostPage() {
           tags,
           readTime: Math.ceil(content.length / 400),
           publishedDate: new Date().toISOString(),
-          aiSummary,
+          excerpt,
         })
         toast.success('发布成功')
         router.push('/admin/posts')
@@ -375,9 +375,9 @@ export default function NewPostPage() {
       {/* AI 摘要区域 */}
       <AISummaryEditor
         postId={postId}
-        initialSummary={aiSummary}
+        initialSummary={excerpt}
         initialStatus={aiSummaryStatus}
-        onSummaryChange={setAiSummary}
+        onSummaryChange={setExcerpt}
         onStatusChange={setAiSummaryStatus}
         title={title}
         content={content}

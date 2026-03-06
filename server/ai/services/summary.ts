@@ -159,9 +159,20 @@ export class SummaryService extends AIService {
         })
         .where(eq(posts.id, postId))
 
+      // 删除初始的 "retrying" 日志（因为 executeWithRetry 已经创建了新的日志）
+      await db.delete(aiCallLogs).where(eq(aiCallLogs.id, generatingLogId))
+
       console.log(`Summary generated for post ${postId}`)
     } catch (error) {
       console.error(`Failed to generate summary for post ${postId}:`, error)
+
+      // 失败时也删除初始的 "retrying" 日志（executeWithRetry 已经创建了 failed 日志）
+      try {
+        await db.delete(aiCallLogs).where(eq(aiCallLogs.id, generatingLogId))
+      } catch (deleteError) {
+        // 忽略删除错误
+      }
+
       throw error
     }
   }

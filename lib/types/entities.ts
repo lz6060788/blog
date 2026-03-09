@@ -58,3 +58,22 @@ export interface Post {
   aiCoverGeneratedAt?: string | null
   aiCoverPrompt?: string | null
 }
+
+// Music Player Types
+export interface Song {
+  id: string
+  title: string
+  artist: string
+  album?: string
+  duration: number // in seconds
+  audioUrl: string
+  lyrics?: string
+}
+
+export interface Playlist {
+  id: string
+  name: string
+  description?: string
+  songs: Song[]
+  createdAt: string
+}

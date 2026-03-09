@@ -10,6 +10,7 @@ import {
   FolderOpen,
   Tag,
   Brain,
+  Music,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/admin/drafts', label: '草稿箱', icon: FileX },
   { href: '/admin/categories', label: '分类管理', icon: FolderOpen },
   { href: '/admin/tags', label: '标签管理', icon: Tag },
+  { href: '/admin/music', label: '音乐管理', icon: Music },
   { href: '/admin/ai/logs', label: 'AI 日志', icon: Brain, adminOnly: true },
   { href: '/admin/settings', label: '设置', icon: Settings },
 ]

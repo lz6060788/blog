@@ -33,6 +33,7 @@
     "echarts": "^6.0.0",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.575.0",
+    "music-metadata": "^11.12.1",
     "nanoid": "^5.1.6",
     "next": "14.2.18",
     "next-auth": "^5.0.0-beta.30",
@@ -43,7 +44,8 @@
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.6.0",
     "tailwind-merge": "^3.5.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

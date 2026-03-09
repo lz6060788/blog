@@ -179,6 +179,54 @@ export const fileUploads = sqliteTable("file_uploads", {
 // 设置表定义
 // ============================================================================
 
+// ============================================================================
+// 音乐播放器表定义
+// ============================================================================
+
+// 歌曲表
+export const songs = sqliteTable("songs", {
+  id: sqliteText("id").primaryKey(),
+  title: sqliteText("title").notNull(),
+  artist: sqliteText("artist").notNull(),
+  album: sqliteText("album"),
+  duration: integer("duration").notNull(), // 时长（秒）
+  audioUrl: sqliteText("audio_url").notNull(), // 音频文件URL（COS）
+  lyrics: sqliteText("lyrics"), // LRC格式歌词
+  fileSize: integer("file_size"), // 文件大小（字节）
+  fileFormat: sqliteText("file_format"), // 文件格式（mp3, ogg等）
+  uploadStatus: sqliteText("upload_status").notNull().default('pending'), // pending, uploading, completed, failed
+  metadata: sqliteText("metadata"), // JSON格式：其他音频元数据（比特率、采样率等）
+  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
+});
+
+// 歌单表
+export const playlists = sqliteTable("playlists", {
+  id: sqliteText("id").primaryKey(),
+  name: sqliteText("name").notNull(),
+  description: sqliteText("description"),
+  coverColor: sqliteText("cover_color").notNull().default('#6366f1'), // 封面渐变色
+  isPublic: integer("is_public", { mode: "boolean" }).notNull().default(false),
+  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
+});
+
+// 歌单-歌曲关联表（多对多）
+export const playlistSongs = sqliteTable("playlist_songs", {
+  id: sqliteText("id").primaryKey(),
+  playlistId: sqliteText("playlist_id").notNull().references(() => playlists.id, { onDelete: "cascade" }),
+  songId: sqliteText("song_id").notNull().references(() => songs.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(), // 在歌单中的位置顺序
+}, (table) => ({
+  compoundKey: primaryKey({
+    columns: [table.playlistId, table.songId],
+  }),
+}));
+
+// ============================================================================
+// 设置表定义
+// ============================================================================
+
 // 博客设置表（单例模式，只有一条记录）
 export const settings = sqliteTable("settings", {
   id: sqliteText("id").primaryKey().$defaultFn(() => 'default'),
@@ -241,6 +289,32 @@ export const fileUploadRelations = relations(fileUploads, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// 音乐播放器关系定义
+// ============================================================================
+
+// 歌曲关系定义
+export const songRelations = relations(songs, ({ many }) => ({
+  playlistSongs: many(playlistSongs),
+}));
+
+// 歌单关系定义
+export const playlistRelations = relations(playlists, ({ many }) => ({
+  playlistSongs: many(playlistSongs),
+}));
+
+// 歌单-歌曲关联关系定义
+export const playlistSongRelations = relations(playlistSongs, ({ one }) => ({
+  playlist: one(playlists, {
+    fields: [playlistSongs.playlistId],
+    references: [playlists.id],
+  }),
+  song: one(songs, {
+    fields: [playlistSongs.songId],
+    references: [songs.id],
+  }),
+}));
+
 // 关系定义
 export const userRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
@@ -276,4 +350,7 @@ export const schema = {
   aiFunctionMappings,
   aiCallLogs,
   fileUploads,
+  songs,
+  playlists,
+  playlistSongs,
 };

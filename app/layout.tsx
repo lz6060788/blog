@@ -6,6 +6,7 @@ import './styles/index.css'
 // Cherry Markdown 样式（仅在需要编辑器的页面加载）
 import 'cherry-markdown/dist/cherry-markdown.css'
 import { ToastProvider } from '@/components/providers/toast-provider'
+import { MusicPlayerWrapper } from '@/components/music-player/MusicPlayerWrapper'
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className="bg-theme-bg-canvas text-theme-text-canvas antialiased">
         <ToastProvider />
         {children}
+        <MusicPlayerWrapper />
       </body>
     </html>
   )

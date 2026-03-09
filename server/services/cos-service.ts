@@ -39,6 +39,7 @@ const cos = new COS({
 const ALLOWED_FILE_TYPES = {
   image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
   document: ['pdf', 'doc', 'docx', 'txt', 'md'],
+  audio: ['mp3', 'ogg', 'wav', 'flac', 'm4a', 'aac'],
 };
 
 /**
@@ -50,9 +51,14 @@ const ALLOWED_EXTENSIONS = [
 ];
 
 /**
- * 最大文件大小（10MB）
+ * 最大文件大小
+ * - 图片/文档: 10MB
+ * - 音频: 50MB
  */
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const MAX_FILE_SIZE = {
+  default: 10 * 1024 * 1024, // 10MB
+  audio: 50 * 1024 * 1024, // 50MB
+};
 
 /**
  * 文件魔数（file signature）用于验证真实文件类型
@@ -114,10 +120,12 @@ export function validateFileType(filename: string): boolean {
  * 验证文件大小
  *
  * @param size - 文件大小（字节）
+ * @param fileType - 文件类型（可选）
  * @returns 是否在允许的大小范围内
  */
-export function validateFileSize(size: number): boolean {
-  return size > 0 && size <= MAX_FILE_SIZE;
+export function validateFileSize(size: number, fileType?: string): boolean {
+  const maxSize = fileType === 'audio' ? MAX_FILE_SIZE.audio : MAX_FILE_SIZE.default;
+  return size > 0 && size <= maxSize;
 }
 
 /**
@@ -146,17 +154,26 @@ export function validateFileMagicNumber(buffer: Buffer, extension: string): bool
 export function getMimeType(filename: string): string {
   const ext = getFileExtension(filename);
   const mimeTypes: Record<string, string> = {
+    // 图片
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
     png: 'image/png',
     gif: 'image/gif',
     webp: 'image/webp',
     svg: 'image/svg+xml',
+    // 文档
     pdf: 'application/pdf',
     doc: 'application/msword',
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     txt: 'text/plain',
     md: 'text/markdown',
+    // 音频
+    mp3: 'audio/mpeg',
+    ogg: 'audio/ogg',
+    wav: 'audio/wav',
+    flac: 'audio/flac',
+    m4a: 'audio/mp4',
+    aac: 'audio/aac',
   };
 
   return mimeTypes[ext] || 'application/octet-stream';

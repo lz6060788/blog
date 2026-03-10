@@ -159,7 +159,7 @@ export default function AILogsPage() {
 
       {/* 筛选器 */}
       {showFilters && (
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 space-y-4">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-theme-text-canvas">筛选条件</h3>
             {hasActiveFilters && (
@@ -194,7 +194,7 @@ export default function AILogsPage() {
       )}
 
       {/* 日志表格 */}
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden">
+      <div className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="w-8 h-8 border-2 border-theme-accent-primary border-t-transparent rounded-full animate-spin" />
@@ -220,7 +220,7 @@ export default function AILogsPage() {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id} className="border-b border-theme-border hover:bg-theme-bg-muted">
+                  <tr key={log.id} className="border-b border-theme-border hover:bg-theme-muted">
                     <td className="p-4 text-sm text-theme-text-secondary">
                       {formatDate(log.createdAt)}
                     </td>

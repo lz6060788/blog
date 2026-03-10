@@ -149,7 +149,7 @@ export default function PlaylistsPage() {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         {playlists.length === 0 ? (
-          <div className="col-span-full bg-theme-bg-surface border border-theme-border rounded-xl p-12 text-center">
+          <div className="col-span-full bg-theme-surface border border-theme-border rounded-xl p-12 text-center">
             <ListMusic className="w-12 h-12 text-theme-text-tertiary mx-auto mb-2" />
             <p className="text-theme-text-secondary">还没有任何歌单</p>
             <Button onClick={handleCreate} variant="outline" className="mt-4 gap-2">
@@ -161,7 +161,7 @@ export default function PlaylistsPage() {
           playlists.map((playlist) => (
             <div
               key={playlist.id}
-              className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden hover:border-theme-accent-primary transition-colors"
+              className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden hover:border-theme-accent-primary transition-colors"
             >
               {/* 歌单封面 */}
               <div
@@ -280,7 +280,7 @@ function PlaylistSongsDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-theme-surface border border-theme-border rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         {/* 头部 */}
         <div className="p-4 border-b border-theme-border flex items-center justify-between">
           <div>
@@ -316,7 +316,7 @@ function PlaylistSongsDialog({
               {playlist.songs.map((song, index) => (
                 <div
                   key={song.id}
-                  className="flex items-center gap-3 p-3 bg-theme-bg-canvas border border-theme-border rounded-lg"
+                  className="flex items-center gap-3 p-3 bg-theme-canvas border border-theme-border rounded-lg"
                 >
                   <span className="text-xs text-theme-text-tertiary font-mono w-6">
                     {index + 1}
@@ -426,7 +426,7 @@ function AddSongsDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-theme-surface border border-theme-border rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         {/* 头部 */}
         <div className="p-4 border-b border-theme-border">
           <div className="flex items-center justify-between mb-2">
@@ -456,7 +456,7 @@ function AddSongsDialog({
                   className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedSongs.has(song.id)
                       ? 'bg-theme-accent-bg border-theme-accent-primary'
-                      : 'bg-theme-bg-canvas border-theme-border hover:border-theme-accent-primary'
+                      : 'bg-theme-canvas border-theme-border hover:border-theme-accent-primary'
                   }`}
                 >
                   <input
@@ -549,7 +549,7 @@ function PlaylistForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 w-full max-w-md">
+      <div className="bg-theme-surface border border-theme-border rounded-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-semibold text-theme-text-canvas mb-4">
           {playlist ? '编辑歌单' : '新建歌单'}
         </h2>
@@ -564,7 +564,7 @@ function PlaylistForm({
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 bg-theme-bg-canvas border border-theme-border rounded-lg text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+              className="w-full px-3 py-2 bg-theme-canvas border border-theme-border rounded-lg text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
             />
           </div>
 
@@ -576,7 +576,7 @@ function PlaylistForm({
               rows={3}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 bg-theme-bg-canvas border border-theme-border rounded-lg text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary resize-none"
+              className="w-full px-3 py-2 bg-theme-canvas border border-theme-border rounded-lg text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary resize-none"
             />
           </div>
 

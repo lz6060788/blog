@@ -93,20 +93,20 @@ export function ExpandedPlayer({
         <div className="relative">
           {/* Main Container */}
           <div
-            className="music-player-panel rounded-3xl overflow-hidden backdrop-blur-xl border"
+            className="rounded-3xl overflow-hidden backdrop-blur-xl border bg-theme-surface/95 border-theme-border shadow-card"
             data-theme-panel="true"
           >
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
-                <span className="music-player-header-label text-[10px] font-medium tracking-wider uppercase">
+                <span className="text-[10px] font-medium tracking-wider uppercase text-theme-text-tertiary">
                   Now Playing
                 </span>
                 <button
                   onClick={() => {
                     onClose()
                   }}
-                  className="music-player-close-btn p-1 transition-colors"
+                  className="p-1 transition-colors text-theme-text-secondary hover:text-theme-text-canvas"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -159,7 +159,6 @@ export function ExpandedPlayer({
           </div>
         </div>
       </div>
-
       <style jsx>{`
         @keyframes slideIn {
           from {
@@ -184,49 +183,6 @@ export function ExpandedPlayer({
               ? 'translateX(-100px) scale(0.95)'
               : 'translateX(100px) scale(0.95)'};
           }
-        }
-
-        /* Main Panel */
-        .music-player-panel {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15),
-                      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        }
-        :global(.dark) .music-player-panel {
-          background: rgba(24, 24, 27, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5),
-                      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        /* Header */
-        .music-player-header-label {
-          color: rgba(0, 0, 0, 0.7);
-        }
-        :global(.dark) .music-player-header-label {
-          color: rgba(255, 255, 255, 0.6);
-        }
-        .music-player-close-btn {
-          color: rgba(0, 0, 0, 0.5);
-        }
-        :global(.dark) .music-player-close-btn {
-          color: rgba(255, 255, 255, 0.5);
-        }
-        .music-player-close-btn:hover {
-          color: rgba(0, 0, 0, 0.8);
-        }
-        :global(.dark) .music-player-close-btn:hover {
-          color: rgba(255, 255, 255, 0.8);
-        }
-
-        /* Theme Panel Dark Mode Override */
-        :global(.dark) [data-theme-panel="true"] {
-          background: rgba(24, 24, 27, 0.95) !important;
-          border-color: rgba(255, 255, 255, 0.12) !important;
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         }
       `}</style>
     </>

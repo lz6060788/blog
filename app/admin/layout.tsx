@@ -24,7 +24,7 @@ function AdminLayoutContent({
   // Show loading state while checking session
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-theme-bg-canvas flex items-center justify-center">
+      <div className="min-h-screen bg-theme-canvas flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-theme-accent-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -38,14 +38,14 @@ function AdminLayoutContent({
       window.location.href = `/${locale}/login?callbackUrl=${encodeURIComponent(currentPath)}`
     }
     return (
-      <div className="min-h-screen bg-theme-bg-canvas flex items-center justify-center">
+      <div className="min-h-screen bg-theme-canvas flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-theme-accent-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-theme-bg-canvas">
+    <div className="min-h-screen bg-theme-canvas">
       <div className="flex min-h-screen">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex lg:w-[250px] lg:flex-shrink-0">
@@ -74,7 +74,7 @@ function AdminLayoutContent({
             </SheetOverlay>
             <SheetContent
               side="left"
-              className="w-[280px] p-0 bg-theme-bg-surface border-r border-theme-border"
+              className="w-[280px] p-0 bg-theme-surface border-r border-theme-border"
             >
               <Sidebar onClose={() => setMobileMenuOpen(false)} />
             </SheetContent>

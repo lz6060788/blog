@@ -11,7 +11,7 @@ export function AISummaryStatus({ status, showLabel = false }: AISummaryStatusPr
     [SummaryStatus.PENDING]: {
       icon: Clock,
       color: 'text-theme-text-tertiary',
-      bgColor: 'bg-theme-bg-muted',
+      bgColor: 'bg-theme-muted',
       label: '未生成',
       animate: false as boolean,
     },

@@ -63,7 +63,7 @@ export function Sidebar({ onClose }: SidebarProps) {
   const currentPath = getPathWithoutLocale(pathname)
 
   return (
-    <aside className="w-full h-full flex flex-col bg-theme-bg-surface border-r border-theme-border">
+    <aside className="w-full h-full flex flex-col bg-theme-surface border-r border-theme-border">
       {/* Logo Section */}
       <div className="h-[60px] flex items-center px-6 border-b border-theme-border">
         <Link href="/admin" onClick={onClose} className="flex items-center gap-2 group">
@@ -93,7 +93,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                 transition-all duration-200 relative
                 ${isActive
                   ? 'bg-theme-accent-bg text-theme-accent-primary'
-                  : 'text-theme-text-secondary hover:bg-theme-bg-muted hover:text-theme-text-canvas'
+                  : 'text-theme-text-secondary hover:bg-theme-muted hover:text-theme-text-canvas'
                 }
               `}
             >

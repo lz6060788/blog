@@ -163,18 +163,6 @@ export function MusicPlayer({
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-
-        /* Theme Panel Dark Mode (global override) */
-        :global(.dark) [data-theme-panel="true"] {
-          background: rgba(24, 24, 27, 0.95) !important;
-          border-color: rgba(255, 255, 255, 0.12) !important;
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-        }
-
-        /* Float button icon in dark mode (global override) */
-        :global(.dark) button > .lucide-music {
-          color: #ffffff !important;
-        }
       `}</style>
     </React.Fragment>
   )

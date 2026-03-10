@@ -1,0 +1,1 @@
+export { coreColors } from './core'

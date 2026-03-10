@@ -15,7 +15,7 @@ interface CoverStatusLabelProps {
 
 function CoverStatusLabel({ status }: CoverStatusLabelProps) {
   const labels: Record<string, { text: string; className: string }> = {
-    pending: { text: '待生成', className: 'bg-theme-bg-surface-alt text-theme-text-secondary' },
+    pending: { text: '待生成', className: 'bg-theme-surface-alt text-theme-text-secondary' },
     generating: { text: '生成中', className: 'bg-theme-info-bg text-theme-info-primary' },
     done: { text: '已完成', className: 'bg-theme-success-bg text-theme-success-primary' },
     failed: { text: '生成失败', className: 'bg-theme-error-bg text-theme-error-primary' },
@@ -272,7 +272,7 @@ export function CoverPreview({
   if (!postId) {
     return (
       <div className="mb-3">
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-4">
           <div className="flex items-center gap-2">
             <ImageIcon className="w-4 h-4 text-theme-text-tertiary" />
             <h3 className="text-sm font-medium text-theme-text-secondary">文章封面</h3>
@@ -287,7 +287,7 @@ export function CoverPreview({
 
   return (
     <div className="mb-3">
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 space-y-3">
+      <div className="bg-theme-surface border border-theme-border rounded-xl p-4 space-y-3">
         {/* 头部：标题和操作按钮 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -373,14 +373,14 @@ export function CoverPreview({
         {coverUrl ? (
           <div className="relative group">
             {coverStatus === CoverStatus.GENERATING && (
-              <div className="absolute inset-0 bg-theme-bg-canvas/80 flex items-center justify-center rounded-lg z-10">
+              <div className="absolute inset-0 bg-theme-canvas/80 flex items-center justify-center rounded-lg z-10">
                 <div className="flex items-center gap-2 text-theme-accent-primary">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm">正在生成封面...</span>
                 </div>
               </div>
             )}
-            <div className="relative w-full rounded-lg overflow-hidden bg-theme-bg-canvas">
+            <div className="relative w-full rounded-lg overflow-hidden bg-theme-canvas">
               <img
                 src={coverUrl}
                 alt="文章封面"
@@ -404,7 +404,7 @@ export function CoverPreview({
 
         {/* 生成期间的锁定提示 */}
         {coverStatus === CoverStatus.GENERATING && (
-          <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-bg-muted px-3 py-2 rounded-lg">
+          <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-muted px-3 py-2 rounded-lg">
             <Lock className="w-3 h-3" />
             <span>封面生成期间，部分功能受限</span>
           </div>

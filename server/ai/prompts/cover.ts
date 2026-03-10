@@ -35,8 +35,6 @@ ${tagList ? `标签：${tagList}` : ''}
 - 封面中间区域使用手绘风格，将与文章内容相关的标题以大字体显示。
 `.trim()
 
-  console.log('generateCoverPrompt:', prompt)
-  throw new Error('generateCoverPrompt: title is required')
   return prompt
 }
 

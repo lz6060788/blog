@@ -44,9 +44,9 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# 创建 data 目录并初始化数据库（构建时需要访问数据库）
+# 创建 data 目录并初始化数据库（构建时使用 push 创建表结构）
 RUN mkdir -p /app/data && \
-    npx drizzle-kit migrate
+    npx drizzle-kit push
 
 # 构建应用
 RUN npm run build

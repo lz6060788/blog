@@ -109,7 +109,7 @@ export function ArticleCover({
 
       {/* 加载中的占位符 */}
       {isLoading && (
-        <div className="absolute inset-0 bg-theme-bg-subtle animate-pulse" />
+        <div className="absolute inset-0 bg-theme-subtle animate-pulse" />
       )}
     </div>
   )

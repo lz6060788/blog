@@ -89,13 +89,12 @@ export function VinylRecord({
 
         {/* Song Info */}
         <div className="mt-3 text-center">
-          <h4 className="music-player-song-title font-medium text-sm tracking-tight">
+          <h4 className="font-medium text-sm tracking-tight text-theme-text-canvas">
             {title}
           </h4>
-          <p className="music-player-song-artist text-xs mt-1">{artist}</p>
+          <p className="text-xs mt-1 text-theme-text-secondary">{artist}</p>
         </div>
       </div>
-
       <style jsx>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
@@ -110,14 +109,6 @@ export function VinylRecord({
             opacity: 0.7;
             transform: scale(1.03);
           }
-        }
-
-        /* Song Info */
-        .music-player-song-title {
-          color: var(--text-canvas);
-        }
-        .music-player-song-artist {
-          color: var(--text-secondary);
         }
       `}</style>
     </>

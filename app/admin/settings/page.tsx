@@ -84,7 +84,7 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSave} className="max-w-2xl space-y-6">
         {/* 基本信息 */}
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 space-y-4">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4">
           <h2 className="text-lg font-medium text-theme-text-canvas">基本信息</h2>
 
           <div>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
               value={blogName}
               onChange={(e) => setBlogName(e.target.value)}
               placeholder="My Blog"
-              className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
             />
           </div>
 
@@ -109,13 +109,13 @@ export default function SettingsPage() {
               onChange={(e) => setBlogDescription(e.target.value)}
               placeholder="A personal blog"
               rows={3}
-              className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent resize-none"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent resize-none"
             />
           </div>
         </div>
 
         {/* 显示设置 */}
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 space-y-4">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4">
           <h2 className="text-lg font-medium text-theme-text-canvas">显示设置</h2>
 
           <div>
@@ -128,7 +128,7 @@ export default function SettingsPage() {
               max={100}
               value={postsPerPage}
               onChange={(e) => setPostsPerPage(parseInt(e.target.value) || 10)}
-              className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
             />
             <p className="text-xs text-theme-text-tertiary mt-1">
               在博客首页和列表页每页显示的文章数量（1-100）

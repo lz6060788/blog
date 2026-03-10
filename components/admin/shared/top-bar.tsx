@@ -46,12 +46,12 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     .slice(0, 2) || 'AD'
 
   return (
-    <header className="h-[60px] bg-theme-bg-surface border-b border-theme-border flex items-center justify-between px-4 lg:px-6">
+    <header className="h-[60px] bg-theme-surface border-b border-theme-border flex items-center justify-between px-4 lg:px-6">
       {/* Left: Mobile Menu Button */}
       <div className="flex items-center gap-4">
         <button
           onClick={onMobileMenuOpen}
-          className="lg:hidden p-2 rounded-lg hover:bg-theme-bg-muted transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-theme-muted transition-colors"
           aria-label="Open menu"
         >
           <Menu className="w-5 h-5 text-theme-text-secondary" strokeWidth={2} />
@@ -68,7 +68,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-theme-bg-muted transition-colors">
+            <button className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-theme-muted transition-colors">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-theme-accent-bg text-theme-accent-primary text-xs font-semibold">
                   {userInitials}
@@ -87,7 +87,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
           <DropdownMenuContent
             align="end"
-            className="w-48 bg-theme-bg-surface border-theme-border"
+            className="w-48 bg-theme-surface border-theme-border"
             sideOffset={8}
           >
             <DropdownMenuLabel className="font-normal">

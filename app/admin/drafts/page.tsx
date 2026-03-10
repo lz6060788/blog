@@ -85,10 +85,10 @@ export default function DraftsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.1 }}
-          className="bg-theme-bg-surface border border-theme-border rounded-xl p-12 text-center"
+          className="bg-theme-surface border border-theme-border rounded-xl p-12 text-center"
         >
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-theme-bg-muted flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-theme-muted flex items-center justify-center">
               <FileX className="w-6 h-6 text-theme-text-tertiary" strokeWidth={2} />
             </div>
             <div>
@@ -112,7 +112,7 @@ export default function DraftsPage() {
           {drafts.map((draft) => (
             <div
               key={draft.id}
-              className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 hover:border-theme-accent-primary transition-colors"
+              className="bg-theme-surface border border-theme-border rounded-xl p-4 hover:border-theme-accent-primary transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">

@@ -53,7 +53,7 @@ export default function TimelineList({ posts }: TimelineListProps) {
               className="relative z-10 flex-shrink-0"
               whileHover={{ scale: 1.2 }}
             >
-              <div className="w-14 h-14 rounded-full bg-theme-bg-surface border-4 border-theme-bg-surface-alt flex items-center justify-center group-hover:border-theme-text-canvas transition-colors">
+              <div className="w-14 h-14 rounded-full bg-theme-surface border-4 border-theme-surface-alt flex items-center justify-center group-hover:border-theme-text-canvas transition-colors">
                 <span className="text-xs font-mono font-bold text-theme-text-tertiary group-hover:text-theme-text-canvas transition-colors">
                   {String(index + 1).padStart(2, '0')}
                 </span>
@@ -94,7 +94,7 @@ export default function TimelineList({ posts }: TimelineListProps) {
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-2.5 py-1 rounded-lg bg-theme-bg-surface-alt text-theme-text-secondary text-xs font-medium"
+                      className="px-2.5 py-1 rounded-lg bg-theme-surface-alt text-theme-text-secondary text-xs font-medium"
                     >
                       #{tag}
                     </span>

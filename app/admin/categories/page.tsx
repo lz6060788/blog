@@ -107,7 +107,7 @@ export default function CategoriesPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden"
+        className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden"
       >
         <Table>
           <TableHeader>
@@ -132,7 +132,7 @@ export default function CategoriesPage() {
               categories.map((category) => (
                 <TableRow
                   key={category.id}
-                  className="border-b border-theme-border hover:bg-theme-bg-muted"
+                  className="border-b border-theme-border hover:bg-theme-muted"
                 >
                   <TableCell className="font-medium text-theme-text-canvas">{category.name}</TableCell>
                   <TableCell className="text-theme-text-secondary">{category.slug}</TableCell>

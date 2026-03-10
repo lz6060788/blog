@@ -92,7 +92,7 @@ export default async function AdminPage() {
               return (
                 <div
                   key={stat.key}
-                  className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
+                  className="bg-theme-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -121,7 +121,7 @@ export default async function AdminPage() {
               return (
                 <div
                   key={stat.key}
-                  className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
+                  className="bg-theme-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -150,7 +150,7 @@ export default async function AdminPage() {
             const Icon = action.icon
             return (
               <Link key={action.href} href={action.href}>
-                <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors cursor-pointer group">
+                <div className="bg-theme-surface border border-theme-border rounded-xl p-6 hover:border-theme-accent-primary transition-colors cursor-pointer group">
                   <div className="flex items-center gap-4">
                     <div className="p-3 rounded-lg bg-theme-accent-bg group-hover:bg-theme-accent-primary transition-colors">
                       <Icon className="w-5 h-5 text-theme-accent-primary group-hover:text-theme-accent-fg transition-colors" strokeWidth={2} />
@@ -168,7 +168,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Recent Activity Placeholder */}
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6">
+      <div className="bg-theme-surface border border-theme-border rounded-xl p-6">
         <h2 className="text-lg font-medium text-theme-text-canvas mb-4">最近活动</h2>
         <div className="text-sm text-theme-text-tertiary py-8 text-center">
           暂无最近活动

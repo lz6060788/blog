@@ -61,7 +61,7 @@ export function ArticleGrid({ posts }: ArticleGridProps) {
               {post.excerpt}
             </p>
             <div className="flex items-center gap-3 text-xs text-theme-text-tertiary">
-              <span className="px-2 py-1 rounded bg-theme-bg-surface-alt font-medium">
+              <span className="px-2 py-1 rounded bg-theme-surface-alt font-medium">
                 {post.category}
               </span>
               <span>•</span>

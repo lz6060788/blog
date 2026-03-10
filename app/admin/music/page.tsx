@@ -112,7 +112,7 @@ export default function MusicPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden"
+        className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden"
       >
         <Table>
           <TableHeader>
@@ -142,7 +142,7 @@ export default function MusicPage() {
               songs.map((song) => (
                 <TableRow
                   key={song.id}
-                  className="border-b border-theme-border hover:bg-theme-bg-muted"
+                  className="border-b border-theme-border hover:bg-theme-muted"
                 >
                   <TableCell className="font-medium text-theme-text-canvas">{song.title}</TableCell>
                   <TableCell className="text-theme-text-secondary">{song.artist}</TableCell>
@@ -193,7 +193,7 @@ export default function MusicPage() {
 
       {showLyricsEditor && selectedSong && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-theme-bg-surface border border-theme-border rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-theme-surface border border-theme-border rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <LyricsEditor
               initialLyrics={selectedSong.lyrics}
               songId={selectedSong.id}
@@ -329,7 +329,7 @@ function UploadDialog({ onClose, onUploaded }: { onClose: () => void; onUploaded
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 w-full max-w-md">
+      <div className="bg-theme-surface border border-theme-border rounded-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-semibold text-theme-text-canvas mb-4">上传音乐</h2>
 
         <div className="space-y-4">
@@ -362,7 +362,7 @@ function UploadDialog({ onClose, onUploaded }: { onClose: () => void; onUploaded
                 <span className="text-theme-text-secondary">上传中...</span>
                 <span className="text-theme-text-secondary">{uploadProgress}%</span>
               </div>
-              <div className="h-2 bg-theme-bg-muted rounded-full overflow-hidden">
+              <div className="h-2 bg-theme-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-theme-accent-primary transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}

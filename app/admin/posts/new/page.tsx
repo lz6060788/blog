@@ -304,7 +304,7 @@ export default function NewPostPage() {
         {/* 标签输入框 - 内嵌已选标签 */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <TagIcon className="w-4 h-4 text-theme-text-secondary flex-shrink-0" />
-          <div className="flex-1 flex items-center gap-2 px-3 py-1.5 h-9 bg-theme-bg-surface border border-theme-border rounded-md text-sm focus-within:ring-2 focus-within:ring-theme-accent-primary focus-within:border-transparent">
+          <div className="flex-1 flex items-center gap-2 px-3 py-1.5 h-9 bg-theme-surface border border-theme-border rounded-md text-sm focus-within:ring-2 focus-within:ring-theme-accent-primary focus-within:border-transparent">
             {/* 已选标签 */}
             {tags.map(tag => (
               <span
@@ -352,7 +352,7 @@ export default function NewPostPage() {
               className={`px-2 py-1 rounded text-xs transition-colors ${
                 tags.includes(tag.name)
                   ? 'bg-theme-accent-primary text-white'
-                  : 'bg-theme-bg-muted text-theme-text-secondary hover:bg-theme-bg-tertiary'
+                  : 'bg-theme-muted text-theme-text-secondary hover:bg-theme-tertiary'
               } ${tags.length >= 3 && !tags.includes(tag.name) ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {tag.name}
@@ -391,7 +391,7 @@ export default function NewPostPage() {
           onChange={setContent}
           height="100%"
           theme={resolvedTheme}
-          className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden h-full"
+          className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden h-full"
         />
       </div>
     </div>

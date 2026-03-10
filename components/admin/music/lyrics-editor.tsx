@@ -146,13 +146,13 @@ export function LyricsEditor({
       </div>
 
       {/* LRC导入区域 */}
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4">
+      <div className="bg-theme-surface border border-theme-border rounded-xl p-4">
         <label className="block text-sm font-medium text-theme-text-secondary mb-2">
           导入LRC歌词
         </label>
         <textarea
           placeholder="[00:12.50]第一行歌词&#10;[00:16.30]第二行歌词&#10;..."
-          className="w-full h-32 px-3 py-2 bg-theme-bg-canvas border border-theme-border rounded-lg text-theme-text-canvas text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+          className="w-full h-32 px-3 py-2 bg-theme-canvas border border-theme-border rounded-lg text-theme-text-canvas text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
           onChange={(e) => {
             if (e.target.value) {
               handleImportLrc(e.target.value)
@@ -165,7 +165,7 @@ export function LyricsEditor({
       </div>
 
       {/* 歌词列表 */}
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden">
+      <div className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-theme-border flex items-center justify-between">
           <span className="text-sm font-medium text-theme-text-secondary">
             时间轴编辑（{lines.length} 行）
@@ -189,7 +189,7 @@ export function LyricsEditor({
             lines.map((line, index) => (
               <div
                 key={line.id}
-                className={`p-3 flex items-center gap-3 hover:bg-theme-bg-muted transition-colors ${
+                className={`p-3 flex items-center gap-3 hover:bg-theme-muted transition-colors ${
                   line.id === editingId ? 'bg-theme-accent-bg' : ''
                 }`}
               >
@@ -201,7 +201,7 @@ export function LyricsEditor({
                 {/* 时间标签 */}
                 <button
                   onClick={() => setLineTimeToCurrent(line.id)}
-                  className="flex items-center gap-1 px-2 py-1 bg-theme-bg-canvas border border-theme-border rounded text-theme-text-secondary hover:border-theme-accent-primary transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 bg-theme-canvas border border-theme-border rounded text-theme-text-secondary hover:border-theme-accent-primary transition-colors"
                   title="点击设置为当前时间"
                 >
                   <Clock className="w-3 h-3" />
@@ -228,7 +228,7 @@ export function LyricsEditor({
                       }
                     }}
                     autoFocus
-                    className="flex-1 px-2 py-1 bg-theme-bg-canvas border border-theme-accent-primary rounded text-theme-text-canvas text-sm focus:outline-none"
+                    className="flex-1 px-2 py-1 bg-theme-canvas border border-theme-accent-primary rounded text-theme-text-canvas text-sm focus:outline-none"
                   />
                 ) : (
                   <div
@@ -236,7 +236,7 @@ export function LyricsEditor({
                       setEditingId(line.id)
                       setEditingText(line.text)
                     }}
-                    className="flex-1 px-2 py-1 text-theme-text-canvas text-sm cursor-pointer hover:bg-theme-bg-canvas rounded transition-colors"
+                    className="flex-1 px-2 py-1 text-theme-text-canvas text-sm cursor-pointer hover:bg-theme-canvas rounded transition-colors"
                   >
                     {line.text || '(空)'}
                   </div>
@@ -259,11 +259,11 @@ export function LyricsEditor({
 
       {/* LRC预览 */}
       {lines.length > 0 && (
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-4">
           <label className="block text-sm font-medium text-theme-text-secondary mb-2">
             LRC预览
           </label>
-          <pre className="text-xs text-theme-text-tertiary font-mono bg-theme-bg-canvas p-3 rounded-lg overflow-x-auto">
+          <pre className="text-xs text-theme-text-tertiary font-mono bg-theme-canvas p-3 rounded-lg overflow-x-auto">
             {formatLrc(lines)}
           </pre>
         </div>

@@ -31,7 +31,7 @@ export default function RootLayout({
 
   return (
     <html lang={locale} className={`theme-light ${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <body className="bg-theme-bg-canvas text-theme-text-canvas antialiased">
+      <body className="bg-theme-canvas text-theme-text-canvas antialiased">
         <ToastProvider />
         {children}
         <MusicPlayerWrapper />

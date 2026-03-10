@@ -38,7 +38,7 @@ export default function LoginPage() {
   // 加载状态
   if (status === 'loading' || !isClient) {
     return (
-      <div className="min-h-screen bg-theme-bg-canvas flex items-center justify-center">
+      <div className="min-h-screen bg-theme-canvas flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-theme-accent-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-theme-text-secondary text-sm">加载中...</p>
@@ -51,11 +51,11 @@ export default function LoginPage() {
   return (
     <AuthLayout>
       {/* 移动端视觉区域 */}
-      <div className="lg:hidden w-full bg-theme-bg-surface flex-col justify-center items-center p-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-theme-bg-surface to-theme-bg-surface-alt opacity-50" />
+      <div className="lg:hidden w-full bg-theme-surface flex-col justify-center items-center p-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-theme-surface to-theme-surface-alt opacity-50" />
         <div className="relative z-10 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 flex items-center justify-center bg-theme-bg-surface-alt rounded-full">
+            <div className="w-12 h-12 flex items-center justify-center bg-theme-surface-alt rounded-full">
               <span className="font-mono text-2xl">⚡</span>
             </div>
           </div>

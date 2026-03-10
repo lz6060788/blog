@@ -222,7 +222,7 @@ export default function PostsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.1 }}
-        className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden"
+        className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden"
       >
         <Table>
           <TableHeader>
@@ -242,7 +242,7 @@ export default function PostsPage() {
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-12">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-theme-bg-muted flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-theme-muted flex items-center justify-center">
                       <FileText className="w-5 h-5 text-theme-text-tertiary" />
                     </div>
                     <p className="text-theme-text-secondary">
@@ -262,7 +262,7 @@ export default function PostsPage() {
               posts.map((post) => (
                 <TableRow
                   key={post.id}
-                  className="border-b border-theme-border hover:bg-theme-bg-muted transition-colors"
+                  className="border-b border-theme-border hover:bg-theme-muted transition-colors"
                 >
                   <TableCell>
                     <Link href={`/admin/posts/${post.id}/edit`} className="block w-[160px]">
@@ -334,7 +334,7 @@ export default function PostsPage() {
                           <MoreHorizontal className="w-4 h-4" strokeWidth={2} />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-theme-bg-surface border-theme-border">
+                      <DropdownMenuContent align="end" className="bg-theme-surface border-theme-border">
                         <DropdownMenuItem asChild>
                           <Link href={`/admin/posts/${post.id}/edit`} className="cursor-pointer">
                             <Edit className="w-4 h-4 mr-2" strokeWidth={2} />

@@ -32,7 +32,7 @@ export function ThemeToggle() {
   ] as const
 
   return (
-    <div className="flex items-center gap-1 bg-theme-bg-surface rounded-full p-1 border border-theme-border shadow-sm">
+    <div className="flex items-center gap-1 bg-theme-surface rounded-full p-1 border border-theme-border shadow-sm">
       {themes.map(({ value, icon: Icon, label }) => {
         const isActive = value === "system" ? theme === "system" : (theme === value || (theme === "system" && resolvedTheme === value))
         return (
@@ -43,7 +43,7 @@ export function ThemeToggle() {
               relative w-7 h-7 flex items-center justify-center rounded-full
               transition-all duration-200
               ${isActive
-                ? 'bg-theme-text-canvas text-theme-bg-surface'
+                ? 'bg-theme-text-canvas text-theme-surface'
                 : 'text-theme-text-tertiary hover:text-theme-text-secondary'
               }
             `}

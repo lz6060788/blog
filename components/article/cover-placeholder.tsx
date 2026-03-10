@@ -27,7 +27,7 @@ export function CoverPlaceholder({
   return (
     <div
       className={cn(
-        'relative overflow-hidden bg-theme-bg-subtle border border-theme-border',
+        'relative overflow-hidden bg-theme-subtle border border-theme-border',
         aspectRatio,
         className
       )}
@@ -38,7 +38,7 @@ export function CoverPlaceholder({
           <ImageIcon className="w-8 h-8 text-theme-text-tertiary opacity-50" />
         </div>
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-theme-bg-surface to-theme-bg-subtle flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-theme-surface to-theme-subtle flex items-center justify-center">
           <ImageIcon className="w-8 h-8 text-theme-text-tertiary opacity-30" />
         </div>
       )}

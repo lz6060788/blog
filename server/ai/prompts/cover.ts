@@ -7,7 +7,6 @@ export interface CoverPromptOptions {
   title: string
   excerpt?: string
   tags?: string[]
-  language?: string
 }
 
 /**
@@ -16,135 +15,28 @@ export interface CoverPromptOptions {
  * @returns 图像生成 Prompt
  */
 export function generateCoverPrompt(options: CoverPromptOptions): string {
-  const { title, excerpt, tags, language = 'zh-CN' } = options
+  const { title, excerpt, tags } = options
 
-  // 基础 Prompt
-  let prompt = `Generate a blog post cover image with the following details:\n`
-  prompt += `- Title: ${title}\n`
+  // 处理标签
+  const tagList = tags && tags.length > 0 ? tags.join('、') : ''
 
-  // 添加摘要（如果有）
-  if (excerpt) {
-    // 截取摘要的前 200 字符
-    const summary = excerpt.length > 200 ? excerpt.substring(0, 200) + '...' : excerpt
-    prompt += `- Summary: ${summary}\n`
-  }
+  const prompt = `
+为一篇博客文章生成封面图片，标题：${title}
+${excerpt ? `摘要：${excerpt}` : ''}
+${tagList ? `标签：${tagList}` : ''}
 
-  // 添加标签（如果有）
-  if (tags && tags.length > 0) {
-    prompt += `- Tags: ${tags.join(', ')}\n`
-  }
+设计要求：
+- 现代、简洁的设计风格
+- 专业、干净的视觉效果
+- 16:9 横屏比例（1200x675）
+- 高质量，适合网页展示
+- 避免添加文字覆盖
+- 根据主题使用合适的配色和视觉元素
+- 封面中间区域使用手绘风格，将与文章内容相关的标题以大字体显示。
+`.trim()
 
-  // 设计要求
-  prompt += `\nDesign Requirements:\n`
-  prompt += `- Modern, minimalist design\n`
-  prompt += `- Professional and clean style\n`
-  prompt += `- 16:9 aspect ratio (1200x675)\n`
-  prompt += `- High quality, suitable for web display\n`
-  prompt += `- Avoid text overlays\n`
-  prompt += `- Use appropriate colors and visual elements based on the topic\n`
-
-  // 根据标签添加风格建议
-  if (tags && tags.length > 0) {
-    const styleHints = getStyleHintsFromTags(tags)
-    if (styleHints.length > 0) {
-      prompt += `\nStyle Suggestions:\n`
-      prompt += `- ${styleHints.join('\n- ')}\n`
-    }
-  }
-
-  // 语言适配（如果是英文文章，Prompt 也用英文）
-  if (language.startsWith('en')) {
-    prompt = convertPromptToEnglish(prompt, title, excerpt, tags)
-  }
-
-  return prompt
-}
-
-/**
- * 从标签获取风格提示
- * @param tags 文章标签
- * @returns 风格提示列表
- */
-function getStyleHintsFromTags(tags: string[]): string[] {
-  const hints: string[] = []
-  const lowerTags = tags.map((t) => t.toLowerCase())
-
-  // 技术类
-  if (lowerTags.some((t) => ['tech', 'technology', 'code', 'programming', '开发', '技术', '编程'].includes(t))) {
-    hints.push('Use geometric shapes and abstract tech elements')
-    hints.push('Consider blue, purple, or cyan color schemes')
-  }
-
-  // 设计类
-  if (lowerTags.some((t) => ['design', 'designer', 'ui', 'ux', '设计'].includes(t))) {
-    hints.push('Use clean, modern design with bold colors')
-    hints.push('Incorporate design elements like grids or patterns')
-  }
-
-  // 商业/创业
-  if (lowerTags.some((t) => ['business', 'startup', 'entrepreneur', '商业', '创业'].includes(t))) {
-    hints.push('Use professional, trustworthy colors (blue, green)')
-    hints.push('Incorporate growth or success symbolism')
-  }
-
-  // 生活/个人
-  if (lowerTags.some((t) => ['life', 'personal', 'lifestyle', '生活'].includes(t))) {
-    hints.push('Use warm, inviting colors')
-    hints.push('Include organic, natural elements')
-  }
-
-  // 教育/教程
-  if (lowerTags.some((t) => ['education', 'tutorial', 'guide', '学习', '教程', '指南'].includes(t))) {
-    hints.push('Use clear, organized visual elements')
-    hints.push('Consider instructional or educational symbolism')
-  }
-
-  return hints
-}
-
-/**
- * 将 Prompt 转换为英文（用于英文文章）
- * @param chinesePrompt 中文 Prompt
- * @param title 文章标题
- * @param excerpt 文章摘要
- * @param tags 文章标签
- * @returns 英文 Prompt
- */
-function convertPromptToEnglish(
-  chinesePrompt: string,
-  title: string,
-  excerpt?: string,
-  tags?: string[]
-): string {
-  let prompt = `Generate a blog post cover image with the following details:\n`
-  prompt += `- Title: ${title}\n`
-
-  if (excerpt) {
-    const summary = excerpt.length > 200 ? excerpt.substring(0, 200) + '...' : excerpt
-    prompt += `- Summary: ${summary}\n`
-  }
-
-  if (tags && tags.length > 0) {
-    prompt += `- Tags: ${tags.join(', ')}\n`
-  }
-
-  prompt += `\nDesign Requirements:\n`
-  prompt += `- Modern, minimalist design\n`
-  prompt += `- Professional and clean style\n`
-  prompt += `- 16:9 aspect ratio (1200x675)\n`
-  prompt += `- High quality, suitable for web display\n`
-  prompt += `- Avoid text overlays\n`
-  prompt += `- Use appropriate colors and visual elements based on the topic\n`
-
-  // 根据标签添加风格建议
-  if (tags && tags.length > 0) {
-    const styleHints = getStyleHintsFromTags(tags)
-    if (styleHints.length > 0) {
-      prompt += `\nStyle Suggestions:\n`
-      prompt += `- ${styleHints.join('\n- ')}\n`
-    }
-  }
-
+  console.log('generateCoverPrompt:', prompt)
+  throw new Error('generateCoverPrompt: title is required')
   return prompt
 }
 
@@ -161,7 +53,7 @@ export function validateCoverPrompt(prompt: string): boolean {
   }
 
   // 检查是否包含基本元素
-  const requiredElements = ['Title:', 'Design Requirements:']
+  const requiredElements = ['标题', '设计要求']
   const hasRequiredElements = requiredElements.every((element) => prompt.includes(element))
 
   if (!hasRequiredElements) {

@@ -174,6 +174,13 @@ New-Guid
 ### Vercel
 - 在项目设置中配置环境变量
 - `NEXTAUTH_URL` 会自动设置，无需手动配置
+- **不要在 `vercel.json` 中使用 `buildEnv`**，应改为 `env`，否则会触发 schema 校验错误
+
+#### 关于 SQLite 在 Vercel 的使用
+- Vercel Serverless/Edge 运行时的本地文件系统是**临时的**，`./data/db.sqlite` 这类文件不能作为持久化数据库。
+- `better-sqlite3` 仅支持 Node.js 运行时（不支持 Edge），并且即使能运行，也不适合作为线上持久存储方案。
+- 生产环境建议改用托管数据库（例如 Vercel Postgres、Neon、Supabase、PlanetScale 等）或专门支持远程 SQLite 的服务（如 Turso/libSQL）。
+- 如果必须保留 SQLite，仅建议用于本地开发/预览环境。
 
 ### Netlify
 - 在 Site settings → Environment variables 中配置

@@ -46,9 +46,10 @@ COPY .env.production .env.local
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# 创建 data 目录并初始化数据库（构建时使用 push 创建表结构）
+# 创建 data 目录并初始化空数据库文件（构建时需要）
 RUN mkdir -p /app/data && \
-    npx drizzle-kit push
+    touch /app/data/db.sqlite && \
+    sqlite3 /app/data/db.sqlite "PRAGMA user_version = 0;"
 
 # 构建应用
 RUN npm run build

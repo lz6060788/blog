@@ -11,7 +11,7 @@ import { Sun, Moon, Monitor } from '@phosphor-icons/react'
  * 遵循 frontend-design 美学规范
  */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   // 避免服务端渲染不匹配
@@ -34,7 +34,7 @@ export function ThemeToggle() {
   return (
     <div className="flex items-center gap-1 bg-theme-bg-surface rounded-full p-1 border border-theme-border shadow-sm">
       {themes.map(({ value, icon: Icon, label }) => {
-        const isActive = theme === value
+        const isActive = value === "system" ? theme === "system" : (theme === value || (theme === "system" && resolvedTheme === value))
         return (
           <button
             key={value}

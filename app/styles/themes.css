@@ -1,0 +1,77 @@
+.theme-light {
+  --theme-background: 0 0% 100%;
+  --theme-foreground: var(--color-brand-zinc-900);
+
+  --theme-surface: 0 0% 100%;
+  --theme-surface-alt: var(--color-brand-zinc-100);
+  --theme-muted: var(--color-brand-zinc-200);
+  --theme-subtle: var(--color-brand-zinc-300);
+  --theme-overlay: 0 0% 0% / 0.6;
+
+  --theme-primary: var(--color-brand-accent-600);
+  --theme-primary-foreground: 0 0% 98%;
+
+  --theme-secondary: var(--color-brand-zinc-200);
+  --theme-secondary-foreground: var(--color-brand-zinc-900);
+
+  --theme-border: var(--color-brand-zinc-200);
+  --theme-border-muted: var(--color-brand-zinc-100);
+  --theme-border-subtle: var(--color-brand-zinc-300);
+  --theme-border-strong: var(--color-brand-zinc-400);
+
+  --theme-text-primary: var(--color-brand-zinc-700);
+  --theme-text-secondary: var(--color-brand-zinc-500);
+  --theme-text-tertiary: var(--color-brand-zinc-400);
+
+  --theme-success: var(--color-success-500);
+  --theme-success-bg: 142 76% 96%;
+  --theme-success-text: 142 72% 26%;
+  --theme-warning: var(--color-warning-500);
+  --theme-warning-bg: 48 100% 96%;
+  --theme-warning-text: 31 92% 32%;
+  --theme-error: var(--color-error-500);
+  --theme-error-bg: 0 86% 97%;
+  --theme-error-text: 0 72% 35%;
+  --theme-info: var(--color-info-500);
+  --theme-info-bg: 214 100% 97%;
+  --theme-info-text: 222 67% 35%;
+}
+
+.theme-dark {
+  --theme-background: var(--color-brand-zinc-950);
+  --theme-foreground: 0 0% 98%;
+
+  --theme-surface: var(--color-brand-zinc-900);
+  --theme-surface-alt: var(--color-brand-zinc-800);
+  --theme-muted: var(--color-brand-zinc-700);
+  --theme-subtle: var(--color-brand-zinc-600);
+  --theme-overlay: 0 0% 0% / 0.75;
+
+  --theme-primary: var(--color-brand-accent-500);
+  --theme-primary-foreground: 0 0% 100%;
+
+  --theme-secondary: var(--color-brand-zinc-800);
+  --theme-secondary-foreground: 0 0% 98%;
+
+  --theme-border: var(--color-brand-zinc-800);
+  --theme-border-muted: var(--color-brand-zinc-700);
+  --theme-border-subtle: var(--color-brand-zinc-600);
+  --theme-border-strong: var(--color-brand-zinc-500);
+
+  --theme-text-primary: var(--color-brand-zinc-200);
+  --theme-text-secondary: var(--color-brand-zinc-400);
+  --theme-text-tertiary: var(--color-brand-zinc-500);
+
+  --theme-success: var(--color-success-600);
+  --theme-success-bg: 144 61% 12%;
+  --theme-success-text: 142 69% 69%;
+  --theme-warning: var(--color-warning-500);
+  --theme-warning-bg: 31 91% 14%;
+  --theme-warning-text: 48 96% 69%;
+  --theme-error: var(--color-error-500);
+  --theme-error-bg: 0 63% 15%;
+  --theme-error-text: 0 93% 81%;
+  --theme-info: var(--color-info-500);
+  --theme-info-bg: 223 47% 15%;
+  --theme-info-text: 213 94% 78%;
+}

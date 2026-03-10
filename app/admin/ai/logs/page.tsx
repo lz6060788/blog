@@ -104,7 +104,7 @@ export default function AILogsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case AICallStatus.SUCCESS:
-        return 'text-green-500'
+        return 'text-theme-success-primary'
       case AICallStatus.FAILED:
         return 'text-theme-error-primary'
       case AICallStatus.RETRYING:

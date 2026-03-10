@@ -1,16 +1,22 @@
-/* ============================================
-   Cherry Markdown 预览样式覆盖
-   使用项目主题系统变量，确保深色/浅色模式兼容
-   ============================================ */
+.theme-light,
+.theme-dark {
+  --color-cherry-preview-text: var(--theme-text-primary);
+  --color-cherry-preview-heading: var(--theme-foreground);
+  --color-cherry-preview-border: var(--theme-border);
+  --color-cherry-preview-code-bg: var(--theme-surface-alt);
+  --color-cherry-preview-inline-code-bg: var(--theme-surface-alt);
+  --color-cherry-preview-inline-code-text: var(--theme-primary);
+  --color-cherry-preview-blockquote-bg: var(--theme-surface-alt);
+  --color-cherry-preview-blockquote-border: var(--theme-primary);
+  --color-cherry-preview-link: var(--theme-primary);
+  --color-cherry-preview-loading-bg: var(--theme-surface);
+}
 
-/* 预览容器 */
 .cherry-preview-wrapper {
-  /* 确保容器使用主题背景 */
   background-color: transparent;
   position: relative;
 }
 
-/* 隐藏编辑器部分，只显示预览 */
 .cherry-preview-container .cherry-editor,
 .cherry-preview-container .cherry-toolbar,
 .cherry-preview-container .cherry-textarea,
@@ -18,151 +24,56 @@
   display: none !important;
 }
 
-/* Cherry Markdown 生成的预览区域 */
 .cherry-preview-container .cherry-markdown {
-  /* 基础颜色 */
-  color: var(--text-primary);
+  color: hsl(var(--color-cherry-preview-text));
   background-color: transparent;
-  /* 主题切换过渡效果 */
   transition: color 300ms ease-in-out, background-color 300ms ease-in-out;
 }
 
-/* 主题切换加载提示 */
 .cherry-preview-loading {
   position: absolute;
   inset: 0;
-  background-color: var(--bg-surface);
+  background-color: hsl(var(--color-cherry-preview-loading-bg));
   border-radius: 2rem;
   z-index: 10;
   transition: opacity 300ms ease-in-out;
 }
 
-/* 标题样式 */
 .cherry-preview-container .cherry-markdown h1,
 .cherry-preview-container .cherry-markdown h2,
 .cherry-preview-container .cherry-markdown h3,
 .cherry-preview-container .cherry-markdown h4,
 .cherry-preview-container .cherry-markdown h5,
 .cherry-preview-container .cherry-markdown h6 {
-  color: var(--text-canvas);
-  border-color: var(--border-default);
+  color: hsl(var(--color-cherry-preview-heading));
+  border-color: hsl(var(--color-cherry-preview-border));
 }
 
-/* 段落样式 */
-.cherry-preview-container .cherry-markdown p {
-  color: var(--text-primary);
-}
-
-/* 链接样式 */
-.cherry-preview-container .cherry-markdown a {
-  color: var(--accent-600);
-}
-
-.cherry-preview-container .cherry-markdown a:hover {
-  color: var(--accent-400);
-}
-
-/* 列表样式 */
-.cherry-preview-container .cherry-markdown ul,
-.cherry-preview-container .cherry-markdown ol {
-  color: var(--text-primary);
-}
-
-.cherry-preview-container .cherry-markdown li {
-  color: var(--text-primary);
-}
-
-/* 引用块样式 */
-.cherry-preview-container .cherry-markdown blockquote {
-  border-left-color: var(--accent-500);
-  background-color: var(--bg-surface-alt);
-  color: var(--text-secondary);
-}
-
-/* 代码块样式 - 行内代码 */
 .cherry-preview-container .cherry-markdown code {
-  background-color: var(--bg-muted);
-  color: var(--text-canvas);
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  font-size: 0.9em;
+  background-color: hsl(var(--color-cherry-preview-inline-code-bg));
+  color: hsl(var(--color-cherry-preview-inline-code-text));
 }
 
-/* 代码块样式 - 块级代码 */
 .cherry-preview-container .cherry-markdown pre {
-  background-color: var(--bg-canvas);
-  border: 1px solid var(--border-default);
-  border-radius: 0.5em;
-  padding: 1em;
-  overflow-x: auto;
+  background-color: hsl(var(--color-cherry-preview-code-bg));
+  border: 1px solid hsl(var(--color-cherry-preview-border));
 }
 
-.cherry-preview-container .cherry-markdown pre code {
-  background-color: transparent;
-  padding: 0;
-  color: var(--text-primary);
+.cherry-preview-container .cherry-markdown blockquote {
+  background-color: hsl(var(--color-cherry-preview-blockquote-bg));
+  border-left-color: hsl(var(--color-cherry-preview-blockquote-border));
 }
 
-/* 表格样式 */
-.cherry-preview-container .cherry-markdown table {
-  border-color: var(--border-default);
+.cherry-preview-container .cherry-markdown a {
+  color: hsl(var(--color-cherry-preview-link));
 }
 
-.cherry-preview-container .cherry-markdown th,
-.cherry-preview-container .cherry-markdown td {
-  border-color: var(--border-default);
-  color: var(--text-primary);
+.cherry-previewer {
+  border-left: none !important;
+  padding: 0 !important;
 }
 
-.cherry-preview-container .cherry-markdown th {
-  background-color: var(--bg-surface-alt);
-  color: var(--text-canvas);
-}
-
-.cherry-preview-container .cherry-markdown tr:nth-child(even) {
-  background-color: var(--bg-surface-alt);
-}
-
-/* 水平线样式 */
-.cherry-preview-container .cherry-markdown hr {
-  border-color: var(--border-default);
-}
-
-/* 图片样式 */
-.cherry-preview-container .cherry-markdown img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* 任务列表样式 */
-.cherry-preview-container .cherry-markdown .task-list-item {
-  list-style-type: none;
-}
-
-.cherry-preview-container .cherry-markdown input[type="checkbox"] {
-  margin-right: 0.5em;
-}
-
-/* 数学公式样式 */
-.cherry-preview-container .cherry-markdown .katex {
-  color: var(--text-primary);
-}
-
-/* 脚注样式 */
-.cherry-preview-container .cherry-markdown .footnote {
-  color: var(--text-secondary);
-  font-size: 0.9em;
-}
-
-/* 高亮标记样式 */
-.cherry-preview-container .cherry-markdown mark {
-  background-color: var(--warning-200);
-  color: var(--text-canvas);
-  padding: 0.1em 0.2em;
-}
-
-/* 删除线样式 */
-.cherry-preview-container .cherry-markdown del,
-.cherry-preview-container .cherry-markdown s {
-  color: var(--text-tertiary);
+.cherry {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }

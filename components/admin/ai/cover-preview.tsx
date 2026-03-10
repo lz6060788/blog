@@ -15,11 +15,11 @@ interface CoverStatusLabelProps {
 
 function CoverStatusLabel({ status }: CoverStatusLabelProps) {
   const labels: Record<string, { text: string; className: string }> = {
-    pending: { text: '待生成', className: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
-    generating: { text: '生成中', className: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
-    done: { text: '已完成', className: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' },
-    failed: { text: '生成失败', className: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
-    manual: { text: '手动上传', className: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' },
+    pending: { text: '待生成', className: 'bg-theme-bg-surface-alt text-theme-text-secondary' },
+    generating: { text: '生成中', className: 'bg-theme-info-bg text-theme-info-primary' },
+    done: { text: '已完成', className: 'bg-theme-success-bg text-theme-success-primary' },
+    failed: { text: '生成失败', className: 'bg-theme-error-bg text-theme-error-primary' },
+    manual: { text: '手动上传', className: 'bg-theme-accent-bg text-theme-accent-primary' },
   }
 
   const { text, className } = labels[status || 'pending'] || labels.pending

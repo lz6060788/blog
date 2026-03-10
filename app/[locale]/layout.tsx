@@ -37,6 +37,8 @@ export default async function LocaleLayout({
       attribute="class"
       defaultTheme="light"
       enableSystem
+      themes={["light", "dark"]}
+      value={{ light: "theme-light", dark: "theme-dark" }}
       disableTransitionOnChange={false}
     >
       <SessionProvider>

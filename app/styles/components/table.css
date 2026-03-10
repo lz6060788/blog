@@ -1,22 +1,8 @@
-/* ============================================
-   组件颜色 - Table (tbl)
-   使用语义角色变量，便于主题扩展
-   ============================================ */
-
-/* 浅色主题 */
-:root {
-  --tbl-footer-bg: var(--neutral-100);
-  --tbl-row-bg-hover: var(--neutral-100);
-  --tbl-row-bg-selected: var(--neutral-200);
-  --tbl-head-fg: var(--neutral-500);
-  --tbl-caption-fg: var(--neutral-500);
-}
-
-/* 深色主题 */
-.dark {
-  --tbl-footer-bg: var(--neutral-900);
-  --tbl-row-bg-hover: var(--neutral-800);
-  --tbl-row-bg-selected: var(--neutral-700);
-  --tbl-head-fg: var(--neutral-400);
-  --tbl-caption-fg: var(--neutral-400);
+.theme-light,
+.theme-dark {
+  --color-table-footer-bg: var(--theme-surface-alt);
+  --color-table-row-bg-hover: var(--theme-surface-alt);
+  --color-table-row-bg-selected: var(--theme-muted);
+  --color-table-head-text: var(--theme-text-secondary);
+  --color-table-caption-text: var(--theme-text-secondary);
 }

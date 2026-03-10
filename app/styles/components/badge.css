@@ -1,50 +1,18 @@
-/* ============================================
-   组件颜色 - Badge
-   使用语义角色变量，便于主题扩展
-   ============================================ */
+.theme-light,
+.theme-dark {
+  --color-badge-default-bg: var(--theme-muted);
+  --color-badge-default-text: var(--theme-text-secondary);
+  --color-badge-default-border: transparent;
 
-/* 浅色主题 */
-:root {
-  /* Default 变体 */
-  --badge-default-bg: var(--theme-bg-muted);
-  --badge-default-fg: var(--theme-text-secondary);
-  --badge-default-border: transparent;
+  --color-badge-secondary-bg: var(--theme-surface-alt);
+  --color-badge-secondary-text: var(--theme-text-primary);
+  --color-badge-secondary-border: transparent;
 
-  /* Secondary 变体 */
-  --badge-secondary-bg: var(--theme-bg-muted);
-  --badge-secondary-fg: var(--theme-text-secondary);
-  --badge-secondary-border: transparent;
+  --color-badge-outline-bg: transparent;
+  --color-badge-outline-text: var(--theme-text-secondary);
+  --color-badge-outline-border: var(--theme-border);
 
-  /* Outline 变体 */
-  --badge-outline-bg: transparent;
-  --badge-outline-fg: var(--theme-text-secondary);
-  --badge-outline-border: var(--theme-border-default);
-
-  /* Destructive 变体 */
-  --badge-destructive-bg: var(--theme-error-bg);
-  --badge-destructive-fg: var(--theme-error-primary);
-  --badge-destructive-border: transparent;
-}
-
-/* 深色主题 */
-.dark {
-  /* Default 变体 */
-  --badge-default-bg: var(--theme-bg-muted);
-  --badge-default-fg: var(--theme-text-secondary);
-  --badge-default-border: transparent;
-
-  /* Secondary 变体 */
-  --badge-secondary-bg: var(--theme-bg-muted);
-  --badge-secondary-fg: var(--theme-text-secondary);
-  --badge-secondary-border: transparent;
-
-  /* Outline 变体 */
-  --badge-outline-bg: transparent;
-  --badge-outline-fg: var(--theme-text-secondary);
-  --badge-outline-border: var(--theme-border-default);
-
-  /* Destructive 变体 */
-  --badge-destructive-bg: var(--theme-error-bg);
-  --badge-destructive-fg: var(--theme-error-primary);
-  --badge-destructive-border: transparent;
+  --color-badge-destructive-bg: var(--theme-error-bg);
+  --color-badge-destructive-text: var(--theme-error);
+  --color-badge-destructive-border: transparent;
 }

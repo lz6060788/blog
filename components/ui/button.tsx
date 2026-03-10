@@ -11,15 +11,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-theme-btn-default-bg text-theme-btn-default-fg shadow hover:shadow-md hover:bg-theme-btn-default-bg-hover hover:text-theme-btn-default-fg-hover",
+          "bg-btn-default-bg text-btn-default-fg shadow hover:shadow-md hover:bg-btn-default-bg-hover hover:text-btn-default-fg-hover",
         destructive:
-          "bg-theme-btn-destructive-bg text-theme-btn-destructive-fg shadow-sm hover:bg-theme-btn-destructive-bg-hover",
+          "bg-btn-destructive-bg text-btn-destructive-fg shadow-sm hover:bg-btn-destructive-bg-hover",
         outline:
-          "border border-theme-btn-outline-border bg-theme-btn-outline-bg shadow-sm hover:bg-theme-btn-outline-bg-hover hover:text-theme-btn-outline-fg-hover",
+          "border border-btn-outline-border bg-btn-outline-bg text-btn-outline-fg shadow-sm hover:bg-btn-outline-bg-hover hover:text-btn-outline-fg-hover",
         secondary:
-          "bg-theme-btn-secondary-bg text-theme-btn-secondary-fg shadow-sm hover:bg-theme-btn-secondary-bg-hover",
-        ghost: "hover:bg-theme-btn-ghost-bg-hover hover:text-theme-btn-ghost-fg-hover",
-        link: "text-theme-btn-link-fg underline-offset-4 hover:underline",
+          "bg-btn-secondary-bg text-btn-secondary-fg shadow-sm hover:bg-btn-secondary-bg-hover",
+        ghost: "hover:bg-btn-ghost-bg-hover hover:text-btn-ghost-fg-hover",
+        link: "text-btn-link-fg underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",  // 使用 h-10 匹配项目按钮高度

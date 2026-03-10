@@ -10,11 +10,6 @@ out
 dist
 
 # Environment
-.env
-.env*.local
-.env.development
-.env.test
-.env.production
 
 # IDE
 .vscode

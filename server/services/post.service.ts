@@ -30,6 +30,8 @@ export interface UpdatePostInput {
   tags?: string[]
   readTime?: number
   publishedDate?: string
+  coverImageUrl?: string | null
+  aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
 }
 
 export interface ListPostsOptions {

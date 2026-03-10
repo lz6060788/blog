@@ -135,7 +135,7 @@ export default function EditPostPage() {
     }
 
     try {
-      await updatePost(id, { title, content, categoryId, tags, excerpt })
+      await updatePost(id, { title, content, categoryId: categoryId || undefined, tags, excerpt })
       setHasUnsavedChanges(false)
       toast.success('已自动保存')
     } catch (error) {
@@ -236,6 +236,7 @@ export default function EditPostPage() {
         readTime: Math.ceil(content.length / 400),
         excerpt,
         coverImageUrl: coverImageUrl || undefined,
+        aiCoverStatus: aiCoverStatus || undefined,
       })
       setHasUnsavedChanges(false)
       toast.success('保存成功')
@@ -282,6 +283,7 @@ export default function EditPostPage() {
         publishedDate: new Date().toISOString(),
         excerpt,
         coverImageUrl: coverImageUrl || undefined,
+        aiCoverStatus: aiCoverStatus || undefined,
       })
       setPublished(true)
       setHasUnsavedChanges(false)

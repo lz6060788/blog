@@ -70,6 +70,8 @@ export class PostRepository {
       tags?: string[]
       readTime?: number
       publishedDate?: string
+      coverImageUrl?: string | null
+      aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
     }
   ): Promise<void> {
     // 检查文章是否存在且属于当前用户
@@ -90,9 +92,12 @@ export class PostRepository {
     if (input.content !== undefined) updateData.content = input.content
     if (input.excerpt !== undefined) updateData.excerpt = input.excerpt
     if (input.published !== undefined) updateData.published = input.published
-    if (input.categoryId !== undefined) updateData.categoryId = input.categoryId
+    // 处理 categoryId：空字符串转换为 null 以避免外键约束问题
+    if (input.categoryId !== undefined) updateData.categoryId = input.categoryId || null
     if (input.readTime !== undefined) updateData.readTime = input.readTime
     if (input.publishedDate !== undefined) updateData.publishedDate = input.publishedDate
+    if (input.coverImageUrl !== undefined) updateData.coverImageUrl = input.coverImageUrl
+    if (input.aiCoverStatus !== undefined) updateData.aiCoverStatus = input.aiCoverStatus
 
     await db.update(posts).set(updateData).where(eq(posts.id, postId))
 

@@ -380,17 +380,16 @@ export function CoverPreview({
                 </div>
               </div>
             )}
-            <div className="relative w-full rounded-lg overflow-hidden bg-theme-canvas">
+            <div className="relative w-full rounded-lg overflow-hidden bg-theme-canvas aspect-video">
               <img
                 src={coverUrl}
                 alt="文章封面"
-                className="w-full h-auto object-cover"
-                style={{ maxHeight: '300px' }}
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
         ) : (
-          <div className="w-full h-32 rounded-lg border-2 border-dashed border-theme-border flex flex-col items-center justify-center text-theme-text-tertiary">
+          <div className="w-full aspect-video rounded-lg border-2 border-dashed border-theme-border flex flex-col items-center justify-center text-theme-text-tertiary">
             <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">
               {coverStatus === CoverStatus.GENERATING

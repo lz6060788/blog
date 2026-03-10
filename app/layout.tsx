@@ -2,7 +2,6 @@ import { cookies } from 'next/headers'
 import { routing } from './i18n/routing'
 import { Outfit, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import './styles/index.css'
 // Cherry Markdown 样式（仅在需要编辑器的页面加载）
 import 'cherry-markdown/dist/cherry-markdown.css'
 import { ToastProvider } from '@/components/providers/toast-provider'
@@ -30,7 +29,7 @@ export default function RootLayout({
   const locale = localeCookie?.value || routing.defaultLocale
 
   return (
-    <html lang={locale} className={`${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`theme-light ${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="bg-theme-bg-canvas text-theme-text-canvas antialiased">
         <ToastProvider />
         {children}

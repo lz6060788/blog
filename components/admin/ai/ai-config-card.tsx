@@ -292,7 +292,7 @@ export function AIConfigCard() {
       <div className="p-6">
         {showFirstTimeGuide ? (
           /* 首次引导 */
-          <div className="bg-gradient-to-r from-theme-accent-bg to-blue-50 dark:from-purple-950 dark:to-blue-950 border border-theme-accent-primary/30 rounded-xl p-6 space-y-4">
+          <div className="bg-gradient-to-r from-theme-accent-bg to-theme-bg-surface-alt border border-theme-accent-primary/30 rounded-xl p-6 space-y-4">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-theme-accent-primary/10 rounded-lg">
                 <Brain className="w-6 h-6 text-theme-accent-primary" />
@@ -386,7 +386,7 @@ export function AIConfigCard() {
                     onClick={() => handleDelete(config)}
                     title="删除配置"
                   >
-                    <Trash2 className="w-4 h-4 text-red-500" />
+                    <Trash2 className="w-4 h-4 text-theme-error-primary" />
                   </Button>
                 </div>
               </div>

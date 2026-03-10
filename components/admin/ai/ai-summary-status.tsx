@@ -25,7 +25,7 @@ export function AISummaryStatus({ status, showLabel = false }: AISummaryStatusPr
     [SummaryStatus.DONE]: {
       icon: CheckCircle2,
       color: 'text-theme-success-primary',
-      bgColor: 'bg-success-50 dark:bg-success-900',
+      bgColor: 'bg-theme-success-bg',
       label: '已完成',
       animate: false as boolean,
     },

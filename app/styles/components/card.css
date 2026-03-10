@@ -1,0 +1,6 @@
+.theme-light,
+.theme-dark {
+  --color-card-bg: var(--theme-surface);
+  --color-card-border: var(--theme-border);
+  --color-card-shadow: 0 10px 30px -15px hsl(var(--theme-foreground) / 0.18);
+}

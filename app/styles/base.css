@@ -1,0 +1,17 @@
+* {
+  border-color: hsl(var(--theme-border));
+}
+
+body {
+  background-color: hsl(var(--theme-background));
+  color: hsl(var(--theme-foreground));
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.content-auto {
+  content-visibility: auto;
+}

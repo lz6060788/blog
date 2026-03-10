@@ -1,24 +1,13 @@
-/* ============================================
-   组件颜色 - Switch (swt)
-   使用语义角色变量，便于主题扩展
-   ============================================ */
-
-/* 浅色主题 */
-:root {
-  --swt-bg-checked: var(--accent-600);
-  --swt-bg-checked-hover: var(--accent-500);
-  --swt-bg-unchecked: var(--neutral-200);
-  --swt-border-unchecked: var(--neutral-200);
-  --swt-thumb-bg: var(--neutral-50);
-  --swt-ring-color: var(--accent-600);
+.theme-light,
+.theme-dark {
+  --color-switch-bg-checked: var(--theme-primary);
+  --color-switch-bg-checked-hover: var(--theme-primary);
+  --color-switch-bg-unchecked: var(--theme-muted);
+  --color-switch-border-unchecked: var(--theme-border);
+  --color-switch-thumb-bg: 0 0% 100%;
+  --color-switch-ring: var(--theme-primary);
 }
 
-/* 深色主题 */
-.dark {
-  --swt-bg-checked: var(--accent-400);
-  --swt-bg-checked-hover: var(--accent-500);
-  --swt-bg-unchecked: var(--neutral-800);
-  --swt-border-unchecked: var(--neutral-800);
-  --swt-thumb-bg: var(--neutral-50);
-  --swt-ring-color: var(--accent-400);
+.theme-dark {
+  --color-switch-bg-checked-hover: var(--color-brand-accent-400);
 }

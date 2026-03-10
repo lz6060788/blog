@@ -17,8 +17,8 @@ export function LoginButton() {
         className="
           px-6 py-2.5 rounded-xl flex items-center gap-2
           font-sans text-sm font-medium transition-colors
-          bg-theme-btn-ghost text-theme-btn-text-ghost
-          hover:bg-theme-btn-bg-ghost-hover
+          bg-transparent text-theme-text-secondary
+          hover:bg-btn-ghost-bg-hover hover:text-btn-ghost-fg-hover
           border border-theme-border
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-accent-primary focus-visible:ring-offset-2
         "

@@ -1,26 +1,10 @@
-/* ============================================
-   组件颜色 - DropdownMenu (ddm)
-   使用语义角色变量，便于主题扩展
-   ============================================ */
-
-/* 浅色主题 */
-:root {
-  --ddm-content-bg: var(--neutral-50);
-  --ddm-content-border: var(--neutral-200);
-  --ddm-content-fg: var(--neutral-900);
-  --ddm-item-bg-hover: var(--neutral-100);
-  --ddm-item-fg-hover: var(--neutral-900);
-  --ddm-separator-bg: var(--neutral-200);
-  --ddm-label-fg: var(--neutral-500);
-}
-
-/* 深色主题 */
-.dark {
-  --ddm-content-bg: var(--neutral-900);
-  --ddm-content-border: var(--neutral-800);
-  --ddm-content-fg: var(--neutral-50);
-  --ddm-item-bg-hover: var(--neutral-800);
-  --ddm-item-fg-hover: var(--neutral-50);
-  --ddm-separator-bg: var(--neutral-800);
-  --ddm-label-fg: var(--neutral-400);
+.theme-light,
+.theme-dark {
+  --color-dropdown-content-bg: var(--theme-surface);
+  --color-dropdown-content-border: var(--theme-border);
+  --color-dropdown-content-text: var(--theme-foreground);
+  --color-dropdown-item-bg-hover: var(--theme-surface-alt);
+  --color-dropdown-item-text-hover: var(--theme-foreground);
+  --color-dropdown-separator: var(--theme-border);
+  --color-dropdown-label-text: var(--theme-text-secondary);
 }

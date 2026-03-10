@@ -1,24 +1,11 @@
-/* ============================================
-   组件颜色 - Sheet (sht)
-   使用语义角色变量，便于主题扩展
-   ============================================ */
-
-/* 浅色主题 */
-:root {
-  --sht-overlay-bg: rgba(0, 0, 0, 0.8);
-  --sht-content-bg: var(--neutral-50);
-  --sht-content-border: var(--neutral-200);
-  --sht-close-bg-hover: var(--neutral-200);
-  --sht-title-fg: var(--neutral-900);
-  --sht-desc-fg: var(--neutral-500);
-}
-
-/* 深色主题 */
-.dark {
-  --sht-overlay-bg: rgba(0, 0, 0, 0.8);
-  --sht-content-bg: var(--neutral-900);
-  --sht-content-border: var(--neutral-800);
-  --sht-close-bg-hover: var(--neutral-700);
-  --sht-title-fg: var(--neutral-50);
-  --sht-desc-fg: var(--neutral-400);
+.theme-light,
+.theme-dark {
+  --color-sheet-overlay-bg: var(--theme-overlay);
+  --color-sheet-content-bg: var(--theme-surface);
+  --color-sheet-content-border: var(--theme-border);
+  --color-sheet-close-bg-hover: var(--theme-surface-alt);
+  --color-sheet-close-text-hover: var(--theme-foreground);
+  --color-sheet-title-text: var(--theme-foreground);
+  --color-sheet-desc-text: var(--theme-text-secondary);
+  --color-sheet-ring: var(--theme-primary);
 }

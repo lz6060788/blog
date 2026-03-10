@@ -1,6 +1,6 @@
 // @ts-ignore
 import { relations } from "drizzle-orm";
-import { sqliteTable, text as sqliteText, primaryKey, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text as sqliteText, primaryKey, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ============================================================================
 // NextAuth.js 表定义 (SQLite)
@@ -218,9 +218,7 @@ export const playlistSongs = sqliteTable("playlist_songs", {
   songId: sqliteText("song_id").notNull().references(() => songs.id, { onDelete: "cascade" }),
   position: integer("position").notNull(), // 在歌单中的位置顺序
 }, (table) => ({
-  compoundKey: primaryKey({
-    columns: [table.playlistId, table.songId],
-  }),
+  uniquePlaylistSong: uniqueIndex("unique_playlist_song").on(table.playlistId, table.songId),
 }));
 
 // ============================================================================

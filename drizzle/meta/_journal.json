@@ -78,6 +78,13 @@
       "when": 1772883573257,
       "tag": "0010_light_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1773169208497,
+      "tag": "0011_minor_famine",
+      "breakpoints": true
     }
   ]
 }

@@ -217,7 +217,7 @@ export function AIConfigCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl">
+      <div className="bg-theme-surface border border-theme-border rounded-xl">
         <div className="p-6 border-b border-theme-border">
           <div className="flex items-center gap-3">
             <Brain className="w-5 h-5 text-theme-accent-primary" />
@@ -235,7 +235,7 @@ export function AIConfigCard() {
   const showFirstTimeGuide = configs.length === 0
 
   return (
-    <div className="bg-theme-bg-surface border border-theme-border rounded-xl overflow-hidden">
+    <div className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden">
       {/* 头部 */}
       <div className="p-6 border-b border-theme-border">
         <div className="flex items-center justify-between">
@@ -267,7 +267,7 @@ export function AIConfigCard() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'models'
                   ? 'bg-theme-accent-primary text-white'
-                  : 'bg-theme-bg-canvas text-theme-text-secondary hover:bg-theme-bg-muted'
+                  : 'bg-theme-canvas text-theme-text-secondary hover:bg-theme-muted'
               }`}
             >
               <Settings className="w-4 h-4 inline mr-2" />
@@ -278,7 +278,7 @@ export function AIConfigCard() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'mappings'
                   ? 'bg-theme-accent-primary text-white'
-                  : 'bg-theme-bg-canvas text-theme-text-secondary hover:bg-theme-bg-muted'
+                  : 'bg-theme-canvas text-theme-text-secondary hover:bg-theme-muted'
               }`}
             >
               <span className="mr-2">⚡</span>
@@ -292,7 +292,7 @@ export function AIConfigCard() {
       <div className="p-6">
         {showFirstTimeGuide ? (
           /* 首次引导 */
-          <div className="bg-gradient-to-r from-theme-accent-bg to-theme-bg-surface-alt border border-theme-accent-primary/30 rounded-xl p-6 space-y-4">
+          <div className="bg-gradient-to-r from-theme-accent-bg to-theme-surface-alt border border-theme-accent-primary/30 rounded-xl p-6 space-y-4">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-theme-accent-primary/10 rounded-lg">
                 <Brain className="w-6 h-6 text-theme-accent-primary" />
@@ -334,13 +334,13 @@ export function AIConfigCard() {
             {configs.map((config) => (
               <div
                 key={config.id}
-                className="flex items-center justify-between p-4 bg-theme-bg-canvas border border-theme-border rounded-lg hover:border-theme-accent-primary/50 transition-colors"
+                className="flex items-center justify-between p-4 bg-theme-canvas border border-theme-border rounded-lg hover:border-theme-accent-primary/50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
                     <h3 className="font-medium text-theme-text-canvas">{config.name}</h3>
                     {!config.enabled && (
-                      <span className="px-2 py-0.5 text-xs bg-theme-bg-muted text-theme-text-tertiary rounded">
+                      <span className="px-2 py-0.5 text-xs bg-theme-muted text-theme-text-tertiary rounded">
                         已禁用
                       </span>
                     )}
@@ -435,7 +435,7 @@ export function AIConfigCard() {
                   return (
                     <div
                       key={fn.value}
-                      className="flex items-center justify-between p-4 bg-theme-bg-canvas border border-theme-border rounded-lg"
+                      className="flex items-center justify-between p-4 bg-theme-canvas border border-theme-border rounded-lg"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -578,7 +578,7 @@ function AIConfigModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-theme-surface border border-theme-border rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-lg font-medium text-theme-text-canvas mb-4">
           {config ? '编辑模型配置' : '添加模型配置'}
         </h2>
@@ -593,7 +593,7 @@ function AIConfigModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="DeepSeek 摘要专用"
-              className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
               required
             />
           </div>
@@ -707,7 +707,7 @@ function AIConfigModal({
               value={formData.apiKey}
               onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
               placeholder={config ? '留空不修改' : 'sk-...'}
-              className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
               required={!config}
             />
           </div>
@@ -721,7 +721,7 @@ function AIConfigModal({
               value={formData.baseUrl}
               onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
               placeholder="自定义 API 端点"
-              className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
             />
           </div>
 
@@ -736,7 +736,7 @@ function AIConfigModal({
                 onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) || 300 })}
                 min={1}
                 max={8000}
-                className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
               />
             </div>
             <div>
@@ -750,7 +750,7 @@ function AIConfigModal({
                 min={0}
                 max={2}
                 step={0.1}
-                className="w-full px-4 py-2 bg-theme-bg-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary"
               />
             </div>
           </div>

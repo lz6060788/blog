@@ -8,10 +8,10 @@ export function VisualSection() {
   return (
     <motion.section
       variants={authItem}
-      className="hidden lg:flex lg:w-[55%] bg-theme-bg-surface flex-col justify-center items-center p-12 relative overflow-hidden"
+      className="hidden lg:flex lg:w-[55%] bg-theme-surface flex-col justify-center items-center p-12 relative overflow-hidden"
     >
       {/* 背景装饰 */}
-      <div className="absolute inset-0 bg-gradient-to-br from-theme-bg-surface to-theme-bg-surface-alt opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-theme-surface to-theme-surface-alt opacity-50" />
 
       {/* 品牌内容 */}
       <div className="relative z-10 text-center max-w-lg">

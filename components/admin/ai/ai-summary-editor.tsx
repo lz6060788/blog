@@ -160,7 +160,7 @@ export function AISummaryEditor({
   if (!postId) {
     return (
       <div className="mb-3">
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-4">
           <div className="flex items-center gap-2">
             <Wand2 className="w-4 h-4 text-theme-text-tertiary" />
             <h3 className="text-sm font-medium text-theme-text-secondary">AI 摘要</h3>
@@ -176,7 +176,7 @@ export function AISummaryEditor({
   return (
     <>
       <div className="mb-3">
-        <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-4 space-y-3">
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Wand2 className="w-4 h-4 text-theme-accent-primary" />
@@ -221,7 +221,7 @@ export function AISummaryEditor({
           {aiSummary ? (
             <div className="relative">
               {aiSummaryStatus === SummaryStatus.GENERATING && (
-                <div className="absolute inset-0 bg-theme-bg-canvas/80 flex items-center justify-center rounded-lg z-10">
+                <div className="absolute inset-0 bg-theme-canvas/80 flex items-center justify-center rounded-lg z-10">
                   <div className="flex items-center gap-2 text-theme-accent-primary">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span className="text-sm">正在生成摘要...</span>
@@ -231,7 +231,7 @@ export function AISummaryEditor({
               <textarea
                 value={aiSummary}
                 onChange={(e) => setAiSummary(e.target.value)}
-                className="w-full px-3 py-2 bg-theme-bg-canvas border border-theme-border rounded-lg text-sm text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary resize-none"
+                className="w-full px-3 py-2 bg-theme-canvas border border-theme-border rounded-lg text-sm text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary resize-none"
                 rows={3}
                 placeholder="生成的摘要将显示在这里..."
                 disabled={aiSummaryStatus === SummaryStatus.GENERATING}
@@ -249,7 +249,7 @@ export function AISummaryEditor({
 
           {/* 生成期间的锁定提示 */}
           {aiSummaryStatus === SummaryStatus.GENERATING && (
-            <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-bg-muted px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-muted px-3 py-2 rounded-lg">
               <Lock className="w-3 h-3" />
               <span>摘要生成期间，编辑功能已锁定</span>
             </div>
@@ -260,7 +260,7 @@ export function AISummaryEditor({
       {/* 生成期间的遮罩层 */}
       {aiSummaryStatus === SummaryStatus.GENERATING && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-theme-bg-surface border border-theme-border rounded-xl p-6 flex flex-col items-center gap-3">
+          <div className="bg-theme-surface border border-theme-border rounded-xl p-6 flex flex-col items-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-theme-accent-primary" />
             <p className="text-sm font-medium text-theme-text-canvas">正在生成 AI 摘要</p>
             <p className="text-xs text-theme-text-secondary">请稍候，生成期间无法编辑文章</p>

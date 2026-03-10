@@ -30,7 +30,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       variants={authContainer}
       initial="hidden"
       animate="show"
-      className="min-h-screen bg-theme-bg-canvas flex"
+      className="min-h-screen bg-theme-canvas flex"
     >
       {children}
     </motion.div>

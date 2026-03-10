@@ -16,13 +16,13 @@ const providerConfig = {
     id: 'github' as const,
     labelKey: 'github',
     icon: GithubLogo,
-    className: 'bg-btn-default-bg text-btn-default-fg hover:bg-btn-default-bg-hover',
+    className: 'bg-button-default-bg text-button-default-fg hover:bg-button-default-bg-hover',
   },
   google: {
     id: 'google' as const,
     labelKey: 'google',
     icon: GoogleLogo,
-    className: 'bg-transparent text-theme-text-secondary hover:bg-btn-ghost-bg-hover hover:text-btn-ghost-fg-hover border border-theme-border',
+    className: 'bg-transparent text-theme-text-secondary hover:bg-button-ghost-bg-hover hover:text-button-ghost-fg-hover border border-theme-border',
   },
 }
 

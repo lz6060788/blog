@@ -45,7 +45,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
           <motion.div
             whileHover={{ scale: 1.05, rotate: 2 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            className="w-full h-full rounded-full overflow-hidden border-4 border-theme-bg-surface-alt"
+            className="w-full h-full rounded-full overflow-hidden border-4 border-theme-surface-alt"
           >
             <Image
               src={author.avatar}
@@ -58,7 +58,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -bottom-1 -right-1 w-8 h-8 bg-theme-accent-secondary rounded-full border-4 border-theme-bg-surface"
+            className="absolute -bottom-1 -right-1 w-8 h-8 bg-theme-accent-secondary rounded-full border-4 border-theme-surface"
           />
         </motion.div>
 
@@ -74,12 +74,12 @@ export default function AuthorCard({ author }: AuthorCardProps) {
 
         {/* Info Grid */}
         <motion.div variants={item} className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-theme-bg-surface-alt rounded-2xl p-4">
+          <div className="bg-theme-surface-alt rounded-2xl p-4">
             <MapPin size={20} className="text-theme-text-tertiary mb-2" />
             <p className="text-xs font-mono text-theme-text-secondary">位置</p>
             <p className="text-sm font-medium text-theme-text-canvas">{author.location}</p>
           </div>
-          <div className="bg-theme-bg-surface-alt rounded-2xl p-4">
+          <div className="bg-theme-surface-alt rounded-2xl p-4">
             <Envelope size={20} className="text-theme-text-tertiary mb-2" />
             <p className="text-xs font-mono text-theme-text-secondary">星座</p>
             <p className="text-sm font-medium text-theme-text-canvas">{author.zodiac}</p>
@@ -93,13 +93,13 @@ export default function AuthorCard({ author }: AuthorCardProps) {
               href={`https://${author.social.github}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-12 h-12 flex items-center justify-center bg-theme-bg-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-bg-surface transition-colors group"
+              className="w-12 h-12 flex items-center justify-center bg-theme-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-surface transition-colors group"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               <GithubLogo
                 size={20}
-                className="text-theme-text-tertiary group-hover:text-theme-bg-surface transition-colors"
+                className="text-theme-text-tertiary group-hover:text-theme-surface transition-colors"
               />
             </motion.a>
           )}
@@ -108,25 +108,25 @@ export default function AuthorCard({ author }: AuthorCardProps) {
               href={`https://${author.social.twitter}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-12 h-12 flex items-center justify-center bg-theme-bg-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-bg-surface transition-colors group"
+              className="w-12 h-12 flex items-center justify-center bg-theme-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-surface transition-colors group"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               <TwitterLogo
                 size={20}
-                className="text-theme-text-tertiary group-hover:text-theme-bg-surface transition-colors"
+                className="text-theme-text-tertiary group-hover:text-theme-surface transition-colors"
               />
             </motion.a>
           )}
           <motion.a
             href={`mailto:${author.email}`}
-            className="w-12 h-12 flex items-center justify-center bg-theme-bg-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-bg-surface transition-colors group"
+            className="w-12 h-12 flex items-center justify-center bg-theme-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-surface transition-colors group"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.95 }}
           >
             <Envelope
               size={20}
-              className="text-theme-text-tertiary group-hover:text-theme-bg-surface transition-colors"
+              className="text-theme-text-tertiary group-hover:text-theme-surface transition-colors"
             />
           </motion.a>
         </motion.div>

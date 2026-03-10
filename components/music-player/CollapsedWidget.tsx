@@ -17,21 +17,6 @@ export function CollapsedWidget({
         }`}
       >
         <div className="relative w-full h-full flex items-center justify-center">
-          {isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center gap-0.5">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="music-player-sound-wave w-0.5 rounded-full bg-theme-text-secondary"
-                  style={{
-                    animation: 'sound 0.8s ease-in-out infinite',
-                    animationDelay: `${i * 0.15}s`,
-                    height: '30%'
-                  }}
-                />
-              ))}
-            </div>
-          )}
           <Music
             className={`relative z-10 transition-all duration-300 text-theme-text-canvas ${
               isPlaying ? 'scale-110' : 'scale-100'
@@ -42,12 +27,6 @@ export function CollapsedWidget({
           )}
         </div>
       </button>
-      <style jsx>{`
-        @keyframes sound {
-          0%, 100% { height: 30%; }
-          50% { height: 100%; }
-        }
-      `}</style>
     </>
   )
 }

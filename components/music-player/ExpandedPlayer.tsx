@@ -21,10 +21,12 @@ interface ExpandedPlayerPropsExtended extends ExpandedPlayerProps {
   progress: number
   currentTime: number
   duration: number
+  isProgressDragging: boolean
   onProgressChange: (e: React.MouseEvent<HTMLDivElement>) => void
   onProgressDragStart: () => void
   // Playback controls
   volume: number
+  isVolumeDragging: boolean
   onPlayPause: () => void
   onPrev: () => void
   onNext: () => void
@@ -46,6 +48,7 @@ export function ExpandedPlayer({
   glowIntensity,
   isClosing,
   onClose,
+  onAnimationEnd,
   // Vinyl
   isPlaying,
   title,
@@ -59,10 +62,12 @@ export function ExpandedPlayer({
   progress,
   currentTime,
   duration,
+  isProgressDragging,
   onProgressChange,
   onProgressDragStart,
   // Controls
   volume,
+  isVolumeDragging,
   onPlayPause,
   onPrev,
   onNext,
@@ -83,10 +88,12 @@ export function ExpandedPlayer({
           animation: isClosing
             ? 'slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards'
             : 'slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden' as const,
         }}
         onAnimationEnd={() => {
-          if (isClosing) {
-            onClose()
+          if (isClosing && onAnimationEnd) {
+            onAnimationEnd()
           }
         }}
       >
@@ -133,6 +140,7 @@ export function ExpandedPlayer({
                 progress={progress}
                 currentTime={currentTime}
                 duration={duration}
+                isDragging={isProgressDragging}
                 onProgressChange={onProgressChange}
                 onDragStart={onProgressDragStart}
               />
@@ -141,6 +149,7 @@ export function ExpandedPlayer({
               <PlaybackControls
                 isPlaying={isPlaying}
                 volume={volume}
+                isVolumeDragging={isVolumeDragging}
                 onPlayPause={onPlayPause}
                 onPrev={onPrev}
                 onNext={onNext}

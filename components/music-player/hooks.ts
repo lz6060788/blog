@@ -72,11 +72,10 @@ export function useProgressBar(onProgressChange: (progress: number) => void) {
     const progressBars = document.querySelectorAll('[data-progress-bar]')
     progressBars.forEach((bar) => {
       const rect = bar.getBoundingClientRect()
-      if (clientX >= rect.left && clientX <= rect.right) {
-        const clickX = clientX - rect.left
-        const newProgress = (clickX / rect.width) * 100
-        onProgressChange(newProgress)
-      }
+      const clickX = clientX - rect.left
+      // 允许拖拽超出范围，但限制进度在 0-100 之间
+      const newProgress = Math.max(0, Math.min(100, (clickX / rect.width) * 100))
+      onProgressChange(newProgress)
     })
   }
 
@@ -123,11 +122,10 @@ export function useVolumeControl(onVolumeChange: (volume: number) => void) {
     const volumeBars = document.querySelectorAll('[data-volume-bar]')
     volumeBars.forEach((bar) => {
       const rect = bar.getBoundingClientRect()
-      if (clientX >= rect.left && clientX <= rect.right) {
-        const clickX = clientX - rect.left
-        const newVolume = Math.max(0, Math.min(100, (clickX / rect.width) * 100))
-        onVolumeChange(newVolume)
-      }
+      const clickX = clientX - rect.left
+      // 允许拖拽超出范围，但限制音量在 0-100 之间
+      const newVolume = Math.max(0, Math.min(100, (clickX / rect.width) * 100))
+      onVolumeChange(newVolume)
     })
   }
 

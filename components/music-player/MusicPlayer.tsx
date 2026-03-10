@@ -85,8 +85,8 @@ export function MusicPlayer({
 
   // Use custom hooks
   const { currentLyricIndex, lyricsContainerRef, lyricItemsRef } = useLyricsSync(lyricLines, audio)
-  const { handleProgressChange, startDrag: startProgressDrag } = useProgressBar(setProgress)
-  const { handleVolumeChange, startDrag: startVolumeDrag } = useVolumeControl(setVolume)
+  const { isDragging: isProgressDragging, handleProgressChange, startDrag: startProgressDrag } = useProgressBar(setProgress)
+  const { isDragging: isVolumeDragging, handleVolumeChange, startDrag: startVolumeDrag } = useVolumeControl(setVolume)
 
   const handlePlayPause = () => {
     if (!currentSong && playlist.length > 0) {
@@ -97,8 +97,15 @@ export function MusicPlayer({
   }
 
   const handleClose = () => {
-    setIsClosing(false)
-    toggleExpand()
+    setIsClosing(true)
+  }
+
+  // Handle animation end - toggle expand state after slideOut completes
+  const handleAnimationEnd = () => {
+    if (isClosing) {
+      setIsClosing(false)
+      toggleExpand()
+    }
   }
 
   const displaySong = currentSong || playlist[0]
@@ -125,6 +132,7 @@ export function MusicPlayer({
           glowIntensity={glowIntensity}
           isClosing={isClosing}
           onClose={handleClose}
+          onAnimationEnd={handleAnimationEnd}
           // Vinyl
           isPlaying={isPlaying}
           title={displaySong.title}
@@ -138,10 +146,12 @@ export function MusicPlayer({
           progress={progress}
           currentTime={audio?.currentTime || 0}
           duration={displaySong.duration || 0}
+          isProgressDragging={isProgressDragging}
           onProgressChange={handleProgressChange}
           onProgressDragStart={startProgressDrag}
           // Controls
           volume={volume}
+          isVolumeDragging={isVolumeDragging}
           onPlayPause={handlePlayPause}
           onPrev={prev}
           onNext={next}

@@ -40,6 +40,7 @@ export interface ProgressBarProps {
   progress: number
   currentTime: number
   duration: number
+  isDragging: boolean
   onProgressChange: (e: React.MouseEvent<HTMLDivElement>) => void
   onDragStart: () => void
 }
@@ -48,6 +49,7 @@ export interface ProgressBarProps {
 export interface PlaybackControlsProps {
   isPlaying: boolean
   volume: number
+  isVolumeDragging: boolean
   onPlayPause: () => void
   onPrev: () => void
   onNext: () => void
@@ -74,4 +76,5 @@ export interface ExpandedPlayerProps {
   glowIntensity: number
   isClosing: boolean
   onClose: () => void
+  onAnimationEnd?: () => void
 }

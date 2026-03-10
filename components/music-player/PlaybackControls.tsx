@@ -5,6 +5,7 @@ import { PlaybackControlsProps } from './types'
 export function PlaybackControls({
   isPlaying,
   volume,
+  isVolumeDragging,
   onPlayPause,
   onPrev,
   onNext,
@@ -39,10 +40,14 @@ export function PlaybackControls({
           onMouseDown={onVolumeDragStart}
         >
           <div
-            className="h-full rounded-full relative transition-all bg-theme-text-secondary"
+            className={`h-full rounded-full relative bg-theme-text-secondary ${
+              isVolumeDragging ? '' : 'transition-all duration-150'
+            }`}
             style={{ width: `${volume}%` }}
           >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-theme-text-canvas" />
+            <div className={`absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-theme-text-canvas ${
+              isVolumeDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            } transition-opacity`} />
           </div>
         </div>
         <span className="text-[9px] font-mono w-6 text-right text-theme-text-tertiary">{Math.round(volume)}%</span>

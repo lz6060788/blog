@@ -9,7 +9,10 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:diagnose": "node scripts/diagnose-migrations.js",
+    "db:fix": "node scripts/fix-migration-tracking.js",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "rm ./data/db.sqlite && npm run db:migrate"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.37",

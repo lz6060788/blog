@@ -60,7 +60,7 @@ RUN apk add --no-cache sqlite openssl
 WORKDIR /app
 
 # 复制 package 文件并安装生产依赖（不再从 builder 拷贝 node_modules）
-COPY package.json package-lock.json ./
+COPY package.json ./
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
     && npm config set registry https://registry.npmmirror.com \
     && npm ci --omit=dev \

@@ -1,8 +1,8 @@
 'use client'
 
 import { Clock, Tag } from '@phosphor-icons/react'
-import { format } from 'date-fns'
 import { motion } from 'framer-motion'
+import { formatDateLong } from '@/lib/date-format'
 
 interface ArticleHeaderProps {
   title: string
@@ -51,7 +51,7 @@ export function ArticleHeader({
 
       {/* Meta */}
       <div className="flex flex-wrap items-center gap-4 text-sm font-mono text-theme-text-tertiary pt-6 border-t border-theme-border">
-        <span>{format(new Date(date), 'MMMM d, yyyy')}</span>
+        <span>{formatDateLong(date)}</span>
         <span>·</span>
         <div className="flex gap-2">
           {tags.map((tag) => (

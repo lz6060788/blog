@@ -4,7 +4,7 @@ import { Post } from '@/lib/types'
 import { motion } from 'framer-motion'
 import { Link } from '@/app/i18n/routing'
 import { Clock, Tag } from '@phosphor-icons/react'
-import { format } from 'date-fns'
+import { formatDateLong } from '@/lib/date-format'
 
 interface TimelineListProps {
   posts: Post[]
@@ -103,7 +103,7 @@ export default function TimelineList({ posts }: TimelineListProps) {
 
                 {/* Date */}
                 <div className="text-xs font-mono text-theme-text-tertiary">
-                  {format(new Date(post.date), 'MMMM d, yyyy')}
+                  {formatDateLong(post.date)}
                 </div>
               </motion.div>
             </Link>

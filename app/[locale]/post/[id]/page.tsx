@@ -9,13 +9,18 @@ export const revalidate = 3600
 
 // 生成静态参数（用于 SSG）
 export async function generateStaticParams() {
-  const posts = await getAllPublishedPostIds()
+  try {
+    const posts = await getAllPublishedPostIds()
 
-  // 为每个 locale 生成文章路径
-  return posts.flatMap((id) => [
-    { locale: 'en', id },
-    { locale: 'zh', id },
-  ])
+    // 为每个 locale 生成文章路径
+    return posts.flatMap((id) => [
+      { locale: 'en', id },
+      { locale: 'zh', id },
+    ])
+  } catch {
+    // 首次部署且数据库尚未初始化时，避免构建阶段因缺表失败
+    return []
+  }
 }
 
 // 生成 SEO 元数据

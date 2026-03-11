@@ -3,8 +3,8 @@
 import { Post } from '@/lib/types'
 import { motion } from 'framer-motion'
 import { Clock, Tag } from '@phosphor-icons/react'
-import { format } from 'date-fns'
 import { Link } from '@/app/i18n/routing'
+import { formatDateShort } from '@/lib/date-format'
 
 interface ArchiveGridProps {
   posts: Post[]
@@ -102,7 +102,7 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
                           <Clock size={12} />
                           {post.readTime} min
                         </div>
-                        <span>{format(new Date(post.date), 'MMM d')}</span>
+                        <span>{formatDateShort(post.date)}</span>
                       </div>
                     </motion.div>
                   </Link>

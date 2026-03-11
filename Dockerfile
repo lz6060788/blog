@@ -15,10 +15,10 @@ WORKDIR /app
 RUN npm config set registry https://registry.npmmirror.com
 
 # 复制 package 文件
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # 安装依赖
-RUN npm ci
+RUN npm i
 
 # 多阶段构建 - 构建阶段
 FROM node:20-alpine AS builder
@@ -63,7 +63,7 @@ WORKDIR /app
 COPY package.json ./
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
     && npm config set registry https://registry.npmmirror.com \
-    && npm ci --omit=dev \
+    && npm i --omit=dev \
     && npm cache clean --force \
     && apk del .build-deps
 

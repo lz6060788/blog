@@ -12,7 +12,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # 配置 npm 使用淘宝镜像源
-RUN npm config set registry https://registry.npmmirror.com
+RUN npm config set registry https://mirrors.tencent.com/npm/
 
 # 复制 package 文件
 COPY package.json ./
@@ -34,7 +34,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # 配置 npm 使用淘宝镜像源
-RUN npm config set registry https://registry.npmmirror.com
+RUN npm config set registry https://mirrors.tencent.com/npm/
 
 # 从 deps 阶段复制 node_modules
 COPY --from=deps /app/node_modules ./node_modules
@@ -62,7 +62,7 @@ WORKDIR /app
 # 复制 package 文件并安装生产依赖（不再从 builder 拷贝 node_modules）
 COPY package.json ./
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
-    && npm config set registry https://registry.npmmirror.com \
+    && npm config set registry https://mirrors.tencent.com/npm/ \
     && npm i --omit=dev \
     && npm cache clean --force \
     && apk del .build-deps

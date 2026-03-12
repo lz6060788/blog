@@ -6,7 +6,7 @@ WORKDIR /app
 
 #RUN npm config set registry https://mirrors.tencent.com/npm/
 COPY package.json ./
-RUN npm i --prefer-offline --no-audit --no-fund
+RUN npm i
 
 COPY . .
 COPY .env.production .env.local

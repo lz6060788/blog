@@ -75,7 +75,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_FILE="/app/data/db.sqlite"
 
 # 复制必要文件

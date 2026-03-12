@@ -14,7 +14,17 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/app/data
-    
+
+    # 资源限制 - 防止构建/运行时占用过多资源
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
     # 2. 加入 Traefik 所在的网络
     networks:
       - traefik-net

@@ -3,6 +3,9 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-store
 
 # Next.js
 .next
@@ -10,6 +13,15 @@ out
 dist
 
 # Environment
+.env
+.env.*
+!.env.production
+
+# 数据文件 - 不应打包进镜像
+data/
+*.sqlite
+*.sqlite-*
+*.db
 
 # IDE
 .vscode
@@ -34,7 +46,7 @@ LICENSE
 # Claude
 .claude
 
-# Other
+# 其他
 *.log
 *.tmp
 .cache
@@ -43,3 +55,8 @@ openspec
 docs
 scripts
 tsconfig.tsbuildinfo
+
+# 测试文件
+**/*.test.*
+**/*.spec.*
+coverage

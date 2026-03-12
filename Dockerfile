@@ -4,9 +4,9 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache python3 make g++ sqlite
 WORKDIR /app
 
-RUN npm config set registry https://mirrors.tencent.com/npm/
+#RUN npm config set registry https://mirrors.tencent.com/npm/
 COPY package.json ./
-RUN npm i
+RUN npm i --prefer-offline --no-audit --no-fund
 
 COPY . .
 COPY .env.production .env.local

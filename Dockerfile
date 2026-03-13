@@ -12,7 +12,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # 复制依赖定义
 COPY package.json ./
 
-RUN npm ci
+RUN npm i
 
 # 复制源码
 COPY . .

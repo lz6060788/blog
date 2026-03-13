@@ -116,14 +116,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // 登录成功后重定向到后台
     async redirect({ url, baseUrl }) {
       // 处理登录页的重定向 - 支持带 locale 前缀的情况
-      if (url.endsWith('/login') || url === '/login') {
+      // 如果 url 包含 /login (可能是 /en/login, /zh/login 或带有查询参数)
+      // 且没有 callbackUrl (如果有 callbackUrl 会在下面处理)
+      if ((url.includes('/login')) && !url.includes('callbackUrl')) {
         return `${baseUrl}/admin`;
       }
       // 处理从外部回来的 callbackUrl
       if (url.includes('callbackUrl')) {
-        const callbackUrl = new URL(url).searchParams.get('callbackUrl');
-        if (callbackUrl) {
-          return `${baseUrl}${callbackUrl}`;
+        try {
+          const urlObj = new URL(url, baseUrl);
+          const callbackUrl = urlObj.searchParams.get('callbackUrl');
+          if (callbackUrl) {
+            // 确保 callbackUrl 是相对路径或同源 URL
+            if (callbackUrl.startsWith('/') || callbackUrl.startsWith(baseUrl)) {
+               return callbackUrl.startsWith('/') ? `${baseUrl}${callbackUrl}` : callbackUrl;
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing callbackUrl:', e);
         }
       }
       // 默认重定向到后台

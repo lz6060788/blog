@@ -41,16 +41,53 @@ export default async function middleware(req: NextRequest) {
   if (isAdminRoute && !isLoginPage) {
     console.log('🔍 [Middleware] Admin route detected:', pathWithoutLocale)
 
+    // Debug: Log all cookies
+    const cookieStore = req.cookies
+    const cookieNames = cookieStore.getAll().map(c => c.name)
+    console.log('🍪 [Middleware] Cookies present:', cookieNames)
+
     try {
       // Check for both possible cookie names
-      let token = await getToken({ req })
+      // 1. Try default (NextAuth v4 style or auto-detect)
+      let token = await getToken({ 
+        req, 
+        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET 
+      })
 
-      // If token not found with default, try with authjs prefix
+      // 2. If token not found, try with authjs prefix (NextAuth v5 default)
       if (!token) {
         token = await getToken({
           req,
           cookieName: 'authjs.session-token',
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET 
         })
+      }
+
+      // 3. If still not found, try with __Secure- prefix (Production/HTTPS)
+      if (!token) {
+        token = await getToken({
+          req,
+          cookieName: '__Secure-authjs.session-token',
+          secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET 
+        })
+      }
+
+      // 4. Fallback: Auto-detect any cookie that looks like a session token
+      if (!token) {
+        const sessionCookie = cookieNames.find(name => 
+          name.includes('session-token') || 
+          name.includes('next-auth.session-token') || 
+          name.includes('authjs.session-token')
+        )
+        
+        if (sessionCookie) {
+          console.log('🔄 [Middleware] Trying auto-detected cookie:', sessionCookie)
+          token = await getToken({
+            req,
+            cookieName: sessionCookie,
+            secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET 
+          })
+        }
       }
 
       console.log('🔐 [Middleware] Token check:', {

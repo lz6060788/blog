@@ -14,19 +14,17 @@ export function FooterLinks() {
       className="mt-8 pt-6 border-t border-theme-border-muted text-center"
     >
       <div className="flex items-center justify-center gap-4 text-sm text-theme-text-secondary">
-        <Link
-          href="/terms"
-          className="hover:text-theme-text-canvas transition-colors"
+        <span
+          className="hover:text-theme-text-canvas transition-colors cursor-pointer"
         >
           {t('footer.terms')}
-        </Link>
+        </span>
         <span className="text-theme-border-subtle">•</span>
-        <Link
-          href="/privacy"
-          className="hover:text-theme-text-canvas transition-colors"
+        <span
+          className="hover:text-theme-text-canvas transition-colors cursor-pointer"
         >
           {t('footer.privacy')}
-        </Link>
+        </span>
       </div>
 
       <Link

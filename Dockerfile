@@ -11,7 +11,7 @@ ENV TZ=Asia/Shanghai
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # 复制依赖定义
-COPY package.json ./
+COPY package.json package-lock.json ./
 
 # 安装所有依赖（包括 devDependencies，因为 build 需要它们）
 RUN npm i

@@ -25,4 +25,4 @@ COPY . .
 # 暴露端口
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx drizzle-kit migrate && RUN npm run build && npm run start"]
+CMD ["sh", "-c", "npx drizzle-kit migrate && npm run build && npm run start"]

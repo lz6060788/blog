@@ -1,5 +1,40 @@
 # 音乐管理规范
 
+## MODIFIED Requirements
+
+### Requirement: 音乐列表 API 访问
+系统音乐列表 API MUST 不要求身份验证，允许所有用户访问。
+
+#### Scenario: 公开访问音乐列表
+- **WHEN** 任何用户请求音乐列表 API
+- **THEN** 系统 MUST 返回音乐列表数据
+- **AND** MUST 不检查用户身份验证状态
+- **AND** MUST 不返回权限错误
+
+### Requirement: 空音乐列表返回
+系统 MUST 在数据库中没有音乐时返回空数组。
+
+#### Scenario: 无音乐数据时返回空数组
+- **WHEN** API 请求音乐列表且数据库为空
+- **THEN** 系统 MUST 返回空数组 `[]`
+- **AND** MUST 不返回任何示例或默认数据
+- **AND** MUST 返回 200 状态码
+
+#### Scenario: 空数组的响应格式
+- **WHEN** API 返回空音乐列表
+- **THEN** 响应格式 MUST 与有数据时保持一致
+- **AND** MUST 包含正确的字段结构（空数组）
+
+## REMOVED Requirements
+
+### Requirement: 播放列表访问权限检查
+**Reason**: 音乐列表应作为公开内容访问
+**Migration**: 移除 API 端点的权限校验中间件
+
+### Requirement: 示例数据返回
+**Reason**: 示例数据会给前端造成误导
+**Migration**: API 在无数据时返回空数组，前端负责显示空状态 UI
+
 ## ADDED Requirements
 
 ### Requirement: 音乐上传

@@ -5,7 +5,6 @@ const withNextIntl = createNextIntlPlugin('./app/i18n/request.ts')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Docker 独立部署模式
-  output: 'standalone',
   images: {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

@@ -25,4 +25,4 @@ COPY . .
 # 暴露端口
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx drizzle-kit migrate && npm run build && mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/public && node .next/standalone/server.js"]
+CMD ["sh", "-c", "npx drizzle-kit migrate && RUN npm run build && npm run start"]

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { useMusicStore } from '@/stores/music-store'
-import { mockSongs } from '@/lib/music/mock-data'
 import { parseLrc } from '@/lib/music/mock-data'
 import { MusicPlayerProps, LyricLine } from './types'
 import { CollapsedWidget } from './CollapsedWidget'
@@ -54,21 +53,16 @@ export function MusicPlayer({
 
   useEffect(() => {
     initializeAudio()
-    // Load songs from API instead of mock data
+    // Load songs from API
     fetch('/api/music/songs')
       .then(res => res.json())
       .then(data => {
         const songs = data.data || []
-        if (songs.length > 0) {
-          setPlaylist(songs)
-        } else {
-          // Fallback to mock data if no songs in database
-          setPlaylist(mockSongs)
-        }
+        setPlaylist(songs) // 使用空数组或实际数据，不再回退到虚假数据
       })
       .catch(err => {
-        console.error('Failed to load songs, using mock data:', err)
-        setPlaylist(mockSongs)
+        console.error('Failed to load songs:', err)
+        setPlaylist([]) // 失败时也使用空数组
       })
     return () => {
       if (isPlaying) pause()
@@ -109,6 +103,7 @@ export function MusicPlayer({
   }
 
   const displaySong = currentSong || playlist[0]
+  const hasNoMusic = playlist.length === 0
 
   if (!mounted) return null
 
@@ -122,6 +117,29 @@ export function MusicPlayer({
           position={position}
           onClick={toggleExpand}
         />
+      )}
+
+      {/* Empty State */}
+      {hasNoMusic && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: position === 'left' ? 20 : 'auto',
+            right: position === 'right' ? 20 : 'auto',
+            left: position === 'left' ? 20 : 'auto',
+            padding: '12px 20px',
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '12px',
+            color: 'rgba(255, 255, 255, 0.6)',
+            fontSize: '14px',
+            cursor: 'default',
+            userSelect: 'none',
+            zIndex: 9999,
+          }}
+        >
+          暂无音乐
+        </div>
       )}
 
       {/* Expanded Player */}

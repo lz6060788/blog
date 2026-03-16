@@ -9,15 +9,7 @@ export const runtime = "nodejs";
 
 // GET /api/music/songs - 获取所有歌曲
 export async function GET(request: Request) {
-  const session = await auth();
-
-  if (!session) {
-    return NextResponse.json(
-      { error: "未认证" },
-      { status: 401 }
-    );
-  }
-
+  // 移除权限校验，允许所有用户访问音乐列表
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');

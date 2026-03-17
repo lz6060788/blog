@@ -10,7 +10,11 @@ import { useSession } from 'next-auth/react'
 import { Link } from '@/app/i18n/routing'
 import { useTranslations } from 'next-intl'
 
-export default function Navigation() {
+interface NavigationProps {
+  blogName: string
+}
+
+export default function Navigation({ blogName }: NavigationProps) {
   const pathname = usePathname()
   const t = useTranslations('nav')
   const { data: session, status } = useSession()
@@ -45,7 +49,7 @@ export default function Navigation() {
           >
             <Cursor size={24} weight="bold" className="text-theme-text-canvas" />
           </motion.div>
-          <span className="font-mono text-sm text-theme-text-secondary">alex.blog</span>
+          <span className="font-mono text-sm text-theme-text-secondary">{blogName}</span>
         </Link>
 
         <div className="flex items-center gap-4">

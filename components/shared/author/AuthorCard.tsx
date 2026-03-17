@@ -90,7 +90,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
         <motion.div variants={item} className="flex justify-center gap-2">
           {author.social.github && (
             <motion.a
-              href={`https://${author.social.github}`}
+              href={author.social.github.startsWith('http') ? author.social.github : `https://${author.social.github}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-12 h-12 flex items-center justify-center bg-theme-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-surface transition-colors group"
@@ -105,7 +105,7 @@ export default function AuthorCard({ author }: AuthorCardProps) {
           )}
           {author.social.twitter && (
             <motion.a
-              href={`https://${author.social.twitter}`}
+              href={author.social.twitter.startsWith('http') ? author.social.twitter : `https://${author.social.twitter}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-12 h-12 flex items-center justify-center bg-theme-surface-alt rounded-full hover:bg-theme-text-canvas hover:text-theme-surface transition-colors group"

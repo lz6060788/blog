@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { LogOut, Menu } from 'lucide-react'
-import { ThemeToggle } from '@/components/layout/header'
+import { ThemeToggle } from '@/components/layout/header/ThemeToggle'
 
 interface TopBarProps {
   onMobileMenuOpen?: () => void

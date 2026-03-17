@@ -14,6 +14,15 @@ export default function SettingsPage() {
   const [blogName, setBlogName] = useState('')
   const [blogDescription, setBlogDescription] = useState('')
   const [postsPerPage, setPostsPerPage] = useState(10)
+  const [authorName, setAuthorName] = useState('')
+  const [authorAvatar, setAuthorAvatar] = useState('')
+  const [authorBio, setAuthorBio] = useState('')
+  const [authorLocation, setAuthorLocation] = useState('')
+  const [authorZodiac, setAuthorZodiac] = useState('')
+  const [authorEmail, setAuthorEmail] = useState('')
+  const [authorSocialGithub, setAuthorSocialGithub] = useState('')
+  const [authorSocialTwitter, setAuthorSocialTwitter] = useState('')
+  const [authorSocialLinkedin, setAuthorSocialLinkedin] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -22,9 +31,18 @@ export default function SettingsPage() {
     async function loadSettings() {
       try {
         const data = await getSettings()
-        setBlogName(data.blogName)
-        setBlogDescription(data.blogDescription)
-        setPostsPerPage(data.postsPerPage)
+        setBlogName(data.blogName || '')
+        setBlogDescription(data.blogDescription || '')
+        setPostsPerPage(data.postsPerPage || 10)
+        setAuthorName(data.authorName || '')
+        setAuthorAvatar(data.authorAvatar || '')
+        setAuthorBio(data.authorBio || '')
+        setAuthorLocation(data.authorLocation || '')
+        setAuthorZodiac(data.authorZodiac || '')
+        setAuthorEmail(data.authorEmail || '')
+        setAuthorSocialGithub(data.authorSocialGithub || '')
+        setAuthorSocialTwitter(data.authorSocialTwitter || '')
+        setAuthorSocialLinkedin(data.authorSocialLinkedin || '')
       } catch (error) {
         console.error('加载设置失败:', error)
         toast.error('加载设置失败')
@@ -55,6 +73,15 @@ export default function SettingsPage() {
         blogName,
         blogDescription,
         postsPerPage,
+        authorName,
+        authorAvatar,
+        authorBio,
+        authorLocation,
+        authorZodiac,
+        authorEmail,
+        authorSocialGithub,
+        authorSocialTwitter,
+        authorSocialLinkedin,
       })
       toast.success('设置已保存')
     } catch (error: any) {
@@ -82,7 +109,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="max-w-2xl space-y-6">
+      <form onSubmit={handleSave} className="space-y-6">
         {/* 基本信息 */}
         <div className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4">
           <h2 className="text-lg font-medium text-theme-text-canvas">基本信息</h2>
@@ -112,11 +139,6 @@ export default function SettingsPage() {
               className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent resize-none"
             />
           </div>
-        </div>
-
-        {/* 显示设置 */}
-        <div className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-medium text-theme-text-canvas">显示设置</h2>
 
           <div>
             <label className="block text-sm font-medium text-theme-text-secondary mb-2">
@@ -135,14 +157,150 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-      </form>
 
-      {/* AI 配置 */}
-      <div className="space-y-6">
-        <AIConfigCard />
-      </div>
+        {/* 作者信息 */}
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-medium text-theme-text-canvas">作者信息</h2>
 
-      <form onSubmit={handleSave} className="max-w-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+                作者姓名
+              </label>
+              <input
+                type="text"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                placeholder="John Doe"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+                头像 URL
+              </label>
+              <input
+                type="url"
+                value={authorAvatar}
+                onChange={(e) => setAuthorAvatar(e.target.value)}
+                placeholder="https://example.com/avatar.png"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+                所在地
+              </label>
+              <input
+                type="text"
+                value={authorLocation}
+                onChange={(e) => setAuthorLocation(e.target.value)}
+                placeholder="San Francisco, CA"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+                星座
+              </label>
+              <input
+                type="text"
+                value={authorZodiac}
+                onChange={(e) => setAuthorZodiac(e.target.value)}
+                placeholder="Scorpio ♏"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+                邮箱
+              </label>
+              <input
+                type="email"
+                value={authorEmail}
+                onChange={(e) => setAuthorEmail(e.target.value)}
+                placeholder="john@example.com"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+                个人简介
+              </label>
+              <textarea
+                value={authorBio}
+                onChange={(e) => setAuthorBio(e.target.value)}
+                placeholder="Designer & Developer..."
+                rows={3}
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent resize-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 社交链接 */}
+        <div className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-medium text-theme-text-canvas">社交链接</h2>
+
+          <div>
+            <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+              GitHub
+            </label>
+            <input
+              type="text"
+              value={authorSocialGithub}
+              onChange={(e) => setAuthorSocialGithub(e.target.value)}
+              placeholder="https://github.com/username"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+            />
+            <p className="text-xs text-theme-text-tertiary mt-1">
+              完整 URL（如 https://github.com/username）或用户名（如 github.com/username）
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+              Twitter
+            </label>
+            <input
+              type="text"
+              value={authorSocialTwitter}
+              onChange={(e) => setAuthorSocialTwitter(e.target.value)}
+              placeholder="https://twitter.com/username"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+            />
+            <p className="text-xs text-theme-text-tertiary mt-1">
+              完整 URL（如 https://twitter.com/username）或用户名（如 twitter.com/username）
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-theme-text-secondary mb-2">
+              LinkedIn
+            </label>
+            <input
+              type="text"
+              value={authorSocialLinkedin}
+              onChange={(e) => setAuthorSocialLinkedin(e.target.value)}
+              placeholder="https://linkedin.com/in/username"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+            />
+            <p className="text-xs text-theme-text-tertiary mt-1">
+              完整 URL（如 https://linkedin.com/in/username）或用户名
+            </p>
+          </div>
+        </div>
+
+        {/* AI 配置 */}
+        <div className="space-y-6">
+          <AIConfigCard />
+        </div>
+
         {/* 保存按钮 */}
         <div className="flex justify-end gap-3">
           <Button type="submit" disabled={isSaving}>

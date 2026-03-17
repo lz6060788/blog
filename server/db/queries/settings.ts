@@ -2,6 +2,7 @@ import { db } from '../index'
 import { settings } from '../schema'
 import { eq } from 'drizzle-orm'
 import type { Author } from '@/lib/types'
+import { siteConfig } from '@/config/site'
 
 /**
  * 获取博客设置（包含作者信息）
@@ -15,21 +16,21 @@ export async function getSettings() {
     .limit(1)
 
   if (result.length === 0) {
-    // 返回默认设置
+    // 返回配置文件中的默认设置
     return {
       id: 'default',
-      blogName: 'My Blog',
-      blogDescription: 'A personal blog',
-      postsPerPage: 10,
-      authorName: 'Alex Chen',
-      authorAvatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Alex&backgroundColor=c0aede',
-      authorBio: 'Designer & Developer crafting digital experiences with code and creativity.',
-      authorLocation: 'San Francisco, CA',
-      authorZodiac: 'Scorpio ♏',
-      authorEmail: 'alex@example.com',
-      authorSocialGithub: 'github.com/alexchen',
-      authorSocialTwitter: 'twitter.com/alexchen',
-      authorSocialLinkedin: undefined,
+      blogName: siteConfig.blog.name,
+      blogDescription: siteConfig.blog.description,
+      postsPerPage: siteConfig.blog.postsPerPage,
+      authorName: siteConfig.author.name,
+      authorAvatar: siteConfig.author.avatar,
+      authorBio: siteConfig.author.bio,
+      authorLocation: siteConfig.author.location,
+      authorZodiac: siteConfig.author.zodiac,
+      authorEmail: siteConfig.author.email,
+      authorSocialGithub: siteConfig.author.social.github,
+      authorSocialTwitter: siteConfig.author.social.twitter,
+      authorSocialLinkedin: siteConfig.author.social.linkedin,
       updatedAt: new Date().toISOString(),
     }
   }
@@ -39,9 +40,10 @@ export async function getSettings() {
 
 /**
  * 获取作者信息
- * @returns 作者信息对象
+ * @returns 作者信息对象（从数据库读取，回退到配置文件）
  */
 export async function getAuthor(): Promise<Author> {
+  // 从数据库获取设置（包含回退逻辑）
   const setting = await getSettings()
 
   return {

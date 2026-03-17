@@ -20,9 +20,9 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode
-  params: Promise<{ locale: string }>
+  params: { locale: string }
 }) {
-  const { locale } = await params
+  const { locale } = params
 
   // 确保传入的语言环境是有效的
   if (!routing.locales.includes(locale as any)) {

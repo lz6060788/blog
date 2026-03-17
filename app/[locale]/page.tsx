@@ -8,7 +8,7 @@ import { getTranslations } from 'next-intl/server'
 export default async function HomePage({
   params,
 }: {
-  params: Promise<{ locale: string }>
+  params: { locale: string }
 }) {
   const t = await getTranslations('home')
 

@@ -4,9 +4,6 @@ import { ArticleWrapper } from '@/components/public/posts'
 import { getPost, getAllPublishedPostIds } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
 
-// ISR 配置：每 1 小时重新验证一次
-export const revalidate = 3600
-
 // 生成静态参数（用于 SSG）
 export async function generateStaticParams() {
   try {
@@ -25,9 +22,9 @@ export async function generateStaticParams() {
 
 // 生成 SEO 元数据
 export async function generateMetadata(
-  { params }: { params: Promise<{ id: string; locale: string }> }
+  { params }: { params: { id: string; locale: string } }
 ): Promise<Metadata> {
-  const { id } = await params
+  const { id } = params
   const post = await getPost(id)
 
   if (!post) {
@@ -59,9 +56,9 @@ export async function generateMetadata(
 export default async function PostPage({
   params,
 }: {
-  params: Promise<{ id: string; locale: string }>
+  params: { id: string; locale: string }
 }) {
-  const { id } = await params
+  const { id } = params
   const post = await getPost(id)
 
   // 文章不存在时返回 404

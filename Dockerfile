@@ -1,7 +1,7 @@
 
 FROM node:20-alpine
 
-RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.tencentyun.com|g' /etc/apk/repositories && apk update && apk add --no-cache python3 make g++ sqlite openssl
+RUN apk add --no-cache python3 make g++ sqlite openssl
 WORKDIR /app
 
 # 设置时区等环境

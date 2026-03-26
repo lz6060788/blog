@@ -1,6 +1,6 @@
 'use client'
 
-import { CherryPreview } from '@/components/editor/preview'
+import { MilkdownPreview } from '@/components/editor/milkdown'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
@@ -24,7 +24,7 @@ export function ArticleContent({ content, initialTheme = 'light' }: ArticleConte
 
   return (
     <div className="cherry-preview-wrapper" suppressHydrationWarning>
-      <CherryPreview
+      <MilkdownPreview
         content={content}
         theme={currentTheme}
       />

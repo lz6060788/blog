@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CherryEditor, CherryEditorRef } from '@/components/editor/cherry'
+import { MilkdownEditor, MilkdownEditorRef } from '@/components/editor/milkdown'
 import { updatePost, getPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, FolderOpen, Tag as TagIcon } from 'lucide-react'
@@ -50,7 +50,7 @@ export default function EditPostPage() {
   const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | null>(CoverStatus.PENDING)
 
   const initialContentRef = useRef<string>('')
-  const editorRef = useRef<CherryEditorRef>(null)
+  const editorRef = useRef<MilkdownEditorRef>(null)
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 各自独立的 loading 状态
@@ -460,9 +460,9 @@ export default function EditPostPage() {
         content={content}
       />
 
-      {/* Cherry Markdown 编辑器 */}
+      {/* Milkdown Markdown 编辑器 */}
       <div className="flex-1 min-h-0 flex-shrink-0">
-        <CherryEditor
+        <MilkdownEditor
           ref={editorRef}
           initialValue={initialContentRef.current}
           onChange={setContent}

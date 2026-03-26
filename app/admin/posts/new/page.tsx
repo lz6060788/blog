@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CherryEditor, CherryEditorRef } from '@/components/editor/cherry'
+import { MilkdownEditor, MilkdownEditorRef } from '@/components/editor/milkdown'
 import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, Tag as TagIcon, FolderOpen } from 'lucide-react'
@@ -50,7 +50,7 @@ export default function NewPostPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
 
-  const editorRef = useRef<CherryEditorRef>(null)
+  const editorRef = useRef<MilkdownEditorRef>(null)
 
   // 设置页面标题
   useEffect(() => {
@@ -383,9 +383,9 @@ export default function NewPostPage() {
         content={content}
       />
 
-      {/* Cherry Markdown 编辑器 */}
+      {/* Milkdown Markdown 编辑器 */}
       <div className="flex-1 min-h-0 flex-shrink-0">
-        <CherryEditor
+        <MilkdownEditor
           ref={editorRef}
           initialValue=""
           onChange={setContent}

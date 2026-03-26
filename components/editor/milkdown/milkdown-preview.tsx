@@ -1,47 +1,42 @@
-"use client";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import remarkRehype from "remark-rehype";
+import rehypeKatex from "rehype-katex";
+import rehypePrism from "rehype-prism-plus";
+import rehypeStringify from "rehype-stringify";
 
-import { useRef, useImperativeHandle, forwardRef } from "react";
-import { MilkdownPreviewInternal } from "./milkdown-preview-internal";
-import type { MilkdownPreviewRef, MilkdownPreviewProps } from "./milkdown-preview-internal";
+export interface MilkdownPreviewProps {
+  content: string;
+  className?: string;
+}
 
-/**
- * Milkdown 预览组件
- *
- * 支持服务端渲染的 Markdown 预览组件。
- * 使用 Milkdown 引擎进行 Markdown 到 HTML 的转换。
- *
- * @example
- * ```tsx
- * <MilkdownPreview
- *   content="# Hello World\n\n这是 Markdown 内容。"
- *   theme="light"
- * />
- * ```
- */
-export const MilkdownPreview = forwardRef<
-  MilkdownPreviewRef,
-  MilkdownPreviewProps
->(({ content = "", theme = "light", className = "" }, ref) => {
-  const internalRef = useRef<MilkdownPreviewRef | null>(null);
+const renderMarkdownToHtml = async (content: string) => {
+  const file = await unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkMath)
+    .use(remarkRehype)
+    .use(rehypeKatex)
+    .use(rehypePrism, { ignoreMissing: true })
+    .use(rehypeStringify)
+    .process(content);
 
-  // 将内部 ref 暴露给外部
-  useImperativeHandle(ref, () => internalRef.current || ({} as MilkdownPreviewRef));
+  return String(file);
+};
+
+export async function MilkdownPreview({
+  content,
+  className = "",
+}: MilkdownPreviewProps) {
+  const html = await renderMarkdownToHtml(content);
 
   return (
-    <div className={className}>
-      <MilkdownPreviewInternal
-        content={content}
-        theme={theme}
-        onRef={(previewRef) => {
-          internalRef.current = previewRef;
-        }}
-      />
+    <div className={`milkdown-preview-wrapper ${className}`}>
+      <div className="milkdown">
+        <div className="editor" dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
     </div>
   );
-});
-
-MilkdownPreview.displayName = "MilkdownPreview";
-
-// 导出类型
-export type { MilkdownPreviewRef };
-export type { MilkdownPreviewProps };
+}

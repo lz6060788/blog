@@ -1,7 +1,6 @@
 'use client'
 
 import { Clock, Tag } from '@phosphor-icons/react'
-import { motion } from 'framer-motion'
 import { formatDateLong } from '@/lib/date-format'
 
 interface ArticleHeaderProps {
@@ -22,11 +21,7 @@ export function ArticleHeader({
   tags,
 }: ArticleHeaderProps) {
   return (
-    <motion.header
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-12"
-    >
+    <header className="mb-12">
       {/* Category */}
       <div className="flex items-center gap-4 mb-6">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-theme-accent-bg text-theme-accent-primary text-sm font-medium">
@@ -59,6 +54,6 @@ export function ArticleHeader({
           ))}
         </div>
       </div>
-    </motion.header>
+    </header>
   )
 }

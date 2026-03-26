@@ -1,6 +1,3 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { ArticleHeader } from './article-header'
 import { ArticleContent } from './article-content'
 import { ArticleFooter } from './article-footer'
@@ -28,21 +25,11 @@ export function ArticleWrapper({
   coverImageUrl,
 }: ArticleWrapperProps) {
   return (
-    <motion.article
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen pt-24 pb-16"
-    >
+    <article className="min-h-screen pt-24 pb-16">
       <div className="max-w-4xl mx-auto px-6">
         {/* 封面图片 */}
         {coverImageUrl && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mb-8 rounded-2xl overflow-hidden shadow-lg"
-            style={{ maxHeight: '60vh' }}
-          >
+          <div className="mb-8 rounded-2xl overflow-hidden shadow-lg" style={{ maxHeight: '60vh' }}>
             <ArticleCover
               src={coverImageUrl}
               alt={title}
@@ -50,7 +37,7 @@ export function ArticleWrapper({
               lazy={false}
               className="w-full"
             />
-          </motion.div>
+          </div>
         )}
 
         {/* Header */}
@@ -64,20 +51,15 @@ export function ArticleWrapper({
         />
 
         {/* Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="prose prose-zinc prose-lg max-w-none"
-        >
+        <div className="prose prose-zinc prose-lg max-w-none">
           <div className="bg-theme-card-bg rounded-[2rem] p-8 md:p-12 border border-theme-card shadow-card">
-            <ArticleContent content={content} initialTheme="light" />
+            <ArticleContent content={content} />
           </div>
-        </motion.div>
+        </div>
 
         {/* Footer */}
         <ArticleFooter />
       </div>
-    </motion.article>
+    </article>
   )
 }

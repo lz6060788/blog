@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useImperativeHandle, forwardRef, useState } from "react";
+import { useCallback, useEffect, useRef, useImperativeHandle, forwardRef, useState } from "react";
 import { defaultValueCtx } from "@milkdown/core";
 import { Crepe } from "@milkdown/crepe";
 import {
@@ -9,6 +9,7 @@ import {
   wrapInHeadingCommand,
   wrapInOrderedListCommand,
   createCodeBlockCommand,
+  insertImageCommand,
   toggleEmphasisCommand,
   toggleStrongCommand,
   turnIntoTextCommand,
@@ -18,8 +19,10 @@ import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import { history, redoCommand, undoCommand } from "@milkdown/plugin-history";
 import { prism } from "@milkdown/plugin-prism";
 import { math } from "@milkdown/plugin-math";
-import { upload } from "@milkdown/plugin-upload";
+import { dropIndicatorState } from "@milkdown/plugin-cursor";
+import { upload as uploadPlugin, uploadConfig, type Uploader } from "@milkdown/plugin-upload";
 import { callCommand } from "@milkdown/utils";
+import { uploadFile as uploadAssetFile } from "@/lib/api/upload";
 import {
   Bold,
   Code2,
@@ -34,6 +37,38 @@ import {
   Strikethrough,
   Undo2,
 } from "lucide-react";
+
+const uploadImageToCos = async (file: File) => {
+  const result = await uploadAssetFile({ file });
+  return result.url;
+};
+
+const uploadDroppedImages: Uploader = async (files, schema) => {
+  const imageNode = schema.nodes.image;
+
+  if (!imageNode) {
+    throw new Error("Milkdown image node is missing");
+  }
+
+  const images = Array.from(files)
+    .filter((file): file is File => Boolean(file))
+    .filter((file) => file.type.startsWith("image/"));
+
+  const uploadedNodes = await Promise.all(
+    images.map(async (file) => {
+      const src = await uploadImageToCos(file);
+      return imageNode.create({
+        src,
+        alt: file.name,
+      });
+    })
+  );
+
+  return uploadedNodes;
+};
+
+const getImageFiles = (files?: FileList | null) =>
+  Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
 
 export interface MilkdownEditorRef {
   getContent: () => string;
@@ -93,6 +128,7 @@ export const MilkdownEditorInternal = forwardRef<
     const onRefRef = useRef(onRef);
     const initialValueRef = useRef(initialValue);
     const [isReady, setIsReady] = useState(false);
+    const [uploadingImageCount, setUploadingImageCount] = useState(0);
     const currentContentRef = useRef(initialValue);
 
     const runCommand = (command: { key: unknown }, payload?: unknown) => {
@@ -110,6 +146,48 @@ export const MilkdownEditorInternal = forwardRef<
         event.stopPropagation();
         runCommand(command, payload);
       };
+
+    const insertUploadedImage = useCallback((src: string, alt: string) => {
+      runCommand(insertImageCommand, { src, alt });
+    }, []);
+
+    const clearDropIndicator = useCallback(() => {
+      if (!editorRef.current) return;
+
+      editorRef.current.editor.action((ctx) => {
+        ctx.set(dropIndicatorState.key, null);
+      });
+    }, []);
+
+    const uploadFilesAndInsertImages = useCallback(
+      async (files?: FileList | null) => {
+        const imageFiles = getImageFiles(files);
+
+        if (imageFiles.length === 0) return false;
+
+        setUploadingImageCount((count) => count + imageFiles.length);
+
+        try {
+          const uploadedImages = await Promise.all(
+            imageFiles.map(async (file) => ({
+              alt: file.name,
+              src: await uploadImageToCos(file),
+            }))
+          );
+
+          uploadedImages.forEach(({ src, alt }) => {
+            insertUploadedImage(src, alt);
+          });
+
+          return true;
+        } finally {
+          setUploadingImageCount((count) =>
+            Math.max(0, count - imageFiles.length)
+          );
+        }
+      },
+      [insertUploadedImage]
+    );
 
     // 保持 onChange 引用最新
     useEffect(() => {
@@ -160,6 +238,11 @@ export const MilkdownEditorInternal = forwardRef<
       if (!container) return;
 
       let mounted = true;
+      let nativePasteHandler: ((event: ClipboardEvent) => Promise<void>) | null =
+        null;
+      let nativeDragOverHandler: ((event: DragEvent) => void) | null = null;
+      let nativeDropHandler: ((event: DragEvent) => Promise<void>) | null =
+        null;
 
       (async () => {
         try {
@@ -178,10 +261,21 @@ export const MilkdownEditorInternal = forwardRef<
               [Crepe.Feature.Placeholder]: true,
               [Crepe.Feature.Latex]: true,
             },
+            featureConfigs: {
+              [Crepe.Feature.ImageBlock]: {
+                onUpload: uploadImageToCos,
+              },
+            },
           });
 
           editor.editor
             .config((ctx) => {
+              ctx.update(uploadConfig.key, (value) => ({
+                ...value,
+                uploader: uploadDroppedImages,
+                enableHtmlFileUploader: true,
+              }));
+
               ctx.get(listenerCtx).markdownUpdated((ctx, markdown) => {
                 currentContentRef.current = markdown;
                 onChangeRef.current?.(markdown);
@@ -191,7 +285,7 @@ export const MilkdownEditorInternal = forwardRef<
             .use(history)
             .use(prism)
             .use(math)
-            .use(upload);
+            .use(uploadPlugin);
 
           await editor.create();
           editor.setReadonly(false);
@@ -200,6 +294,35 @@ export const MilkdownEditorInternal = forwardRef<
             editor.destroy();
             return;
           }
+
+          nativePasteHandler = async (event: ClipboardEvent) => {
+            if (getImageFiles(event.clipboardData?.files).length === 0) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            await uploadFilesAndInsertImages(event.clipboardData?.files);
+          };
+
+          nativeDragOverHandler = (event: DragEvent) => {
+            if (getImageFiles(event.dataTransfer?.files).length === 0) return;
+
+            event.preventDefault();
+          };
+
+          nativeDropHandler = async (event: DragEvent) => {
+            if (getImageFiles(event.dataTransfer?.files).length === 0) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            clearDropIndicator();
+
+            await uploadFilesAndInsertImages(event.dataTransfer?.files);
+          };
+
+          container.addEventListener("paste", nativePasteHandler, true);
+          container.addEventListener("dragover", nativeDragOverHandler, true);
+          container.addEventListener("drop", nativeDropHandler, true);
 
           editorRef.current = editor;
           setIsReady(true);
@@ -242,6 +365,19 @@ export const MilkdownEditorInternal = forwardRef<
 
       return () => {
         mounted = false;
+        if (nativePasteHandler) {
+          container.removeEventListener("paste", nativePasteHandler, true);
+        }
+        if (nativeDragOverHandler) {
+          container.removeEventListener(
+            "dragover",
+            nativeDragOverHandler,
+            true
+          );
+        }
+        if (nativeDropHandler) {
+          container.removeEventListener("drop", nativeDropHandler, true);
+        }
         if (editorRef.current) {
           try {
             editorRef.current.destroy();
@@ -251,7 +387,7 @@ export const MilkdownEditorInternal = forwardRef<
           }
         }
       };
-    }, []);
+    }, [clearDropIndicator, uploadFilesAndInsertImages]);
 
     // 更新初始值
     useEffect(() => {
@@ -316,7 +452,7 @@ export const MilkdownEditorInternal = forwardRef<
             </ToolbarButton>
           </div>
           <div
-            className="min-h-0 w-full flex-1"
+            className="relative min-h-0 w-full flex-1"
             style={{ visibility: isReady ? "visible" : "hidden" }}
           >
             <div
@@ -326,6 +462,11 @@ export const MilkdownEditorInternal = forwardRef<
                 minHeight: height,
               }}
             />
+            {uploadingImageCount > 0 && (
+              <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-md border border-theme-border bg-theme-surface/95 px-3 py-2 text-sm text-theme-text-secondary shadow-sm backdrop-blur">
+                正在上传图片...
+              </div>
+            )}
           </div>
         </div>
 

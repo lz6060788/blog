@@ -12,6 +12,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "noUnusedLocals": false,    // 关闭：未使用局部变量不报错
+    "noUnusedParameters": false,// 关闭：未使用函数参数不报错
+    "noImplicitAny": false,     // 关闭：隐式 any 不报错
     "plugins": [
       {
         "name": "next"

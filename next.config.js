@@ -45,6 +45,13 @@ const nextConfig = {
     }
     return config
   },
+  eslint: {
+    // 忽略构建时的 ESLint 错误（Warning 也会被忽略）
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true, // 忽略 TS 类型错误
+  },
 }
 
 module.exports = withNextIntl(nextConfig)

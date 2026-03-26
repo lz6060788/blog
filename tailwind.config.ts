@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss'
 import { coreColors } from './app/styles/tailwind/colors'
+import animate from 'tailwindcss-animate'
 
 const config: Config = {
   content: [
@@ -28,7 +29,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [animate],
 }
 
 export default config

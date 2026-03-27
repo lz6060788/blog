@@ -1,12 +1,16 @@
 import type { Config } from "drizzle-kit";
 
-const sqliteFile = process.env.DATABASE_FILE ?? "./data/db.sqlite";
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL is required for drizzle-kit");
+}
 
 export default {
   schema: "./server/db/schema.ts",
   out: "./drizzle",
-  dialect: "sqlite",
+  dialect: "postgresql",
   dbCredentials: {
-    url: sqliteFile,
+    url: connectionString,
   },
 } satisfies Config;

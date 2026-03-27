@@ -1,0 +1,19 @@
+ALTER TABLE "ai_call_logs" ALTER COLUMN "created_at" SET DEFAULT '2026-03-27T07:40:23.388Z';--> statement-breakpoint
+ALTER TABLE "ai_function_mappings" ALTER COLUMN "created_at" SET DEFAULT '2026-03-27T07:40:23.388Z';--> statement-breakpoint
+ALTER TABLE "ai_function_mappings" ALTER COLUMN "updated_at" SET DEFAULT '2026-03-27T07:40:23.388Z';--> statement-breakpoint
+ALTER TABLE "ai_model_configs" ALTER COLUMN "created_at" SET DEFAULT '2026-03-27T07:40:23.388Z';--> statement-breakpoint
+ALTER TABLE "ai_model_configs" ALTER COLUMN "updated_at" SET DEFAULT '2026-03-27T07:40:23.388Z';--> statement-breakpoint
+ALTER TABLE "categories" ALTER COLUMN "createdAt" SET DEFAULT '2026-03-27T07:40:23.387Z';--> statement-breakpoint
+ALTER TABLE "categories" ALTER COLUMN "updatedAt" SET DEFAULT '2026-03-27T07:40:23.387Z';--> statement-breakpoint
+ALTER TABLE "file_uploads" ALTER COLUMN "created_at" SET DEFAULT '2026-03-27T07:40:23.389Z';--> statement-breakpoint
+ALTER TABLE "playlists" ALTER COLUMN "created_at" SET DEFAULT '2026-03-27T07:40:23.389Z';--> statement-breakpoint
+ALTER TABLE "playlists" ALTER COLUMN "updated_at" SET DEFAULT '2026-03-27T07:40:23.389Z';--> statement-breakpoint
+ALTER TABLE "posts" ALTER COLUMN "createdAt" SET DEFAULT '2026-03-27T07:40:23.387Z';--> statement-breakpoint
+ALTER TABLE "posts" ALTER COLUMN "updatedAt" SET DEFAULT '2026-03-27T07:40:23.387Z';--> statement-breakpoint
+ALTER TABLE "settings" ALTER COLUMN "updatedAt" SET DEFAULT '2026-03-27T07:40:23.389Z';--> statement-breakpoint
+ALTER TABLE "songs" ALTER COLUMN "created_at" SET DEFAULT '2026-03-27T07:40:23.389Z';--> statement-breakpoint
+ALTER TABLE "songs" ALTER COLUMN "updated_at" SET DEFAULT '2026-03-27T07:40:23.389Z';--> statement-breakpoint
+ALTER TABLE "tags" ALTER COLUMN "createdAt" SET DEFAULT '2026-03-27T07:40:23.387Z';--> statement-breakpoint
+ALTER TABLE "tags" ALTER COLUMN "updatedAt" SET DEFAULT '2026-03-27T07:40:23.387Z';--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "createdAt" SET DEFAULT '2026-03-27T07:40:23.384Z';--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "updatedAt" SET DEFAULT '2026-03-27T07:40:23.385Z';

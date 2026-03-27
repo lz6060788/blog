@@ -13,7 +13,7 @@ services:
       - DATABASE_FILE=/app/data/db.sqlite
     restart: unless-stopped
     volumes:
-      - ./data:/app/data
+      - blog-data:/app/data
 
     # 资源限制 - 防止构建/运行时占用过多资源
     deploy:
@@ -49,3 +49,6 @@ services:
 networks:
   traefik-net:
     external: true
+volumes:
+  blog-data:
+    name: blog-data

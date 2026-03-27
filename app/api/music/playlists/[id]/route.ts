@@ -45,7 +45,7 @@ export async function GET(
       .orderBy(playlistSongs.position);
 
     // 简化处理：逐个获取歌曲
-    const playlistSongsData = [];
+    const playlistSongsData: any[] = [];
     for (const relation of songRelations) {
       const [song] = await db
         .select()

@@ -132,6 +132,7 @@
 
 /* 表格 */
 .milkdown table {
+  display: block;
   border-collapse: collapse;
   width: 100%;
   margin: 1rem 0;

@@ -1,42 +1,42 @@
 // @ts-ignore
 import { relations } from "drizzle-orm";
-import { sqliteTable, text as sqliteText, primaryKey, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { pgTable, text, primaryKey, integer, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 
 // ============================================================================
 // NextAuth.js 表定义 (SQLite)
 // ============================================================================
 
 // 用户表
-export const users = sqliteTable("users", {
-  id: sqliteText("id").primaryKey(),
-  name: sqliteText("name").notNull(),
-  email: sqliteText("email").notNull(),
-  emailVerified: sqliteText("emailVerified"),
-  image: sqliteText("image"),
-  createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  emailVerified: text("emailVerified"),
+  image: text("image"),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 会话表
-export const sessions = sqliteTable("sessions", {
-  sessionToken: sqliteText("sessionToken").primaryKey(),
-  userId: sqliteText("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  expires: sqliteText("expires").notNull(),
+export const sessions = pgTable("sessions", {
+  sessionToken: text("sessionToken").primaryKey(),
+  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expires: text("expires").notNull(),
 });
 
 // 账户表 (OAuth 关联)
-export const accounts = sqliteTable("accounts", {
-  userId: sqliteText("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  type: sqliteText("type").notNull(),
-  provider: sqliteText("provider").notNull(),
-  providerAccountId: sqliteText("providerAccountId").notNull(),
-  refresh_token: sqliteText("refresh_token"),
-  access_token: sqliteText("access_token"),
-  expires_at: sqliteText("expires_at"),
-  token_type: sqliteText("token_type"),
-  scope: sqliteText("scope"),
-  id_token: sqliteText("id_token"),
-  session_state: sqliteText("session_state"),
+export const accounts = pgTable("accounts", {
+  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  provider: text("provider").notNull(),
+  providerAccountId: text("providerAccountId").notNull(),
+  refresh_token: text("refresh_token"),
+  access_token: text("access_token"),
+  expires_at: text("expires_at"),
+  token_type: text("token_type"),
+  scope: text("scope"),
+  id_token: text("id_token"),
+  session_state: text("session_state"),
 }, (table) => ({
   compoundKey: primaryKey({
     columns: [table.provider, table.providerAccountId],
@@ -44,10 +44,10 @@ export const accounts = sqliteTable("accounts", {
 }));
 
 // 验证令牌表 (用于邮箱验证等功能，暂时保留但不使用)
-export const verificationTokens = sqliteTable("verification_token", {
-  identifier: sqliteText("identifier").notNull(),
-  token: sqliteText("token").notNull(),
-  expires: sqliteText("expires").notNull(),
+export const verificationTokens = pgTable("verification_token", {
+  identifier: text("identifier").notNull(),
+  token: text("token").notNull(),
+  expires: text("expires").notNull(),
 }, (table) => ({
   compoundKey: primaryKey({
     columns: [table.identifier, table.token],
@@ -59,22 +59,22 @@ export const verificationTokens = sqliteTable("verification_token", {
 // ============================================================================
 
 // 分类表
-export const categories = sqliteTable("categories", {
-  id: sqliteText("id").primaryKey(),
-  name: sqliteText("name").notNull().unique(),
-  slug: sqliteText("slug").notNull().unique(),
-  description: sqliteText("description"),
-  createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+export const categories = pgTable("categories", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 标签表
-export const tags = sqliteTable("tags", {
-  id: sqliteText("id").primaryKey(),
-  name: sqliteText("name").notNull().unique(),
-  slug: sqliteText("slug").notNull().unique(),
-  createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+export const tags = pgTable("tags", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // ============================================================================
@@ -82,29 +82,29 @@ export const tags = sqliteTable("tags", {
 // ============================================================================
 
 // 文章表
-export const posts = sqliteTable("posts", {
-  id: sqliteText("id").primaryKey(),
-  title: sqliteText("title").notNull(),
-  content: sqliteText("content").notNull(),
-  excerpt: sqliteText("excerpt"),
-  published: integer("published", { mode: "boolean" }).notNull().default(false),
-  authorId: sqliteText("authorId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  categoryId: sqliteText("categoryId").references(() => categories.id, { onDelete: "set null" }),
+export const posts = pgTable("posts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  published: boolean("published").notNull().default(false),
+  authorId: text("authorId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  categoryId: text("categoryId").references(() => categories.id, { onDelete: "set null" }),
   readTime: integer("read_time").notNull().default(0),
-  publishedDate: sqliteText("published_date"),
+  publishedDate: text("published_date"),
   // AI 封面相关字段
-  coverImageUrl: sqliteText("cover_image_url"),
-  aiCoverStatus: sqliteText("ai_cover_status"), // 'pending' | 'generating' | 'done' | 'failed' | 'manual'
-  aiCoverGeneratedAt: sqliteText("ai_cover_generated_at"),
-  aiCoverPrompt: sqliteText("ai_cover_prompt"), // 记录生成封面时使用的 Prompt
-  createdAt: sqliteText("createdAt").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+  coverImageUrl: text("cover_image_url"),
+  aiCoverStatus: text("ai_cover_status"), // 'pending' | 'generating' | 'done' | 'failed' | 'manual'
+  aiCoverGeneratedAt: text("ai_cover_generated_at"),
+  aiCoverPrompt: text("ai_cover_prompt"), // 记录生成封面时使用的 Prompt
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 文章-标签关联表（多对多）
-export const postTags = sqliteTable("post_tags", {
-  postId: sqliteText("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
-  tagId: sqliteText("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+export const postTags = pgTable("post_tags", {
+  postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  tagId: text("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
 }, (table) => ({
   compoundKey: primaryKey({
     columns: [table.postId, table.tagId],
@@ -116,48 +116,48 @@ export const postTags = sqliteTable("post_tags", {
 // ============================================================================
 
 // AI 模型配置表
-export const aiModelConfigs = sqliteTable("ai_model_configs", {
-  id: sqliteText("id").primaryKey(),
-  name: sqliteText("name").notNull(),
-  provider: sqliteText("provider").notNull(), // 'deepseek' | 'zhipu' | 'qwen' | 'moonshot' | 'baichuan' | 'openai'
-  model: sqliteText("model").notNull(),
-  apiKeyEncrypted: sqliteText("api_key_encrypted").notNull(),
-  baseUrl: sqliteText("base_url"),
+export const aiModelConfigs = pgTable("ai_model_configs", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  provider: text("provider").notNull(), // 'deepseek' | 'zhipu' | 'qwen' | 'moonshot' | 'baichuan' | 'openai'
+  model: text("model").notNull(),
+  apiKeyEncrypted: text("api_key_encrypted").notNull(),
+  baseUrl: text("base_url"),
   maxTokens: integer("max_tokens").notNull().default(300),
   temperature: integer("temperature").notNull().default(7), // stored as integer (0-100, divide by 100 for actual value)
-  capabilityType: sqliteText("capability_type").notNull().default('text'), // 'text' | 'image' - 区分文本生成和图像生成能力
-  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
-  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
+  capabilityType: text("capability_type").notNull().default('text'), // 'text' | 'image' - 区分文本生成和图像生成能力
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // AI 功能映射表
-export const aiFunctionMappings = sqliteTable("ai_function_mappings", {
-  id: sqliteText("id").primaryKey(),
-  functionName: sqliteText("function_name").notNull().unique(), // 'summary' | 'cover' | 'search'
-  modelConfigId: sqliteText("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
-  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
+export const aiFunctionMappings = pgTable("ai_function_mappings", {
+  id: text("id").primaryKey(),
+  functionName: text("function_name").notNull().unique(), // 'summary' | 'cover' | 'search'
+  modelConfigId: text("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // AI 调用日志表
-export const aiCallLogs = sqliteTable("ai_call_logs", {
-  id: sqliteText("id").primaryKey(),
-  postId: sqliteText("post_id").references(() => posts.id, { onDelete: "set null" }),
-  modelConfigId: sqliteText("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
-  action: sqliteText("action").notNull(), // 'generate-summary' | 'generate-cover' etc.
-  provider: sqliteText("provider"),
-  model: sqliteText("model"),
+export const aiCallLogs = pgTable("ai_call_logs", {
+  id: text("id").primaryKey(),
+  postId: text("post_id").references(() => posts.id, { onDelete: "set null" }),
+  modelConfigId: text("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
+  action: text("action").notNull(), // 'generate-summary' | 'generate-cover' etc.
+  provider: text("provider"),
+  model: text("model"),
   inputTokens: integer("input_tokens"),
   outputTokens: integer("output_tokens"),
-  status: sqliteText("status").notNull(), // 'success' | 'failed' | 'retrying'
-  errorMessage: sqliteText("error_message"),
+  status: text("status").notNull(), // 'success' | 'failed' | 'retrying'
+  errorMessage: text("error_message"),
   durationMs: integer("duration_ms"),
   // 图像生成相关字段
-  imageSize: sqliteText("image_size"), // e.g., '1024x1024', '1792x1024'
-  imageFormat: sqliteText("image_format"), // e.g., 'png', 'jpg'
+  imageSize: text("image_size"), // e.g., '1024x1024', '1792x1024'
+  imageFormat: text("image_format"), // e.g., 'png', 'jpg'
   imageCost: integer("image_cost"), // 图像生成成本（以分为单位）
-  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
 });
 
 // ============================================================================
@@ -165,14 +165,14 @@ export const aiCallLogs = sqliteTable("ai_call_logs", {
 // ============================================================================
 
 // 文件上传记录表
-export const fileUploads = sqliteTable("file_uploads", {
-  id: sqliteText("id").primaryKey(),
-  key: sqliteText("key").notNull().unique(), // COS 对象键
-  filename: sqliteText("filename").notNull(), // 原始文件名
+export const fileUploads = pgTable("file_uploads", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(), // COS 对象键
+  filename: text("filename").notNull(), // 原始文件名
   size: integer("size").notNull(), // 文件大小（字节）
-  mimeType: sqliteText("mime_type").notNull(), // MIME 类型
-  uploaderId: sqliteText("uploader_id").notNull().references(() => users.id, { onDelete: "cascade" }), // 上传者用户 ID
-  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()), // 上传时间
+  mimeType: text("mime_type").notNull(), // MIME 类型
+  uploaderId: text("uploader_id").notNull().references(() => users.id, { onDelete: "cascade" }), // 上传者用户 ID
+  createdAt: text("created_at").notNull().default(new Date().toISOString()), // 上传时间
 });
 
 // ============================================================================
@@ -184,38 +184,38 @@ export const fileUploads = sqliteTable("file_uploads", {
 // ============================================================================
 
 // 歌曲表
-export const songs = sqliteTable("songs", {
-  id: sqliteText("id").primaryKey(),
-  title: sqliteText("title").notNull(),
-  artist: sqliteText("artist").notNull(),
-  album: sqliteText("album"),
+export const songs = pgTable("songs", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  album: text("album"),
   duration: integer("duration").notNull(), // 时长（秒）
-  audioUrl: sqliteText("audio_url").notNull(), // 音频文件URL（COS）
-  lyrics: sqliteText("lyrics"), // LRC格式歌词
+  audioUrl: text("audio_url").notNull(), // 音频文件URL（COS）
+  lyrics: text("lyrics"), // LRC格式歌词
   fileSize: integer("file_size"), // 文件大小（字节）
-  fileFormat: sqliteText("file_format"), // 文件格式（mp3, ogg等）
-  uploadStatus: sqliteText("upload_status").notNull().default('pending'), // pending, uploading, completed, failed
-  metadata: sqliteText("metadata"), // JSON格式：其他音频元数据（比特率、采样率等）
-  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
+  fileFormat: text("file_format"), // 文件格式（mp3, ogg等）
+  uploadStatus: text("upload_status").notNull().default('pending'), // pending, uploading, completed, failed
+  metadata: text("metadata"), // JSON格式：其他音频元数据（比特率、采样率等）
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // 歌单表
-export const playlists = sqliteTable("playlists", {
-  id: sqliteText("id").primaryKey(),
-  name: sqliteText("name").notNull(),
-  description: sqliteText("description"),
-  coverColor: sqliteText("cover_color").notNull().default('#6366f1'), // 封面渐变色
-  isPublic: integer("is_public", { mode: "boolean" }).notNull().default(false),
-  createdAt: sqliteText("created_at").notNull().default(new Date().toISOString()),
-  updatedAt: sqliteText("updated_at").notNull().default(new Date().toISOString()),
+export const playlists = pgTable("playlists", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  coverColor: text("cover_color").notNull().default('#6366f1'), // 封面渐变色
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // 歌单-歌曲关联表（多对多）
-export const playlistSongs = sqliteTable("playlist_songs", {
-  id: sqliteText("id").primaryKey(),
-  playlistId: sqliteText("playlist_id").notNull().references(() => playlists.id, { onDelete: "cascade" }),
-  songId: sqliteText("song_id").notNull().references(() => songs.id, { onDelete: "cascade" }),
+export const playlistSongs = pgTable("playlist_songs", {
+  id: text("id").primaryKey(),
+  playlistId: text("playlist_id").notNull().references(() => playlists.id, { onDelete: "cascade" }),
+  songId: text("song_id").notNull().references(() => songs.id, { onDelete: "cascade" }),
   position: integer("position").notNull(), // 在歌单中的位置顺序
 }, (table) => ({
   uniquePlaylistSong: uniqueIndex("unique_playlist_song").on(table.playlistId, table.songId),
@@ -226,22 +226,22 @@ export const playlistSongs = sqliteTable("playlist_songs", {
 // ============================================================================
 
 // 博客设置表（单例模式，只有一条记录）
-export const settings = sqliteTable("settings", {
-  id: sqliteText("id").primaryKey().$defaultFn(() => 'default'),
-  blogName: sqliteText("blog_name").notNull().default('My Blog'),
-  blogDescription: sqliteText("blog_description").notNull().default('A personal blog'),
+export const settings = pgTable("settings", {
+  id: text("id").primaryKey().$defaultFn(() => 'default'),
+  blogName: text("blog_name").notNull().default('My Blog'),
+  blogDescription: text("blog_description").notNull().default('A personal blog'),
   postsPerPage: integer("posts_per_page").notNull().default(10),
   // 作者信息字段
-  authorName: sqliteText("author_name").notNull().default('Alex Chen'),
-  authorAvatar: sqliteText("author_avatar").notNull().default('https://api.dicebear.com/7.x/notionists/svg?seed=Alex&backgroundColor=c0aede'),
-  authorBio: sqliteText("author_bio").notNull().default('Designer & Developer crafting digital experiences with code and creativity.'),
-  authorLocation: sqliteText("author_location").notNull().default('San Francisco, CA'),
-  authorZodiac: sqliteText("author_zodiac").notNull().default('Scorpio ♏'),
-  authorEmail: sqliteText("author_email").notNull().default('alex@example.com'),
-  authorSocialGithub: sqliteText("author_social_github").default('github.com/alexchen'),
-  authorSocialTwitter: sqliteText("author_social_twitter").default('twitter.com/alexchen'),
-  authorSocialLinkedin: sqliteText("author_social_linkedin"),
-  updatedAt: sqliteText("updatedAt").notNull().default(new Date().toISOString()),
+  authorName: text("author_name").notNull().default('Alex Chen'),
+  authorAvatar: text("author_avatar").notNull().default('https://api.dicebear.com/7.x/notionists/svg?seed=Alex&backgroundColor=c0aede'),
+  authorBio: text("author_bio").notNull().default('Designer & Developer crafting digital experiences with code and creativity.'),
+  authorLocation: text("author_location").notNull().default('San Francisco, CA'),
+  authorZodiac: text("author_zodiac").notNull().default('Scorpio ♏'),
+  authorEmail: text("author_email").notNull().default('alex@example.com'),
+  authorSocialGithub: text("author_social_github").default('github.com/alexchen'),
+  authorSocialTwitter: text("author_social_twitter").default('twitter.com/alexchen'),
+  authorSocialLinkedin: text("author_social_linkedin"),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 文章关系定义

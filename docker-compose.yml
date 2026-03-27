@@ -4,18 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: blog
-    # ports:
-    #   - "3000:3000"
     env_file:
       - .env.production
     environment:
       - NODE_ENV=production
-      - DATABASE_FILE=/app/data/db.sqlite
+      - DATABASE_URL=${DATABASE_URL}
     restart: unless-stopped
-    volumes:
-      - blog-data:/app/data
 
-    # 资源限制 - 防止构建/运行时占用过多资源
     deploy:
       resources:
         limits:
@@ -25,30 +20,19 @@ services:
           cpus: '0.5'
           memory: 512M
 
-    # 2. 加入 Traefik 所在的网络
     networks:
       - traefik-net
 
-    # 3. 添加 Traefik 路由标签
     labels:
       - "traefik.enable=true"
-      # 设置你的子域名
       - "traefik.http.routers.myblog.rule=Host(`blog.theirises.cn`)"
-      # 指定入口点为 HTTPS
       - "traefik.http.routers.myblog.entrypoints=websecure"
-      # 使用我们之前配置的证书解析器
       - "traefik.http.routers.myblog.tls.certresolver=sslresolver"
-      # 显式指定容器内部端口（对应你 Dockerfile 中的 EXPOSE 3000）
       - "traefik.http.services.myblog.loadbalancer.server.port=3000"
-
       - "traefik.http.middlewares.blog-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.blog-headers.headers.customrequestheaders.X-Forwarded-Host=blog.theirises.cn"
       - "traefik.http.routers.myblog.middlewares=blog-headers"
 
-# 引用外部预创建的网络
 networks:
   traefik-net:
     external: true
-volumes:
-  blog-data:
-    name: blog-data

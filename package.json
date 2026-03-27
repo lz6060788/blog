@@ -9,10 +9,7 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:diagnose": "node scripts/diagnose-migrations.js",
-    "db:fix": "node scripts/fix-migration-tracking.js",
-    "db:studio": "drizzle-kit studio",
-    "db:reset": "rm ./data/db.sqlite && npm run db:migrate"
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.37",
@@ -20,8 +17,8 @@
     "@milkdown/core": "7.19.2",
     "@milkdown/crepe": "7.19.2",
     "@milkdown/ctx": "7.19.2",
-    "@milkdown/plugin-history": "7.19.2",
     "@milkdown/plugin-highlight": "7.19.2",
+    "@milkdown/plugin-history": "7.19.2",
     "@milkdown/plugin-listener": "7.19.2",
     "@milkdown/plugin-math": "^7.5.9",
     "@milkdown/preset-commonmark": "7.19.2",
@@ -36,7 +33,6 @@
     "@types/katex": "^0.16.8",
     "ai": "^6.0.105",
     "axios": "^1.13.6",
-    "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cos-nodejs-sdk-v5": "^2.15.4",
@@ -53,6 +49,7 @@
     "next-intl": "^4.8.3",
     "next-themes": "^0.4.6",
     "openai": "^6.25.0",
+    "pg": "^8.20.0",
     "prismjs": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

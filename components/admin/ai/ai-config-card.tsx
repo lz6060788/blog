@@ -569,10 +569,7 @@ function AIConfigModal({
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    await saveModel()
-  }
+  // 移除原生 form 提交，避免嵌套 form 导致 hydration 警告
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -581,7 +578,7 @@ function AIConfigModal({
           {config ? '编辑模型配置' : '添加模型配置'}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-theme-text-secondary mb-2">
               配置名称
@@ -774,7 +771,7 @@ function AIConfigModal({
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

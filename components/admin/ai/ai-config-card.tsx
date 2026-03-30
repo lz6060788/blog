@@ -536,36 +536,29 @@ function AIConfigModal({
     return modelDef?.type || 'text'
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-
+  async function saveModel() {
     if (!formData.name.trim()) {
       toast.error('请输入配置名称')
       return
     }
-
     if (!formData.apiKey.trim() && !config) {
       toast.error('请输入 API Key')
       return
     }
-
     setIsSaving(true)
     try {
       const url = config
         ? `/api/admin/ai/model-configs/${config.id}`
         : '/api/admin/ai/model-configs'
-
       const res = await fetch(url, {
         method: config ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
-
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || '保存失败')
       }
-
       toast.success('保存成功')
       onSave()
     } catch (error: any) {
@@ -574,6 +567,11 @@ function AIConfigModal({
     } finally {
       setIsSaving(false)
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    await saveModel()
   }
 
   return (
@@ -772,7 +770,7 @@ function AIConfigModal({
             <Button type="button" variant="ghost" onClick={onClose}>
               取消
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="button" onClick={saveModel} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </div>

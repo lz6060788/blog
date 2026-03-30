@@ -25,7 +25,11 @@ export async function GET(request: NextRequest) {
       apiKeyEncrypted: config.apiKeyEncrypted ? `${config.apiKeyEncrypted.slice(0, 8)}****` : '',
     }))
 
-    return NextResponse.json(maskedConfigs)
+    return NextResponse.json(maskedConfigs, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch (error: any) {
     console.error('获取 AI 模型配置失败:', error)
     return NextResponse.json(

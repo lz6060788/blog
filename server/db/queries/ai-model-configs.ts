@@ -188,11 +188,13 @@ export async function isConfigNameUnique(
   }
 
   const result = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({ id: aiModelConfigs.id })
     .from(aiModelConfigs)
     .where(and(...conditions))
-
-  return result[0].count === 0
+    .limit(1)
+ 
+  const exists = result.length > 0
+  return !exists
 }
 
 /**

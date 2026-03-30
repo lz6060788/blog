@@ -24,7 +24,7 @@ export async function PUT(
 
     const { id } = params
     const body = await request.json()
-    const { name, provider, model, apiKey, baseUrl, maxTokens, temperature, enabled } = body
+    const { name, provider, model, apiKey, baseUrl, maxTokens, temperature, enabled, capabilityType } = body
 
     // 检查配置是否存在
     const existing = await getModelConfigById(id)
@@ -50,6 +50,7 @@ export async function PUT(
       maxTokens,
       temperature,
       enabled,
+      capabilityType,
     })
 
     // 返回脱敏后的配置

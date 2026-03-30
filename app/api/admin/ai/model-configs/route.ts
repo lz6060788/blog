@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, provider, model, apiKey, baseUrl, maxTokens, temperature, enabled } = body
+    const { name, provider, model, apiKey, baseUrl, maxTokens, temperature, enabled, capabilityType } = body
 
     // 验证必需字段
     if (!name || !provider || !model || !apiKey) {
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
       maxTokens,
       temperature,
       enabled,
+      capabilityType,
     })
 
     // 返回脱敏后的配置

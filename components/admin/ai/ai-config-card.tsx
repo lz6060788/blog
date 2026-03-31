@@ -536,36 +536,29 @@ function AIConfigModal({
     return modelDef?.type || 'text'
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-
+  async function saveModel() {
     if (!formData.name.trim()) {
       toast.error('请输入配置名称')
       return
     }
-
     if (!formData.apiKey.trim() && !config) {
       toast.error('请输入 API Key')
       return
     }
-
     setIsSaving(true)
     try {
       const url = config
         ? `/api/admin/ai/model-configs/${config.id}`
         : '/api/admin/ai/model-configs'
-
       const res = await fetch(url, {
         method: config ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
-
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || '保存失败')
       }
-
       toast.success('保存成功')
       onSave()
     } catch (error: any) {
@@ -576,6 +569,8 @@ function AIConfigModal({
     }
   }
 
+  // 移除原生 form 提交，避免嵌套 form 导致 hydration 警告
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-theme-surface border border-theme-border rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -583,7 +578,7 @@ function AIConfigModal({
           {config ? '编辑模型配置' : '添加模型配置'}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-theme-text-secondary mb-2">
               配置名称
@@ -772,11 +767,11 @@ function AIConfigModal({
             <Button type="button" variant="ghost" onClick={onClose}>
               取消
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="button" onClick={saveModel} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

@@ -39,12 +39,10 @@ export default async function middleware(req: NextRequest) {
 
   // Admin route protection - must come BEFORE locale handling
   if (isAdminRoute && !isLoginPage) {
-    console.log('🔍 [Middleware] Admin route detected:', pathWithoutLocale)
 
     // Debug: Log all cookies
     const cookieStore = req.cookies
     const cookieNames = cookieStore.getAll().map(c => c.name)
-    console.log('🍪 [Middleware] Cookies present:', cookieNames)
 
     try {
       // Check for both possible cookie names
@@ -81,7 +79,6 @@ export default async function middleware(req: NextRequest) {
         )
         
         if (sessionCookie) {
-          console.log('🔄 [Middleware] Trying auto-detected cookie:', sessionCookie)
           token = await getToken({
             req,
             cookieName: sessionCookie,
@@ -89,14 +86,6 @@ export default async function middleware(req: NextRequest) {
           })
         }
       }
-
-      console.log('🔐 [Middleware] Token check:', {
-        path: pathWithoutLocale,
-        hasToken: !!token,
-        tokenKeys: token ? Object.keys(token) : [],
-        userId: token?.id,
-        userEmail: token?.email,
-      })
 
       // Check auth
       if (!token) {
@@ -106,13 +95,11 @@ export default async function middleware(req: NextRequest) {
           locale = localeMatch[1]
         }
 
-        console.log('🚫 [Middleware] No token, redirecting to login')
         const loginUrl = new URL(`/${locale}/login`, req.url)
         loginUrl.searchParams.set('callbackUrl', pathname)
         return NextResponse.redirect(loginUrl)
       }
 
-      console.log('✅ [Middleware] Auth verified, allowing access')
       
       // If authorized admin route, we skip intlMiddleware as admin routes are not localized
       return NextResponse.next()

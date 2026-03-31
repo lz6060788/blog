@@ -55,6 +55,7 @@ export async function createModelConfig(data: {
   maxTokens?: number
   temperature?: number
   enabled?: boolean
+  capabilityType?: string
 }) {
   const crypto = require('crypto')
   const id = crypto.randomBytes(16).toString('hex')
@@ -73,6 +74,7 @@ export async function createModelConfig(data: {
       baseUrl: data.baseUrl || null,
       maxTokens: data.maxTokens || 300,
       temperature: Math.round((data.temperature || 0.7) * 100), // 转换为整数 (0-100)
+      capabilityType: data.capabilityType || 'text',
       enabled: data.enabled !== undefined ? data.enabled : true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -99,6 +101,7 @@ export async function updateModelConfig(
     maxTokens?: number
     temperature?: number
     enabled?: boolean
+    capabilityType?: string
   }
 ) {
   const updateData: any = {
@@ -112,7 +115,8 @@ export async function updateModelConfig(
   if (data.maxTokens !== undefined) updateData.maxTokens = data.maxTokens
   if (data.temperature !== undefined)
     updateData.temperature = Math.round(data.temperature * 100)
-  if (data.enabled !== undefined) updateData.enabled = data.enabled ? 1 : 0
+  if (data.enabled !== undefined) updateData.enabled = !!data.enabled
+  if (data.capabilityType !== undefined) updateData.capabilityType = data.capabilityType
 
   // 只有提供了非空 API Key 时才更新（空字符串表示不修改）
   if (data.apiKey && data.apiKey.trim()) {
@@ -188,11 +192,13 @@ export async function isConfigNameUnique(
   }
 
   const result = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({ id: aiModelConfigs.id })
     .from(aiModelConfigs)
     .where(and(...conditions))
-
-  return result[0].count === 0
+    .limit(1)
+ 
+  const exists = result.length > 0
+  return !exists
 }
 
 /**

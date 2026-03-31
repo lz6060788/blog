@@ -59,6 +59,11 @@ export function useAIConfigs() {
       return
     }
 
+    // 刷新时，清空已有缓存避免显示过期数据
+    if (forceRefresh) {
+      cachedConfigs = null
+      cachedMappings = null
+    }
     isLoading = true
     if (!forceRefresh) {
       setIsInitialLoading(true)
@@ -68,26 +73,37 @@ export function useAIConfigs() {
 
     loadPromise = (async () => {
       try {
-        const [mappingsRes, configsRes] = await Promise.all([
-          fetch('/api/admin/ai/function-mappings'),
-          fetch('/api/admin/ai/model-configs'),
+        const [mappingsRes, configsRes] = await Promise.allSettled([
+          fetch('/api/admin/ai/function-mappings', { cache: 'no-store' }),
+          fetch('/api/admin/ai/model-configs', { cache: 'no-store' }),
         ])
 
-        if (!mappingsRes.ok || !configsRes.ok) {
+        let nextMappings: FunctionMapping[] = []
+        let nextConfigs: ModelConfig[] = []
+
+        if (mappingsRes.status === 'fulfilled') {
+          const r = mappingsRes.value
+          if (r.ok) {
+            nextMappings = await r.json()
+          }
+        }
+
+        if (configsRes.status === 'fulfilled') {
+          const r = configsRes.value
+          if (r.ok) {
+            nextConfigs = await r.json()
+          }
+        }
+
+        if (nextMappings.length === 0 && nextConfigs.length === 0) {
           throw new Error('加载数据失败')
         }
 
-        const [mappingsData, configsData] = await Promise.all([
-          mappingsRes.json(),
-          configsRes.json(),
-        ])
+        cachedMappings = nextMappings
+        cachedConfigs = nextConfigs
 
-        // 更新缓存
-        cachedMappings = mappingsData
-        cachedConfigs = configsData
-
-        setMappings(mappingsData)
-        setConfigs(configsData)
+        setMappings(nextMappings)
+        setConfigs(nextConfigs)
       } catch (error: any) {
         console.error('加载数据失败:', error)
         toast.error(error.message || '加载数据失败')

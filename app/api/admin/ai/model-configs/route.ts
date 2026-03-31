@@ -25,7 +25,11 @@ export async function GET(request: NextRequest) {
       apiKeyEncrypted: config.apiKeyEncrypted ? `${config.apiKeyEncrypted.slice(0, 8)}****` : '',
     }))
 
-    return NextResponse.json(maskedConfigs)
+    return NextResponse.json(maskedConfigs, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch (error: any) {
     console.error('获取 AI 模型配置失败:', error)
     return NextResponse.json(
@@ -44,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, provider, model, apiKey, baseUrl, maxTokens, temperature, enabled } = body
+    const { name, provider, model, apiKey, baseUrl, maxTokens, temperature, enabled, capabilityType } = body
 
     // 验证必需字段
     if (!name || !provider || !model || !apiKey) {
@@ -73,6 +77,7 @@ export async function POST(request: NextRequest) {
       maxTokens,
       temperature,
       enabled,
+      capabilityType,
     })
 
     // 返回脱敏后的配置

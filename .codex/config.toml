@@ -1,0 +1,6 @@
+[mcp_servers.blog_authoring]
+url = "http://localhost:3000/api/mcp"
+bearer_token_env_var = "BLOG_MCP_API_TOKEN"
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+default_tools_approval_mode = "writes"

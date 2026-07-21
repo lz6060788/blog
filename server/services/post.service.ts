@@ -15,7 +15,7 @@ export interface CreatePostInput {
   content: string
   excerpt?: string
   published?: boolean
-  categoryId?: string
+  categoryId?: string | null
   tags?: string[]
   readTime?: number
   publishedDate?: string
@@ -26,7 +26,7 @@ export interface UpdatePostInput {
   content?: string
   excerpt?: string
   published?: boolean
-  categoryId?: string
+  categoryId?: string | null
   tags?: string[]
   readTime?: number
   publishedDate?: string
@@ -155,6 +155,18 @@ export class PostService {
     options?: ListPostsOptions
   ): Promise<PaginatedPostsResult> {
     return await this.postRepository.listPublished(options)
+  }
+
+  async listPostsForAuthor(
+    userId: string,
+    options?: {
+      status?: 'all' | 'draft' | 'published'
+      search?: string
+      page?: number
+      limit?: number
+    }
+  ) {
+    return await this.postRepository.listForAuthor(userId, options)
   }
 
   /**

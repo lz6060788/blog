@@ -10,12 +10,96 @@
 
 import { db } from '@/server/db'
 import { posts, categories, tags, postTags } from '@/server/db/schema'
-import { eq, sql, desc, inArray } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import { PaginationHelper, DEFAULT_LIMIT } from '@/lib/types/pagination'
 
 export type { CreatePostInput, UpdatePostInput, ListPostsOptions, PostWithRelations, PaginatedPostsResult } from '@/server/services/post.service'
 
 export class PostRepository {
+  /**
+   * 获取指定作者的文章列表。专供需要权限隔离的管理端/MCP 使用。
+   */
+  async listForAuthor(
+    userId: string,
+    options?: {
+      status?: 'all' | 'draft' | 'published'
+      search?: string
+      page?: number
+      limit?: number
+    }
+  ) {
+    const { page, limit, offset } = PaginationHelper.normalizeParams(options)
+    const whereConditions = [eq(posts.authorId, userId)]
+
+    if (options?.status === 'draft') whereConditions.push(eq(posts.published, false))
+    if (options?.status === 'published') whereConditions.push(eq(posts.published, true))
+
+    const search = options?.search?.trim()
+    if (search) {
+      const pattern = `%${search}%`
+      const searchCondition = or(
+        ilike(posts.title, pattern),
+        ilike(posts.excerpt, pattern),
+        ilike(posts.content, pattern)
+      )
+      if (searchCondition) whereConditions.push(searchCondition)
+    }
+
+    const whereClause = and(...whereConditions)
+    const [countResult, postsData] = await Promise.all([
+      db.select({ count: sql<number>`count(*)` }).from(posts).where(whereClause),
+      db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          excerpt: posts.excerpt,
+          published: posts.published,
+          categoryId: posts.categoryId,
+          readTime: posts.readTime,
+          publishedDate: posts.publishedDate,
+          createdAt: posts.createdAt,
+          updatedAt: posts.updatedAt,
+          coverImageUrl: posts.coverImageUrl,
+          categoryName: categories.name,
+          categorySlug: categories.slug,
+        })
+        .from(posts)
+        .leftJoin(categories, eq(posts.categoryId, categories.id))
+        .where(whereClause)
+        .orderBy(desc(posts.updatedAt), desc(posts.createdAt))
+        .limit(limit)
+        .offset(offset),
+    ])
+
+    const postIds = postsData.map((post) => post.id)
+    const tagRows = postIds.length
+      ? await db
+          .select({
+            postId: postTags.postId,
+            id: tags.id,
+            name: tags.name,
+            slug: tags.slug,
+          })
+          .from(postTags)
+          .innerJoin(tags, eq(postTags.tagId, tags.id))
+          .where(inArray(postTags.postId, postIds))
+      : []
+
+    const total = Number(countResult[0]?.count || 0)
+    return {
+      data: postsData.map((post) => ({
+        ...post,
+        category: post.categoryName
+          ? { id: post.categoryId!, name: post.categoryName, slug: post.categorySlug! }
+          : null,
+        tags: tagRows
+          .filter((tag) => tag.postId === post.id)
+          .map(({ id, name, slug }) => ({ id, name, slug })),
+      })),
+      ...PaginationHelper.calculateMetadata(total, page, limit),
+    }
+  }
+
   /**
    * 创建文章
    */
@@ -66,7 +150,7 @@ export class PostRepository {
       content?: string
       excerpt?: string
       published?: boolean
-      categoryId?: string
+      categoryId?: string | null
       tags?: string[]
       readTime?: number
       publishedDate?: string

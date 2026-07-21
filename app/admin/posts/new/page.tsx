@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { MilkdownEditor, MilkdownEditorRef } from '@/components/editor/milkdown'
+import { MilkdownEditor } from '@/components/editor/milkdown'
 import { createPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, Tag as TagIcon, FolderOpen } from 'lucide-react'
@@ -24,12 +24,11 @@ export const dynamic = 'force-dynamic'
 
 export default function NewPostPage() {
   const router = useRouter()
-  const { theme } = useTheme()
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
+  const { resolvedTheme: activeTheme } = useTheme()
+  const resolvedTheme: 'light' | 'dark' = activeTheme === 'dark' ? 'dark' : 'light'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
   const [categoryId, setCategoryId] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
@@ -38,8 +37,7 @@ export default function NewPostPage() {
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
 
   // 文章保存状态
-  const [postId, setPostId] = useState<string | null>(null)
-  const [isSaved, setIsSaved] = useState(false)
+  const [postId] = useState<string | null>(null)
   const [excerpt, setExcerpt] = useState('')
   const [aiSummaryStatus, setAiSummaryStatus] = useState<SummaryStatus>(SummaryStatus.PENDING)
   // 封面状态
@@ -50,22 +48,25 @@ export default function NewPostPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
 
-  const editorRef = useRef<MilkdownEditorRef>(null)
-
   // 设置页面标题
   useEffect(() => {
     document.title = '新建文章 - 管理后台'
   }, [])
 
-  // 解析主题
+  const hasUnsavedChanges = Boolean(
+    title.trim() || content.trim() || categoryId || tags.length || excerpt.trim() || coverImageUrl
+  )
+
   useEffect(() => {
-    if (theme === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setResolvedTheme(isDark ? 'dark' : 'light')
-    } else {
-      setResolvedTheme((theme as 'light' | 'dark') || 'light')
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return
+      event.preventDefault()
+      event.returnValue = ''
     }
-  }, [theme])
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
 
   // 加载分类和标签选项
   useEffect(() => {
@@ -236,7 +237,7 @@ export default function NewPostPage() {
 
   // 取消
   const handleCancel = () => {
-    if (title || content) {
+    if (hasUnsavedChanges) {
       if (confirm('确定要放弃当前编辑的内容吗？')) {
         router.push('/admin/posts')
       }
@@ -246,32 +247,32 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 h-full flex flex-col">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-3">
       {/* 头部 */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+      <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-theme-text-canvas">
-            {isSaved ? '编辑文章' : '新建文章'}
+            新建文章
           </h1>
           <p className="text-sm text-theme-text-secondary mt-1">
-            {isSaved ? '文章已保存，可以继续编辑或生成摘要' : '创建并发布新文章'}
+            创建并发布新文章
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center">
+          <Button variant="outline" onClick={handleCancel} disabled={isSavingDraft || isPublishing}>
             取消
           </Button>
-          <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft}>
-            {isSavingDraft ? '保存中...' : isSaved ? '更新草稿' : '保存草稿'}
+          <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft || isPublishing}>
+            {isSavingDraft ? '保存中...' : '保存草稿'}
           </Button>
-          <Button onClick={handlePublish} disabled={isPublishing}>
+          <Button onClick={handlePublish} disabled={isSavingDraft || isPublishing}>
             {isPublishing ? '发布中...' : '发布'}
           </Button>
         </div>
       </div>
 
       {/* 标题输入 */}
-      <div className="mb-3 flex-shrink-0">
+      <div className="flex-shrink-0">
         <Input
           type="text"
           value={title}
@@ -282,7 +283,7 @@ export default function NewPostPage() {
       </div>
 
       {/* 分类和标签 - 同一行布局 */}
-      <div className="flex items-center gap-3 mb-3 flex-shrink-0">
+      <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
         {/* 分类选择器 */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <FolderOpen className="w-4 h-4 text-theme-text-secondary" />
@@ -341,7 +342,7 @@ export default function NewPostPage() {
 
       {/* 已有标签快速选择 */}
       {!isLoadingOptions && existingTags.length > 0 && (
-        <div className="flex items-center gap-2 mb-3 flex-shrink-0 pl-7">
+        <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:pl-7">
           <span className="text-xs text-theme-text-tertiary">快速选择:</span>
           {existingTags.map(tag => (
             <button
@@ -361,38 +362,38 @@ export default function NewPostPage() {
         </div>
       )}
 
-      {/* 封面预览区域 */}
-      <CoverPreview
-        postId={postId}
-        initialCoverUrl={coverImageUrl}
-        initialStatus={aiCoverStatus}
-        onCoverChange={setCoverImageUrl}
-        onStatusChange={setAiCoverStatus}
-        title={title}
-        content={content}
-      />
+      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Milkdown Markdown 编辑器 */}
+        <div className="min-h-[520px] xl:min-h-0">
+          <MilkdownEditor
+            initialValue=""
+            onChange={setContent}
+            theme={resolvedTheme}
+            className="h-full min-h-[520px] xl:min-h-0"
+          />
+        </div>
 
-      {/* AI 摘要区域 */}
-      <AISummaryEditor
-        postId={postId}
-        initialSummary={excerpt}
-        initialStatus={aiSummaryStatus}
-        onSummaryChange={setExcerpt}
-        onStatusChange={setAiSummaryStatus}
-        title={title}
-        content={content}
-      />
+        <aside className="min-h-0 space-y-3 xl:overflow-y-auto xl:pr-1">
+          <CoverPreview
+            postId={postId}
+            initialCoverUrl={coverImageUrl}
+            initialStatus={aiCoverStatus}
+            onCoverChange={setCoverImageUrl}
+            onStatusChange={setAiCoverStatus}
+            title={title}
+            content={content}
+          />
 
-      {/* Milkdown Markdown 编辑器 */}
-      <div className="flex-1 min-h-0 flex-shrink-0">
-        <MilkdownEditor
-          ref={editorRef}
-          initialValue=""
-          onChange={setContent}
-          height="100%"
-          theme={resolvedTheme}
-          className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden h-full"
-        />
+          <AISummaryEditor
+            postId={postId}
+            initialSummary={excerpt}
+            initialStatus={aiSummaryStatus}
+            onSummaryChange={setExcerpt}
+            onStatusChange={setAiSummaryStatus}
+            title={title}
+            content={content}
+          />
+        </aside>
       </div>
     </div>
   )

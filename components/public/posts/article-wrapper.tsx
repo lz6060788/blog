@@ -51,7 +51,7 @@ export function ArticleWrapper({
         />
 
         {/* Content */}
-        <div className="prose prose-zinc prose-lg max-w-none">
+        <div className="max-w-none">
           <div className="bg-theme-card-bg rounded-[2rem] p-8 md:p-12 border border-theme-card shadow-card">
             <ArticleContent content={content} />
           </div>

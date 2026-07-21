@@ -1,5 +1,5 @@
-﻿// @ts-ignore
-import { relations, sql } from "drizzle-orm";
+// @ts-ignore
+import { relations } from "drizzle-orm";
 import { pgTable, text, primaryKey, integer, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 
 // ============================================================================
@@ -13,8 +13,8 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   emailVerified: text("emailVerified"),
   image: text("image"),
-  createdAt: text("createdAt").notNull().default(sql`now()`),
-  updatedAt: text("updatedAt").notNull().default(sql`now()`),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 会话表
@@ -64,8 +64,8 @@ export const categories = pgTable("categories", {
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
-  createdAt: text("createdAt").notNull().default(sql`now()`),
-  updatedAt: text("updatedAt").notNull().default(sql`now()`),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 标签表
@@ -73,8 +73,8 @@ export const tags = pgTable("tags", {
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
-  createdAt: text("createdAt").notNull().default(sql`now()`),
-  updatedAt: text("updatedAt").notNull().default(sql`now()`),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // ============================================================================
@@ -97,8 +97,8 @@ export const posts = pgTable("posts", {
   aiCoverStatus: text("ai_cover_status"), // 'pending' | 'generating' | 'done' | 'failed' | 'manual'
   aiCoverGeneratedAt: text("ai_cover_generated_at"),
   aiCoverPrompt: text("ai_cover_prompt"), // 记录生成封面时使用的 Prompt
-  createdAt: text("createdAt").notNull().default(sql`now()`),
-  updatedAt: text("updatedAt").notNull().default(sql`now()`),
+  createdAt: text("createdAt").notNull().default(new Date().toISOString()),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 文章-标签关联表（多对多）
@@ -127,8 +127,8 @@ export const aiModelConfigs = pgTable("ai_model_configs", {
   temperature: integer("temperature").notNull().default(7), // stored as integer (0-100, divide by 100 for actual value)
   capabilityType: text("capability_type").notNull().default('text'), // 'text' | 'image' - 区分文本生成和图像生成能力
   enabled: boolean("enabled").notNull().default(true),
-  createdAt: text("created_at").notNull().default(sql`now()`),
-  updatedAt: text("updated_at").notNull().default(sql`now()`),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // AI 功能映射表
@@ -136,8 +136,8 @@ export const aiFunctionMappings = pgTable("ai_function_mappings", {
   id: text("id").primaryKey(),
   functionName: text("function_name").notNull().unique(), // 'summary' | 'cover' | 'search'
   modelConfigId: text("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
-  createdAt: text("created_at").notNull().default(sql`now()`),
-  updatedAt: text("updated_at").notNull().default(sql`now()`),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // AI 调用日志表
@@ -157,7 +157,7 @@ export const aiCallLogs = pgTable("ai_call_logs", {
   imageSize: text("image_size"), // e.g., '1024x1024', '1792x1024'
   imageFormat: text("image_format"), // e.g., 'png', 'jpg'
   imageCost: integer("image_cost"), // 图像生成成本（以分为单位）
-  createdAt: text("created_at").notNull().default(sql`now()`),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
 });
 
 // ============================================================================
@@ -172,21 +172,7 @@ export const fileUploads = pgTable("file_uploads", {
   size: integer("size").notNull(), // 文件大小（字节）
   mimeType: text("mime_type").notNull(), // MIME 类型
   uploaderId: text("uploader_id").notNull().references(() => users.id, { onDelete: "cascade" }), // 上传者用户 ID
-  createdAt: text("created_at").notNull().default(sql`now()`), // 上传时间
-});
-
-// 文章资源表：记录由 ChatGPT、后台 AI 或用户上传并绑定到文章的图片
-export const postAssets = pgTable("post_assets", {
-  id: text("id").primaryKey(),
-  postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
-  fileUploadId: text("file_upload_id").notNull().references(() => fileUploads.id, { onDelete: "cascade" }),
-  kind: text("kind").notNull(), // 'cover' | 'inline'
-  source: text("source").notNull(), // 'chatgpt-imagegen' | 'blog-ai' | 'manual'
-  alt: text("alt"),
-  prompt: text("prompt"),
-  fileHash: text("file_hash").notNull(),
-  idempotencyKey: text("idempotency_key").notNull().unique(),
-  createdAt: text("created_at").notNull().default(sql`now()`),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()), // 上传时间
 });
 
 // ============================================================================
@@ -210,8 +196,8 @@ export const songs = pgTable("songs", {
   fileFormat: text("file_format"), // 文件格式（mp3, ogg等）
   uploadStatus: text("upload_status").notNull().default('pending'), // pending, uploading, completed, failed
   metadata: text("metadata"), // JSON格式：其他音频元数据（比特率、采样率等）
-  createdAt: text("created_at").notNull().default(sql`now()`),
-  updatedAt: text("updated_at").notNull().default(sql`now()`),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // 歌单表
@@ -221,8 +207,8 @@ export const playlists = pgTable("playlists", {
   description: text("description"),
   coverColor: text("cover_color").notNull().default('#6366f1'), // 封面渐变色
   isPublic: boolean("is_public").notNull().default(false),
-  createdAt: text("created_at").notNull().default(sql`now()`),
-  updatedAt: text("updated_at").notNull().default(sql`now()`),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 });
 
 // 歌单-歌曲关联表（多对多）
@@ -255,7 +241,7 @@ export const settings = pgTable("settings", {
   authorSocialGithub: text("author_social_github").default('github.com/alexchen'),
   authorSocialTwitter: text("author_social_twitter").default('twitter.com/alexchen'),
   authorSocialLinkedin: text("author_social_linkedin"),
-  updatedAt: text("updatedAt").notNull().default(sql`now()`),
+  updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
 // 文章关系定义
@@ -269,7 +255,6 @@ export const postRelations = relations(posts, ({ one, many }) => ({
     references: [categories.id],
   }),
   tags: many(postTags),
-  assets: many(postAssets),
 }));
 
 // 分类关系定义
@@ -295,23 +280,10 @@ export const postTagRelations = relations(postTags, ({ one }) => ({
 }));
 
 // 文件上传关系定义
-export const fileUploadRelations = relations(fileUploads, ({ one, many }) => ({
+export const fileUploadRelations = relations(fileUploads, ({ one }) => ({
   uploader: one(users, {
     fields: [fileUploads.uploaderId],
     references: [users.id],
-  }),
-  postAssets: many(postAssets),
-}));
-
-// 文章资源关系定义
-export const postAssetRelations = relations(postAssets, ({ one }) => ({
-  post: one(posts, {
-    fields: [postAssets.postId],
-    references: [posts.id],
-  }),
-  fileUpload: one(fileUploads, {
-    fields: [postAssets.fileUploadId],
-    references: [fileUploads.id],
   }),
 }));
 
@@ -376,7 +348,6 @@ export const schema = {
   aiFunctionMappings,
   aiCallLogs,
   fileUploads,
-  postAssets,
   songs,
   playlists,
   playlistSongs,

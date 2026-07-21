@@ -92,7 +92,7 @@ export async function POST(request: Request) {
           error: ERROR_CODES.INVALID_FILE_TYPE,
           message: "不支持的文件类型",
           details: {
-            allowedTypes: ["jpg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "txt", "md"],
+            allowedTypes: ["jpg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "txt", "md", "mp3", "ogg", "wav", "flac", "m4a", "aac", "mp4", "mov", "webm"],
           },
         },
         { status: 400 }
@@ -100,13 +100,18 @@ export async function POST(request: Request) {
     }
 
     // 4. 文件大小验证
-    if (!validateFileSize(file.size)) {
+    const requestedExtension = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!validateFileSize(file.size, requestedExtension)) {
       return NextResponse.json(
         {
           error: ERROR_CODES.FILE_TOO_LARGE,
           message: "文件大小超过限制",
           details: {
-            maxSize: 10 * 1024 * 1024, // 5MB
+            maxSize: requestedExtension === 'mp4' || requestedExtension === 'mov' || requestedExtension === 'webm'
+              ? 100 * 1024 * 1024
+              : ['mp3', 'ogg', 'wav', 'flac', 'm4a', 'aac'].includes(requestedExtension)
+                ? 50 * 1024 * 1024
+                : 10 * 1024 * 1024,
             actualSize: file.size,
           },
         },

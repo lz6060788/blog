@@ -26,6 +26,7 @@ async function main() {
       'create_post_draft',
       'update_post_draft',
       'upload_post_cover',
+      'upload_file',
       'get_post_preview',
       'publish_post',
     ]

@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 
 import { authoringService } from '@/server/services/authoring.service'
-import { postAssetService } from '@/server/services/post-asset.service'
+import { mcpUploadService } from '@/server/services/mcp-upload.service'
 
 const previewOutputSchema = {
   postId: z.string(),
@@ -113,7 +113,7 @@ function errorResult(error: unknown) {
 export function createBlogMcpServer(userId: string): McpServer {
   const server = new McpServer({
     name: 'personal-blog-authoring',
-    version: '0.2.0',
+    version: '0.3.0',
   })
 
   server.registerTool(
@@ -330,48 +330,74 @@ export function createBlogMcpServer(userId: string): McpServer {
     'upload_post_cover',
     {
       title: 'Upload generated cover to the blog',
-      description: 'Upload the final ChatGPT-generated cover image to COS and attach it to a draft. Use only after image generation and user-requested revisions are complete.',
+      description: 'Upload the final ChatGPT-generated cover image to COS and set posts.coverImageUrl. Use only after image generation and user-requested revisions are complete.',
       inputSchema: {
         postId: z.string().uuid(),
         cover: openAiFileSchema.describe('ChatGPT file reference for the generated cover.'),
-        alt: z.string().trim().max(300).optional(),
         prompt: z.string().trim().max(4000).optional(),
-        idempotencyKey: z.string().trim().min(8).max(128),
       },
       outputSchema: {
-        assetId: z.string(),
         postId: z.string(),
         url: z.string(),
         key: z.string(),
         filename: z.string(),
         size: z.number(),
         mimeType: z.string(),
-        source: z.literal('chatgpt-imagegen'),
+        source: z.literal('chatgpt-file'),
         editorUrl: z.string(),
       },
       annotations: {
         readOnlyHint: false,
         openWorldHint: true,
         destructiveHint: false,
-        idempotentHint: true,
+        idempotentHint: false,
       },
       _meta: {
         'openai/fileParams': ['cover'],
       },
     },
-    async ({ postId, cover, alt, prompt, idempotencyKey }) => {
+    async ({ postId, cover, prompt }) => {
       try {
-        const asset = await postAssetService.uploadChatGptCover({
+        const uploaded = await mcpUploadService.uploadCover({
           postId,
           userId,
-          cover,
-          alt,
+          file: cover,
           prompt,
-          idempotencyKey,
         })
         const preview = await authoringService.getPreview(userId, postId)
-        const result = { ...asset, editorUrl: preview.editorUrl }
-        return successResult('ChatGPT 生成的封面已上传到 COS 并绑定到草稿。', result)
+        const result = { ...uploaded, editorUrl: preview.editorUrl }
+        return successResult('ChatGPT 生成的封面已上传到 COS，并写入文章封面地址。', result)
+      } catch (error) {
+        return errorResult(error)
+      }
+    }
+  )
+
+  server.registerTool(
+    'upload_file',
+    {
+      title: 'Upload file to COS',
+      description: 'Upload a client-provided file to COS and return only its public URL. Supports common images, audio, video including MP4, and documents. The caller decides how to use the URL.',
+      inputSchema: {
+        file: openAiFileSchema.describe('Client file reference to upload to COS.'),
+      },
+      outputSchema: {
+        url: z.string(),
+      },
+      annotations: {
+        readOnlyHint: false,
+        openWorldHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+      },
+      _meta: {
+        'openai/fileParams': ['file'],
+      },
+    },
+    async ({ file }) => {
+      try {
+        const result = await mcpUploadService.uploadFile(file)
+        return successResult('文件已上传到 COS。', result)
       } catch (error) {
         return errorResult(error)
       }

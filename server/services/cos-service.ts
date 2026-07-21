@@ -40,6 +40,7 @@ const ALLOWED_FILE_TYPES = {
   image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
   document: ['pdf', 'doc', 'docx', 'txt', 'md'],
   audio: ['mp3', 'ogg', 'wav', 'flac', 'm4a', 'aac'],
+  video: ['mp4', 'mov', 'webm'],
 };
 
 /**
@@ -48,16 +49,20 @@ const ALLOWED_FILE_TYPES = {
 const ALLOWED_EXTENSIONS = [
   ...ALLOWED_FILE_TYPES.image,
   ...ALLOWED_FILE_TYPES.document,
+  ...ALLOWED_FILE_TYPES.audio,
+  ...ALLOWED_FILE_TYPES.video,
 ];
 
 /**
  * 最大文件大小
  * - 图片/文档: 10MB
  * - 音频: 50MB
+ * - 视频: 100MB
  */
 const MAX_FILE_SIZE = {
   default: 10 * 1024 * 1024, // 10MB
   audio: 50 * 1024 * 1024, // 50MB
+  video: 100 * 1024 * 1024, // 100MB
 };
 
 /**
@@ -70,7 +75,10 @@ const FILE_MAGIC_NUMBERS: Record<string, RegExp> = {
   'gif': /^GIF8[79]a/,
   'webp': /^RIFF....WEBP/,
   'pdf': /^%PDF/,
-  'zip': /^PK\x03\x04/, // docx 文件实际上是 zip 格式
+  'docx': /^PK\x03\x04/,
+  'mp4': /^....ftyp/,
+  'mov': /^....ftyp/,
+  'webm': /^\x1A\x45\xDF\xA3/,
 };
 
 // ============================================================================
@@ -124,7 +132,14 @@ export function validateFileType(filename: string): boolean {
  * @returns 是否在允许的大小范围内
  */
 export function validateFileSize(size: number, fileType?: string): boolean {
-  const maxSize = fileType === 'audio' ? MAX_FILE_SIZE.audio : MAX_FILE_SIZE.default;
+  const normalizedType = fileType?.toLowerCase() || '';
+  const isAudio = normalizedType === 'audio' || ALLOWED_FILE_TYPES.audio.includes(normalizedType);
+  const isVideo = normalizedType === 'video' || ALLOWED_FILE_TYPES.video.includes(normalizedType);
+  const maxSize = isVideo
+    ? MAX_FILE_SIZE.video
+    : isAudio
+      ? MAX_FILE_SIZE.audio
+      : MAX_FILE_SIZE.default;
   return size > 0 && size <= maxSize;
 }
 
@@ -174,6 +189,10 @@ export function getMimeType(filename: string): string {
     flac: 'audio/flac',
     m4a: 'audio/mp4',
     aac: 'audio/aac',
+    // 视频
+    mp4: 'video/mp4',
+    mov: 'video/quicktime',
+    webm: 'video/webm',
   };
 
   return mimeTypes[ext] || 'application/octet-stream';

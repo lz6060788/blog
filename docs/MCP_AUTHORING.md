@@ -53,6 +53,7 @@ npm run mcp:check
 | `create_post_draft` | 创建 Markdown 草稿 | 是 |
 | `update_post_draft` | 修改未发布草稿 | 是 |
 | `upload_post_cover` | 接收 ChatGPT 文件并上传 COS | 是 |
+| `upload_file` | 上传通用文件到 COS，仅返回 URL | 是 |
 | `get_post_preview` | 获取当前文章与预览地址 | 否 |
 | `publish_post` | 发布已确认的文章 | 是 |
 
@@ -73,14 +74,8 @@ npm run mcp:check
 }
 ```
 
-服务端只接受 HTTPS 的 JPEG、PNG 和 WebP，限制为 10MB，并检查 DNS、重定向、MIME 与文件魔数。验证通过后，文件会上传 COS，同时写入 `file_uploads` 和 `post_assets`，最后更新文章封面。
+服务端只接受 HTTPS 的 JPEG、PNG 和 WebP，限制为 10MB，并检查 DNS、重定向、MIME 与文件魔数。验证通过后，文件会上传 COS，封面 URL 直接写入现有的 `posts.cover_image_url`。
 
-## 数据库迁移
+`upload_file` 是通用文件上传工具，支持常用图片、音频、视频（MP4、MOV、WebM）和文档。工具只返回 COS 公开 URL，不判断 URL 应用于 Markdown、视频、附件还是其他场景；具体用法由 MCP 调用方决定。视频上限为 100MB，音频为 50MB，图片和文档为 10MB。
 
-遵循项目迁移规范：
-
-```bash
-npm run db:migrate
-```
-
-不要使用 `drizzle-kit push`。
+本次 MCP 图片能力复用现有 `posts` 和 COS，不新增数据表，也不需要数据库迁移。

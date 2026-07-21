@@ -49,6 +49,8 @@ MCP 客户端
 - 上传封面时，腾讯云 COS 环境变量完整；
 - MCP Token 至少 32 个字符。
 
+MCP 图片功能复用现有 `posts` 表和 COS，不新增业务表；已有 PostgreSQL 基线迁移完成后，不需要为 MCP 额外执行数据库迁移。
+
 ## 3. 配置博客服务端
 
 在 `.env.local` 或生产环境变量中配置：
@@ -66,7 +68,7 @@ BLOG_PUBLIC_URL=http://localhost:3000
 # 浏览器客户端允许的 Origin
 MCP_ALLOWED_ORIGINS=https://chatgpt.com,https://chat.openai.com
 
-# 可选：限制临时图片 URL 的下载域名
+# 可选：限制临时文件 URL 的下载域名
 MCP_FILE_DOWNLOAD_HOSTS=
 ```
 
@@ -187,7 +189,7 @@ try {
 npm run mcp:check
 ```
 
-成功时应发现 9 个工具，并完成 `get_blog_context`、`list_posts` 和 `get_post` 只读调用。
+成功时应发现 10 个工具，并完成 `get_blog_context`、`list_posts` 和 `get_post` 只读调用。
 
 ## 6. 可用工具
 
@@ -200,6 +202,7 @@ npm run mcp:check
 | `create_post_draft` | 创建私有草稿 | 是 | 标题最多 200 字，正文最多 300,000 字符，摘要最多 500 字 |
 | `update_post_draft` | 更新未发布草稿 | 是 | 不能修改已发布文章 |
 | `upload_post_cover` | 下载临时图片、上传 COS 并绑定封面 | 是 | 仅 HTTPS；PNG/JPEG/WebP；最大 10MB |
+| `upload_file` | 上传通用文件到 COS，仅返回 URL | 是 | 支持图片、音频、视频和常用文档，URL 用法由调用方决定 |
 | `get_post_preview` | 回读已保存的文章与预览链接 | 否 | 需要文章 UUID |
 | `publish_post` | 发布已审核草稿 | 是 | 必须传入 `confirm: true`，且用户需在当前对话明确确认 |
 
@@ -271,9 +274,7 @@ npm run mcp:check
     "mime_type": "image/png",
     "file_name": "cover.png"
   },
-  "alt": "封面替代文本",
-  "prompt": "生成封面时使用的提示词",
-  "idempotencyKey": "article-cover-v1-unique-key"
+  "prompt": "生成封面时使用的提示词"
 }
 ```
 
@@ -285,8 +286,17 @@ npm run mcp:check
 4. 限制图片为 JPEG、PNG 或 WebP，最大 10MB；
 5. 校验响应 MIME 与文件魔数；
 6. 上传至腾讯云 COS；
-7. 写入 `file_uploads`、`post_assets` 并更新文章封面；
-8. 相同 `idempotencyKey` 重试时返回原结果，避免重复上传。
+7. 将 COS URL 直接写入现有的 `posts.cover_image_url`。
+
+通用文件使用 `upload_file`。工具只上传 COS，并且只返回公开 URL：
+
+```json
+{
+  "url": "https://cos.example.com/file.mp4"
+}
+```
+
+工具支持常用图片、音频、视频（MP4、MOV、WebM）和文档。视频上限为 100MB，音频为 50MB，图片和文档为 10MB。返回 URL 如何写入 Markdown、作为视频地址或附件链接，完全由 MCP 调用方处理，不建立额外数据库关联表。
 
 若使用的客户端只能生成本地文件，需要先把文件放到一个临时、公开、HTTPS 可下载的位置，再调用此工具；完成后应删除临时对象。
 
@@ -354,7 +364,7 @@ Last-Event-ID
 - [ ] 服务端环境变量已配置且未提交到 Git；
 - [ ] 管理员已登录并存在于数据库；
 - [ ] `npm run mcp:check` 通过；
-- [ ] 客户端能够列出 9 个工具；
+- [ ] 客户端能够列出 10 个工具；
 - [ ] `get_blog_context` 返回 `zh-CN` 和 `markdown`；
 - [ ] 可以创建并回读未发布草稿；
 - [ ] 封面上传能够安全写入 COS；

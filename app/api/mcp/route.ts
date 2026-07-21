@@ -6,7 +6,7 @@ import { createBlogMcpServer } from '@/server/mcp/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 function corsHeaders(request: Request): HeadersInit {
   const origin = request.headers.get('origin')

@@ -61,9 +61,13 @@ npm run mcp:check
 
 编辑文章时应先调用 `get_post`，然后把返回的 `updatedAt` 原样作为 `update_post.expectedUpdatedAt`。如果文章在读取后被其他客户端修改，MCP 会拒绝覆盖并要求重新读取。
 
-## 封面文件传输
+## 文件传输
 
-`upload_post_cover` 将顶层 `cover` 参数声明为 `_meta["openai/fileParams"]`。ChatGPT 会传入：
+`upload_post_cover` 和 `upload_file` 均支持两种输入方式。
+
+### ChatGPT 临时文件引用
+
+两个工具分别将顶层 `cover` 和 `file` 参数声明为 `_meta["openai/fileParams"]`。ChatGPT 可以传入：
 
 ```json
 {
@@ -74,8 +78,37 @@ npm run mcp:check
 }
 ```
 
-服务端只接受 HTTPS 的 JPEG、PNG 和 WebP，限制为 10MB，并检查 DNS、重定向、MIME 与文件魔数。验证通过后，文件会上传 COS，封面 URL 直接写入现有的 `posts.cover_image_url`。
+使用临时文件引用时，服务端只接受 HTTPS 地址；封面只支持 JPEG、PNG 和 WebP，限制为 10MB，并检查 DNS、重定向、MIME 与文件魔数。验证通过后，文件会上传 COS，封面 URL 直接写入现有的 `posts.cover_image_url`。
+
+### Base64
+
+调用方也可以直接传入原始 Base64：
+
+```json
+{
+  "file": {
+    "base64": "iVBORw0KGgoAAA...",
+    "mime_type": "image/png",
+    "file_name": "diagram.png"
+  }
+}
+```
+
+或传入带 MIME 的 Data URL，此时 `mime_type` 可以省略：
+
+```json
+{
+  "file": {
+    "base64": "data:image/png;base64,iVBORw0KGgoAAA...",
+    "file_name": "diagram.png"
+  }
+}
+```
+
+封面上传时将顶层 `file` 攺为 `cover`，并同时传入 `postId`。Base64 会经过格式、MIME、大小与文件魔数校验；不接受 Base64URL 字符集或包含空白的编码内容。
 
 `upload_file` 是通用文件上传工具，支持常用图片、音频、视频（MP4、MOV、WebM）和文档。工具只返回 COS 公开 URL，不判断 URL 应用于 Markdown、视频、附件还是其他场景；具体用法由 MCP 调用方决定。视频上限为 100MB，音频为 50MB，图片和文档为 10MB。
+
+Base64 编码会增加约三分之一的请求体积并占用更多内存，因此大体积音视频仍建议使用临时 HTTPS 文件引用。
 
 本次 MCP 图片能力复用现有 `posts` 和 COS，不新增数据表，也不需要数据库迁移。

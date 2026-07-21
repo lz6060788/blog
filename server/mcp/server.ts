@@ -326,6 +326,14 @@ export function createBlogMcpServer(userId: string): McpServer {
     file_name: z.string().optional(),
   }).strict()
 
+  const base64FileSchema = z.object({
+    base64: z.string().min(1).describe('Raw Base64 data or a data:<mime>;base64,... URL.'),
+    mime_type: z.string().optional().describe('Required for raw Base64; optional for a typed Data URL.'),
+    file_name: z.string().optional(),
+  }).strict()
+
+  const mcpFileSchema = z.union([openAiFileSchema, base64FileSchema])
+
   server.registerTool(
     'upload_post_cover',
     {
@@ -333,7 +341,7 @@ export function createBlogMcpServer(userId: string): McpServer {
       description: 'Upload the final ChatGPT-generated cover image to COS and set posts.coverImageUrl. Use only after image generation and user-requested revisions are complete.',
       inputSchema: {
         postId: z.string().uuid(),
-        cover: openAiFileSchema.describe('ChatGPT file reference for the generated cover.'),
+        cover: mcpFileSchema.describe('ChatGPT file reference or Base64 data for the generated cover.'),
         prompt: z.string().trim().max(4000).optional(),
       },
       outputSchema: {
@@ -343,7 +351,7 @@ export function createBlogMcpServer(userId: string): McpServer {
         filename: z.string(),
         size: z.number(),
         mimeType: z.string(),
-        source: z.literal('chatgpt-file'),
+        source: z.enum(['chatgpt-file', 'base64']),
         editorUrl: z.string(),
       },
       annotations: {
@@ -379,7 +387,7 @@ export function createBlogMcpServer(userId: string): McpServer {
       title: 'Upload file to COS',
       description: 'Upload a client-provided file to COS and return only its public URL. Supports common images, audio, video including MP4, and documents. The caller decides how to use the URL.',
       inputSchema: {
-        file: openAiFileSchema.describe('Client file reference to upload to COS.'),
+        file: mcpFileSchema.describe('Client file reference or Base64 data to upload to COS.'),
       },
       outputSchema: {
         url: z.string(),

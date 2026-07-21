@@ -40,12 +40,20 @@ const TEN_MB = 10 * 1024 * 1024
 const FIFTY_MB = 50 * 1024 * 1024
 const ONE_HUNDRED_MB = 100 * 1024 * 1024
 
-export interface OpenAIFileInput {
+export interface RemoteFileInput {
   download_url: string
   file_id: string
   mime_type?: string
   file_name?: string
 }
+
+export interface Base64FileInput {
+  base64: string
+  mime_type?: string
+  file_name?: string
+}
+
+export type McpFileInput = RemoteFileInput | Base64FileInput
 
 interface UploadedFile {
   url: string
@@ -53,7 +61,7 @@ interface UploadedFile {
   filename: string
   size: number
   mimeType: string
-  source: 'chatgpt-file'
+  source: 'chatgpt-file' | 'base64'
 }
 
 function normalizeMimeType(value: string | null | undefined): string | undefined {
@@ -145,7 +153,7 @@ async function readLimitedBody(response: Response, maxBytes: number): Promise<Bu
   return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), totalBytes)
 }
 
-function safeFilename(input: OpenAIFileInput, mimeType: string, prefix: string): string {
+function safeFilename(input: { file_name?: string }, mimeType: string, prefix: string): string {
   const extension = FILE_EXTENSION_BY_MIME.get(mimeType)
   if (!extension) throw new Error(`不支持的文件类型：${mimeType}`)
   const baseName = (input.file_name || `${prefix}-${Date.now()}`)
@@ -156,8 +164,45 @@ function safeFilename(input: OpenAIFileInput, mimeType: string, prefix: string):
 }
 
 export class McpUploadService {
+  private async uploadBuffer(input: {
+    buffer: Buffer
+    mimeType: string
+    fileName?: string
+    prefix: string
+    source: UploadedFile['source']
+    allowedMimeTypes?: Set<string>
+  }): Promise<UploadedFile> {
+    if (!FILE_EXTENSION_BY_MIME.has(input.mimeType)) {
+      throw new Error(`不支持的文件类型：${input.mimeType}`)
+    }
+    if (input.allowedMimeTypes && !input.allowedMimeTypes.has(input.mimeType)) {
+      throw new Error('文章封面仅支持 JPEG、PNG 或 WebP')
+    }
+
+    const maxBytes = maxSizeForMimeType(input.mimeType)
+    if (input.buffer.length === 0) throw new Error('文件内容为空')
+    if (input.buffer.length > maxBytes) {
+      throw new Error(`文件超过 ${Math.floor(maxBytes / 1024 / 1024)}MB 限制`)
+    }
+
+    const filename = safeFilename({ file_name: input.fileName }, input.mimeType, input.prefix)
+    const extension = filename.split('.').pop() || ''
+    if (!validateFileMagicNumber(input.buffer, extension)) {
+      throw new Error('文件内容与声明的文件类型不一致')
+    }
+
+    const uploaded = await uploadFile(input.buffer, filename)
+    return {
+      ...uploaded,
+      filename,
+      size: input.buffer.byteLength,
+      mimeType: getMimeType(filename),
+      source: input.source,
+    }
+  }
+
   private async uploadRemoteFile(
-    input: OpenAIFileInput,
+    input: RemoteFileInput,
     prefix: string,
     allowedMimeTypes?: Set<string>
   ): Promise<UploadedFile> {
@@ -173,7 +218,6 @@ export class McpUploadService {
     const mimeType = supportedResponseMimeType || supportedDeclaredMimeType
 
     if (!mimeType) throw new Error('无法识别或不支持该文件类型')
-    if (allowedMimeTypes && !allowedMimeTypes.has(mimeType)) throw new Error('文章封面仅支持 JPEG、PNG 或 WebP')
     if (responseMimeType && responseMimeType !== 'application/octet-stream' && !supportedResponseMimeType) {
       throw new Error(`文件响应类型不受支持：${responseMimeType}`)
     }
@@ -181,25 +225,75 @@ export class McpUploadService {
       throw new Error('文件响应类型与客户端声明类型不一致')
     }
 
-    const filename = safeFilename(input, mimeType, prefix)
     const buffer = await readLimitedBody(response, maxSizeForMimeType(mimeType))
-    const extension = filename.split('.').pop() || ''
-    if (!validateFileMagicNumber(buffer, extension)) throw new Error('文件内容与声明的文件类型不一致')
-
-    const uploaded = await uploadFile(buffer, filename)
-    return {
-      ...uploaded,
-      filename,
-      size: buffer.byteLength,
-      mimeType: getMimeType(filename),
+    return this.uploadBuffer({
+      buffer,
+      mimeType,
+      fileName: input.file_name,
+      prefix,
       source: 'chatgpt-file',
+      allowedMimeTypes,
+    })
+  }
+
+  private async uploadBase64File(
+    input: Base64FileInput,
+    prefix: string,
+    allowedMimeTypes?: Set<string>
+  ): Promise<UploadedFile> {
+    const dataUrlMatch = input.base64.match(/^data:([^;,]+);base64,([\s\S]*)$/)
+    const dataUrlMimeType = normalizeMimeType(dataUrlMatch?.[1])
+    const declaredMimeType = normalizeMimeType(input.mime_type)
+
+    if (dataUrlMimeType && declaredMimeType && dataUrlMimeType !== declaredMimeType) {
+      throw new Error('Base64 Data URL 类型与客户端声明类型不一致')
     }
+
+    const mimeType = dataUrlMimeType || declaredMimeType
+    if (!mimeType || !FILE_EXTENSION_BY_MIME.has(mimeType)) {
+      throw new Error('Base64 文件必须提供受支持的 mime_type，或使用带 MIME 的 Data URL')
+    }
+    if (allowedMimeTypes && !allowedMimeTypes.has(mimeType)) {
+      throw new Error('文章封面仅支持 JPEG、PNG 或 WebP')
+    }
+
+    const payload = dataUrlMatch?.[2] ?? input.base64
+    if (!payload || payload.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(payload)) {
+      throw new Error('Base64 文件内容格式无效')
+    }
+
+    const padding = payload.endsWith('==') ? 2 : payload.endsWith('=') ? 1 : 0
+    const decodedBytes = (payload.length / 4) * 3 - padding
+    const maxBytes = maxSizeForMimeType(mimeType)
+    if (decodedBytes <= 0) throw new Error('文件内容为空')
+    if (decodedBytes > maxBytes) {
+      throw new Error(`文件超过 ${Math.floor(maxBytes / 1024 / 1024)}MB 限制`)
+    }
+
+    return this.uploadBuffer({
+      buffer: Buffer.from(payload, 'base64'),
+      mimeType,
+      fileName: input.file_name,
+      prefix,
+      source: 'base64',
+      allowedMimeTypes,
+    })
+  }
+
+  private async uploadInput(
+    input: McpFileInput,
+    prefix: string,
+    allowedMimeTypes?: Set<string>
+  ): Promise<UploadedFile> {
+    return 'download_url' in input
+      ? this.uploadRemoteFile(input, prefix, allowedMimeTypes)
+      : this.uploadBase64File(input, prefix, allowedMimeTypes)
   }
 
   async uploadCover(input: {
     postId: string
     userId: string
-    file: OpenAIFileInput
+    file: McpFileInput
     prompt?: string
   }) {
     const ownedPost = await db
@@ -209,7 +303,7 @@ export class McpUploadService {
       .limit(1)
     if (!ownedPost[0]) throw new Error('文章不存在或无权修改')
 
-    const uploaded = await this.uploadRemoteFile(input.file, 'chatgpt-cover', COVER_MIME_TYPES)
+    const uploaded = await this.uploadInput(input.file, 'chatgpt-cover', COVER_MIME_TYPES)
     const now = new Date().toISOString()
     try {
       await db
@@ -229,8 +323,8 @@ export class McpUploadService {
     return { postId: input.postId, ...uploaded }
   }
 
-  async uploadFile(file: OpenAIFileInput): Promise<{ url: string }> {
-    const uploaded = await this.uploadRemoteFile(file, 'chatgpt-file')
+  async uploadFile(file: McpFileInput): Promise<{ url: string }> {
+    const uploaded = await this.uploadInput(file, 'chatgpt-file')
     return { url: uploaded.url }
   }
 }

@@ -201,8 +201,8 @@ npm run mcp:check
 | `update_post` | 编辑草稿或已发布文章 | 是 | 先读取文章，并传入匹配的 `expectedUpdatedAt` |
 | `create_post_draft` | 创建私有草稿 | 是 | 标题最多 200 字，正文最多 300,000 字符，摘要最多 500 字 |
 | `update_post_draft` | 更新未发布草稿 | 是 | 不能修改已发布文章 |
-| `upload_post_cover` | 下载临时图片、上传 COS 并绑定封面 | 是 | 仅 HTTPS；PNG/JPEG/WebP；最大 10MB |
-| `upload_file` | 上传通用文件到 COS，仅返回 URL | 是 | 支持图片、音频、视频和常用文档，URL 用法由调用方决定 |
+| `upload_post_cover` | 上传临时图片引用或 Base64，并绑定封面 | 是 | PNG/JPEG/WebP；最大 10MB |
+| `upload_file` | 上传临时文件引用或 Base64 到 COS，仅返回 URL | 是 | 支持图片、音频、视频和常用文档，URL 用法由调用方决定 |
 | `get_post_preview` | 回读已保存的文章与预览链接 | 否 | 需要文章 UUID |
 | `publish_post` | 发布已审核草稿 | 是 | 必须传入 `confirm: true`，且用户需在当前对话明确确认 |
 
@@ -263,7 +263,7 @@ npm run mcp:check
 
 ## 8. 封面上传参数
 
-`upload_post_cover` 不接受本地路径或 Base64。它接受客户端提供的临时 HTTPS 文件引用：
+`upload_post_cover` 不接受本地路径。它可以接受客户端提供的临时 HTTPS 文件引用：
 
 ```json
 {
@@ -298,7 +298,32 @@ npm run mcp:check
 
 工具支持常用图片、音频、视频（MP4、MOV、WebM）和文档。视频上限为 100MB，音频为 50MB，图片和文档为 10MB。返回 URL 如何写入 Markdown、作为视频地址或附件链接，完全由 MCP 调用方处理，不建立额外数据库关联表。
 
-若使用的客户端只能生成本地文件，需要先把文件放到一个临时、公开、HTTPS 可下载的位置，再调用此工具；完成后应删除临时对象。
+两个上传工具也接受原始 Base64 或 Data URL。通用文件示例：
+
+```json
+{
+  "file": {
+    "base64": "iVBORw0KGgoAAA...",
+    "mime_type": "image/png",
+    "file_name": "article-image.png"
+  }
+}
+```
+
+若传入带 MIME 的 Data URL，可以省略 `mime_type`：
+
+```json
+{
+  "file": {
+    "base64": "data:image/png;base64,iVBORw0KGgoAAA...",
+    "file_name": "article-image.png"
+  }
+}
+```
+
+调用 `upload_post_cover` 时使用同样的对象作为 `cover`，并同时传入 `postId`。服务端会校验 Base64 格式、MIME、解码后大小和文件魔数。Base64 编码会增加约三分之一体积，大文件仍优先使用临时 HTTPS 地址。
+
+若客户端只能生成本地文件，可以将小文件编码为 Base64 后调用工具；对于大文件，建议先放到临时、公开、HTTPS 可下载的位置，上传完成后删除临时对象。
 
 ## 9. CORS 与生产环境
 

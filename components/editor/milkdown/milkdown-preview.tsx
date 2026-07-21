@@ -33,10 +33,11 @@ export async function MilkdownPreview({
   const html = await renderMarkdownToHtml(content);
 
   return (
-    <div className={`milkdown-preview-wrapper ${className}`}>
-      <div className="milkdown">
-        <div className="editor" dangerouslySetInnerHTML={{ __html: html }} />
-      </div>
+    <div className={`markdown-article-wrapper ${className}`}>
+      <div
+        className="markdown-article"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 }

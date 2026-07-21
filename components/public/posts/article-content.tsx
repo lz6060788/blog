@@ -5,9 +5,5 @@ interface ArticleContentProps {
 }
 
 export function ArticleContent({ content }: ArticleContentProps) {
-  return (
-    <div className="milkdown-preview-wrapper">
-      <MilkdownPreview content={content} />
-    </div>
-  )
+  return <MilkdownPreview content={content} />
 }

@@ -1,189 +1,397 @@
 /**
- * Milkdown 主题样式
+ * Milkdown editor and published Markdown presentation styles.
  *
- * 使用 Crepe 主题作为基础，通过 CSS 变量覆盖来适配项目主题
+ * Crepe owns all editor visuals. The only editor rules in this file are
+ * container constraints plus the official Classic Dark color tokens.
  */
 
-/* 导入 Crepe 基础主题样式 */
 @import '@milkdown/crepe/theme/common/style.css';
 @import '@milkdown/crepe/theme/classic.css';
-
-/* 导入 Prism 代码高亮主题 */
-@import 'prismjs/themes/prism-tomorrow.css';
-
-/* 导入 KaTeX 数学公式样式 */
 @import 'katex/dist/katex.min.css';
 
-/*
- * Milkdown 主题变量映射
- *
- * 将项目的主题变量映射到 Crepe 主题的 CSS 变量
- */
-
-/* 浅色主题 */
-
-.theme-light .milkdown {
-  --crepe-color-background: hsl(var(--theme-background));
-  --crepe-color-on-background: hsl(var(--theme-text-primary));
-  --crepe-color-surface: hsl(var(--theme-surface));
-  --crepe-color-surface-low: hsl(var(--theme-surface-alt));
-  --crepe-color-on-surface: hsl(var(--theme-text-primary));
-  --crepe-color-on-surface-variant: hsl(var(--theme-text-secondary));
-  --crepe-color-outline: hsl(var(--theme-border));
-  --crepe-color-primary: hsl(var(--theme-primary));
-  --crepe-color-secondary: hsl(var(--theme-secondary));
-  --crepe-color-on-secondary: hsl(var(--theme-secondary-foreground));
-  --crepe-color-error: hsl(var(--theme-error));
-  --crepe-color-inline-code: hsl(var(--theme-error));
-  --crepe-color-hover: hsl(var(--theme-surface-alt));
-  --crepe-color-selected: hsl(var(--theme-muted));
-
-  --crepe-shadow-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.2);
-  --crepe-shadow-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.2);
+.milkdown-editor-shell {
+  isolation: isolate;
+}
+.milkdown-editor-root {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
+.milkdown-editor-root .ProseMirror {
+  min-height: 100%;
+}
 
-/* 深色主题 */
-
+/* Official Crepe Classic Dark color tokens. The light theme comes directly
+ * from `@milkdown/crepe/theme/classic.css`. */
 .theme-dark .milkdown {
-  --crepe-color-background: hsl(var(--theme-background));
-  --crepe-color-on-background: hsl(var(--theme-text-primary));
-  --crepe-color-surface: hsl(var(--theme-surface));
-  --crepe-color-surface-low: hsl(var(--theme-surface-alt));
-  --crepe-color-on-surface: hsl(var(--theme-text-primary));
-  --crepe-color-on-surface-variant: hsl(var(--theme-text-secondary));
-  --crepe-color-outline: hsl(var(--theme-border));
-  --crepe-color-primary: hsl(var(--theme-primary));
-  --crepe-color-secondary: hsl(var(--theme-secondary));
-  --crepe-color-on-secondary: hsl(var(--theme-secondary-foreground));
-  --crepe-color-error: hsl(var(--theme-error));
-  --crepe-color-inline-code: hsl(var(--theme-error));
-  --crepe-color-hover: hsl(var(--theme-surface-alt));
-  --crepe-color-selected: hsl(var(--theme-muted));
-
-  --crepe-shadow-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.3), 0px 1px 2px 0px rgba(0, 0, 0, 0.5);
-  --crepe-shadow-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.3), 0px 1px 2px 0px rgba(0, 0, 0, 0.5);
+  --crepe-color-background: #1f1b16;
+  --crepe-color-on-background: #eae1d9;
+  --crepe-color-surface: #18120b;
+  --crepe-color-surface-low: #201b13;
+  --crepe-color-on-surface: #ede0d4;
+  --crepe-color-on-surface-variant: #d3c4b4;
+  --crepe-color-outline: #9c8f80;
+  --crepe-color-primary: #f4bd6f;
+  --crepe-color-secondary: #56442a;
+  --crepe-color-on-secondary: #fbdebc;
+  --crepe-color-inverse: #ede0d4;
+  --crepe-color-on-inverse: #362f27;
+  --crepe-color-inline-code: #ffb4ab;
+  --crepe-color-error: #ffb4ab;
+  --crepe-color-hover: #251f17;
+  --crepe-color-selected: #3b342b;
+  --crepe-color-inline-area: #3f3830;
+  --crepe-shadow-1: 0 1px 2px rgb(255 255 255 / 0.3),
+    0 1px 3px 1px rgb(255 255 255 / 0.15);
+  --crepe-shadow-2: 0 1px 2px rgb(255 255 255 / 0.3),
+    0 2px 6px 2px rgb(255 255 255 / 0.15);
 }
 
-
-/*
- * 通用样式优化
+/**
+ * Published article typography.
+ *
+ * Keep this scope independent from Crepe's `.milkdown` DOM. Crepe's component
+ * styles are optimized for editing controls and must not participate in the
+ * cascade of the server-rendered article.
  */
-
-/* 确保 Milkdown 容器正确继承主题 */
-.milkdown {
-  font-family: var(--crepe-font-default);
-  line-height: 1.6;
-}
-
-/* 编辑器区域 */
-.milkdown .editor {
-  max-width: 100%;
-  padding: 1rem;
-  min-height: 200px;
-}
-
-/* 预览区域 */
-.milkdown .editor p {
-  margin: 1rem 0;
-  line-height: 1.7;
-}
-
-/* 代码块 */
-.milkdown pre {
-  background-color: hsl(var(--theme-surface-alt));
-  border: 1px solid hsl(var(--theme-border));
-  border-radius: 0.5rem;
-  padding: 1rem;
-  overflow-x: auto;
-  margin: 1rem 0;
-}
-
-.theme-light .milkdown .milkdown-code-block {
-  background: hsl(var(--theme-surface-alt));
-  border: 1px solid hsl(var(--theme-border));
-  border-radius: 0.5rem;
-}
-
-.theme-light .milkdown .milkdown-code-block .cm-editor,
-.theme-light .milkdown .milkdown-code-block .cm-gutters,
-.theme-light .milkdown .milkdown-code-block .cm-panel {
-  background: hsl(var(--theme-surface-alt));
-}
-
-.theme-light .milkdown .milkdown-code-block .cm-activeLineGutter {
-  background: hsl(var(--theme-subtle));
-}
-
-.milkdown code {
-  font-family: var(--crepe-font-code);
-  font-size: 0.9em;
-}
-
-/* 行内代码 */
-.milkdown p code,
-.milkdown li code {
-  background-color: hsl(var(--theme-muted));
-  color: hsl(var(--theme-error));
-  padding: 0.2em 0.4em;
-  border-radius: 0.25rem;
-  font-size: 0.9em;
-}
-
-/* 表格 */
-.milkdown table {
-  display: block;
-  border-collapse: collapse;
+.markdown-article-wrapper {
   width: 100%;
-  margin: 1rem 0;
-  overflow-x: auto;
 }
 
-.milkdown table th,
-.milkdown table td {
-  border: 1px solid hsl(var(--theme-border));
-  padding: 0.5rem 1rem;
-  text-align: left;
+.markdown-article {
+  --article-accent: hsl(var(--theme-primary));
+  --article-text: hsl(var(--theme-foreground));
+  --article-text-muted: hsl(var(--theme-text-secondary));
+  --article-border: hsl(var(--theme-border));
+  --article-soft-bg: hsl(var(--theme-surface-alt) / 0.72);
+  width: 100%;
+  max-width: 72ch;
+  margin-inline: auto;
+  color: var(--article-text);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
 }
 
-.milkdown table th {
-  background-color: hsl(var(--theme-surface-alt));
-  font-weight: 600;
+.markdown-article :where(p) {
+  margin: 1.05em 0;
+  color: var(--article-text);
 }
 
-/* 引用块 */
-.milkdown blockquote {
-  border-left: 4px solid hsl(var(--theme-primary));
-  background-color: hsl(var(--theme-surface-alt));
-  padding: 1rem 1.5rem;
-  margin: 1rem 0;
-  font-style: italic;
+.markdown-article :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--article-text);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+  scroll-margin-top: 6rem;
+  text-wrap: balance;
 }
 
-/* 链接 */
-.milkdown a {
-  color: hsl(var(--theme-primary));
+.markdown-article :where(h1) {
+  margin: 0 0 1.1em;
+  font-size: clamp(2rem, 4vw, 2.65rem);
+}
+
+.markdown-article :where(h2) {
+  margin: 2.4em 0 0.8em;
+  padding-bottom: 0.42em;
+  border-bottom: 1px solid var(--article-border);
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+}
+
+.markdown-article :where(h3) {
+  margin: 2em 0 0.65em;
+  font-size: clamp(1.25rem, 2.5vw, 1.45rem);
+}
+
+.markdown-article :where(h4) {
+  margin: 1.65em 0 0.55em;
+  font-size: 1.16rem;
+}
+
+.markdown-article :where(h5, h6) {
+  margin: 1.45em 0 0.5em;
+  font-size: 1rem;
+}
+
+.markdown-article :where(strong) {
+  color: var(--article-text);
+  font-weight: 700;
+}
+
+.markdown-article :where(ul, ol) {
+  margin: 1.1em 0;
+  padding-inline-start: 1.65em;
+}
+
+.markdown-article :where(ul) {
+  list-style: disc outside;
+}
+
+.markdown-article :where(ol) {
+  list-style: decimal outside;
+}
+
+.markdown-article :where(ul ul) {
+  list-style-type: circle;
+}
+
+.markdown-article :where(ul ul ul) {
+  list-style-type: square;
+}
+
+.markdown-article :where(li) {
+  margin: 0.42em 0;
+  padding-inline-start: 0.35em;
+}
+
+.markdown-article :where(li)::marker {
+  color: var(--article-accent);
+  font-size: 0.92em;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.markdown-article :where(li > p) {
+  margin: 0.32em 0;
+}
+
+.markdown-article :where(li > ul, li > ol) {
+  margin-block: 0.35em;
+}
+
+.markdown-article :where(ul.contains-task-list) {
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+.markdown-article :where(.task-list-item) {
+  position: relative;
+  padding-inline-start: 1.7rem;
+  list-style: none;
+}
+
+.markdown-article :where(.task-list-item)::marker {
+  content: '';
+}
+
+.markdown-article :where(.task-list-item > input[type='checkbox']) {
+  position: absolute;
+  top: 0.52em;
+  left: 0;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--article-accent);
+}
+
+.markdown-article :where(a) {
+  color: var(--article-accent);
+  font-weight: 550;
   text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--article-accent), transparent 55%);
   text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.22em;
 }
 
-.milkdown a:hover {
-  text-decoration-thickness: 2px;
+.markdown-article :where(a:hover) {
+  text-decoration-color: currentColor;
 }
 
-/* 响应式优化 */
-@media (max-width: 768px) {
-  .milkdown .editor {
-    padding: 0.75rem;
+.markdown-article :where(blockquote) {
+  margin: 1.6em 0;
+  padding: 0.8em 1.15em;
+  border-left: 3px solid var(--article-accent);
+  border-radius: 0 0.55rem 0.55rem 0;
+  background: var(--article-soft-bg);
+  color: var(--article-text-muted);
+}
+
+.markdown-article :where(blockquote p) {
+  margin: 0.4em 0;
+  color: inherit;
+}
+
+.markdown-article :where(hr) {
+  height: 1px;
+  margin: 2.6em 0;
+  border: 0;
+  background: var(--article-border);
+}
+
+.markdown-article :where(img) {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 1.7em auto;
+  border-radius: 0.75rem;
+}
+
+.markdown-article :where(code) {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}
+
+.markdown-article :where(:not(pre) > code) {
+  padding: 0.14em 0.38em;
+  border: 1px solid color-mix(in srgb, var(--article-accent), transparent 80%);
+  border-radius: 0.32rem;
+  background: color-mix(in srgb, var(--article-accent), transparent 93%);
+  color: var(--article-accent);
+  overflow-wrap: anywhere;
+}
+
+.markdown-article :where(pre) {
+  position: relative;
+  margin: 1.55em 0;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  border: 1px solid var(--article-border);
+  border-radius: 0.7rem;
+  background: hsl(var(--theme-surface-alt));
+  color: var(--article-text);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  tab-size: 2;
+  scrollbar-gutter: stable;
+}
+
+.markdown-article :where(pre code) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  white-space: pre;
+}
+
+.markdown-article :where(table) {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 1.6em 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.94em;
+  scrollbar-gutter: stable;
+}
+
+.markdown-article :where(th, td) {
+  min-width: 7rem;
+  padding: 0.65em 0.8em;
+  border: 1px solid var(--article-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown-article :where(th) {
+  background: hsl(var(--theme-surface-alt));
+  color: var(--article-text);
+  font-weight: 650;
+}
+
+.markdown-article :where(tbody tr:nth-child(even)) {
+  background: hsl(var(--theme-surface-alt) / 0.42);
+}
+
+.markdown-article :where(del) {
+  color: var(--article-text-muted);
+}
+
+.markdown-article :where(.katex-display) {
+  margin: 1.5em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.2em;
+}
+
+/* Prism token colors for the independent published article scope. */
+.theme-light .markdown-article :where(.token.comment, .token.prolog, .token.doctype, .token.cdata) {
+  color: #667085;
+}
+
+.theme-light .markdown-article :where(.token.punctuation) {
+  color: #344054;
+}
+
+.theme-light .markdown-article :where(.token.property, .token.tag, .token.constant, .token.symbol, .token.deleted) {
+  color: #b42318;
+}
+
+.theme-light .markdown-article :where(.token.boolean, .token.number) {
+  color: #6941c6;
+}
+
+.theme-light .markdown-article :where(.token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted) {
+  color: #027a48;
+}
+
+.theme-light .markdown-article :where(.token.operator, .token.entity, .token.url, .token.variable) {
+  color: #175cd3;
+}
+
+.theme-light .markdown-article :where(.token.atrule, .token.attr-value, .token.keyword) {
+  color: #c4320a;
+}
+
+.theme-light .markdown-article :where(.token.function, .token.class-name) {
+  color: #7f56d9;
+}
+
+.theme-dark .markdown-article :where(.token.comment, .token.prolog, .token.doctype, .token.cdata) {
+  color: #98a2b3;
+}
+
+.theme-dark .markdown-article :where(.token.punctuation) {
+  color: #d0d5dd;
+}
+
+.theme-dark .markdown-article :where(.token.property, .token.tag, .token.constant, .token.symbol, .token.deleted) {
+  color: #f97066;
+}
+
+.theme-dark .markdown-article :where(.token.boolean, .token.number, .token.function, .token.class-name) {
+  color: #b692f6;
+}
+
+.theme-dark .markdown-article :where(.token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted) {
+  color: #6ce9a6;
+}
+
+.theme-dark .markdown-article :where(.token.operator, .token.entity, .token.url, .token.variable) {
+  color: #84adff;
+}
+
+.theme-dark .markdown-article :where(.token.atrule, .token.attr-value, .token.keyword) {
+  color: #feb273;
+}
+
+@media (max-width: 640px) {
+  .markdown-article {
+    max-width: none;
+    font-size: 1rem;
+    line-height: 1.78;
   }
 
-  .milkdown table {
-    display: block;
-    overflow-x: auto;
+  .markdown-article :where(ul, ol) {
+    padding-inline-start: 1.4em;
   }
 
-  .milkdown pre {
-    padding: 0.75rem;
+  .markdown-article :where(pre) {
+    margin-inline: -0.35rem;
+    padding: 0.85rem;
+    border-radius: 0.55rem;
+  }
+
+  .markdown-article :where(th, td) {
+    min-width: 6.5rem;
+    padding: 0.55em 0.65em;
   }
 }

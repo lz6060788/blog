@@ -45,17 +45,17 @@ function AdminLayoutContent({
   }
 
   return (
-    <div className="min-h-screen bg-theme-canvas">
-      <div className="flex min-h-screen">
+    <div className="h-dvh overflow-hidden bg-theme-canvas">
+      <div className="flex h-full min-h-0">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex lg:w-[250px] lg:flex-shrink-0">
           <Sidebar />
         </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <TopBar onMobileMenuOpen={() => setMobileMenuOpen(true)} />
-          <main className="flex-1 p-4 lg:p-8 overflow-auto">
+          <main className="min-h-0 flex-1 overflow-auto p-4 lg:p-8">
             {children}
           </main>
         </div>

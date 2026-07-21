@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { MilkdownEditor, MilkdownEditorRef } from '@/components/editor/milkdown'
+import { MilkdownEditor } from '@/components/editor/milkdown'
 import { updatePost, getPost, getCategoriesForSelect, getTagsForSelect } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 import { X, FolderOpen, Tag as TagIcon } from 'lucide-react'
@@ -22,24 +22,41 @@ import { SummaryStatus, CoverStatus } from '@/server/ai/types'
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
 
+type SaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error'
+
+function createEditorSnapshot(values: {
+  title: string
+  content: string
+  categoryId: string
+  tags: string[]
+  excerpt: string
+  coverImageUrl: string | null
+  aiCoverStatus: CoverStatus | null
+}) {
+  return JSON.stringify(values)
+}
+
 export default function EditPostPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const { theme } = useTheme()
+  const { resolvedTheme: activeTheme } = useTheme()
+  const resolvedTheme: 'light' | 'dark' = activeTheme === 'dark' ? 'dark' : 'light'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [published, setPublished] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+  const [isAutoSaving, setIsAutoSaving] = useState(false)
   const [categoryId, setCategoryId] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [categories, setCategories] = useState<any[]>([])
   const [existingTags, setExistingTags] = useState<any[]>([])
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
   // AI 摘要状态（由 AISummaryEditor 组件管理）
   const [excerpt, setExcerpt] = useState('')
@@ -50,8 +67,9 @@ export default function EditPostPage() {
   const [aiCoverStatus, setAiCoverStatus] = useState<CoverStatus | null>(CoverStatus.PENDING)
 
   const initialContentRef = useRef<string>('')
-  const editorRef = useRef<MilkdownEditorRef>(null)
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const baselineSnapshotRef = useRef('')
+  const latestSnapshotRef = useRef('')
 
   // 各自独立的 loading 状态
   const [isSavingDraft, setIsSavingDraft] = useState(false)
@@ -65,16 +83,6 @@ export default function EditPostPage() {
       document.title = '编辑文章 - 管理后台'
     }
   }, [title])
-
-  // 解析主题
-  useEffect(() => {
-    if (theme === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setResolvedTheme(isDark ? 'dark' : 'light')
-    } else {
-      setResolvedTheme((theme as 'light' | 'dark') || 'light')
-    }
-  }, [theme])
 
   // 加载文章数据和选项
   useEffect(() => {
@@ -93,18 +101,27 @@ export default function EditPostPage() {
           setPublished(post.published)
           setCategoryId(post.categoryId || '')
           // 处理标签：post.tags 现在是对象数组，需要转换为字符串数组
-          setTags(
-            (post.tags
-              ?.filter((t) => t != null)
-              .map((t) => (typeof t === 'string' ? t : t.name)) || []) as string[]
-          )
+          const postTags = (post.tags
+            ?.filter((t) => t != null)
+            .map((t) => (typeof t === 'string' ? t : t.name)) || []) as string[]
+          setTags(postTags)
           // 加载 AI 摘要状态（excerpt 现在包含 AI 生成的摘要）
           setExcerpt(post.excerpt || '')
           // 状态需要从 API 获取，初始设为 pending
           setAiSummaryStatus(SummaryStatus.PENDING)
           // 加载 AI 封面状态
           setCoverImageUrl(post.coverImageUrl || null)
-          setAiCoverStatus((post.aiCoverStatus || CoverStatus.PENDING) as CoverStatus)
+          const postCoverStatus = (post.aiCoverStatus || CoverStatus.PENDING) as CoverStatus
+          setAiCoverStatus(postCoverStatus)
+          baselineSnapshotRef.current = createEditorSnapshot({
+            title: post.title,
+            content: postContent,
+            categoryId: post.categoryId || '',
+            tags: postTags,
+            excerpt: post.excerpt || '',
+            coverImageUrl: post.coverImageUrl || null,
+            aiCoverStatus: postCoverStatus,
+          })
         } else {
           toast.error('文章不存在')
           router.push('/admin/posts')
@@ -123,45 +140,100 @@ export default function EditPostPage() {
     loadData()
   }, [id, router])
 
+  const currentSnapshot = createEditorSnapshot({
+    title,
+    content,
+    categoryId,
+    tags,
+    excerpt,
+    coverImageUrl,
+    aiCoverStatus,
+  })
+  latestSnapshotRef.current = currentSnapshot
+
   // 自动保存功能
   const autoSave = useCallback(async () => {
     // 如果正在手动保存，跳过自动保存
-    if (isSavingDraft || isPublishing) {
+    if (isSavingDraft || isPublishing || isAutoSaving) {
       return
     }
 
-    if (!hasUnsavedChanges || !title.trim() || !content.trim()) {
+    if (!hasUnsavedChanges || !title.trim() || !content.trim() || isAutoSaving) {
       return
     }
+
+    const snapshotBeingSaved = currentSnapshot
+    setIsAutoSaving(true)
+    setSaveStatus('saving')
 
     try {
-      await updatePost(id, { title, content, categoryId: categoryId || undefined, tags, excerpt })
-      setHasUnsavedChanges(false)
-      toast.success('已自动保存')
+      await updatePost(id, {
+        title,
+        content,
+        categoryId: categoryId || undefined,
+        tags,
+        excerpt,
+        coverImageUrl: coverImageUrl || undefined,
+        aiCoverStatus: aiCoverStatus || undefined,
+      })
+      baselineSnapshotRef.current = snapshotBeingSaved
+
+      if (latestSnapshotRef.current === snapshotBeingSaved) {
+        setHasUnsavedChanges(false)
+        setSaveStatus('saved')
+        setLastSavedAt(new Date())
+      } else {
+        setHasUnsavedChanges(true)
+        setSaveStatus('dirty')
+      }
     } catch (error) {
       console.error('自动保存失败:', error)
+      setSaveStatus('error')
+    } finally {
+      setIsAutoSaving(false)
     }
-  }, [id, title, content, categoryId, tags, hasUnsavedChanges, excerpt, isSavingDraft, isPublishing])
+  }, [id, title, content, categoryId, tags, hasUnsavedChanges, excerpt, coverImageUrl, aiCoverStatus, isSavingDraft, isPublishing, isAutoSaving, currentSnapshot])
 
-  // 设置自动保存定时器
+  // 停止输入 5 秒后自动保存
   useEffect(() => {
     if (autoSaveTimerRef.current) {
-      clearInterval(autoSaveTimerRef.current)
+      clearTimeout(autoSaveTimerRef.current)
     }
-    autoSaveTimerRef.current = setInterval(() => {
-      autoSave()
-    }, 30000)
+
+    if (!hasUnsavedChanges || isSavingDraft || isPublishing || isAutoSaving) return
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      void autoSave()
+    }, 5000)
+
     return () => {
       if (autoSaveTimerRef.current) {
-        clearInterval(autoSaveTimerRef.current)
+        clearTimeout(autoSaveTimerRef.current)
       }
     }
-  }, [autoSave])
+  }, [autoSave, hasUnsavedChanges, isSavingDraft, isPublishing, isAutoSaving])
 
-  // 标记有未保存的更改
+  // 与已保存快照比较，避免数据初次加载后误报未保存。
   useEffect(() => {
-    setHasUnsavedChanges(true)
-  }, [title, content, categoryId, tags])
+    if (isLoading || !baselineSnapshotRef.current) return
+
+    const isDirty = currentSnapshot !== baselineSnapshotRef.current
+    setHasUnsavedChanges(isDirty)
+    if (isDirty) {
+      setSaveStatus((current) => current === 'saving' || current === 'error' ? current : 'dirty')
+    }
+  }, [currentSnapshot, isLoading])
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
 
   // 添加标签
   const handleAddTag = () => {
@@ -238,7 +310,10 @@ export default function EditPostPage() {
         coverImageUrl: coverImageUrl || undefined,
         aiCoverStatus: aiCoverStatus || undefined,
       })
+      baselineSnapshotRef.current = currentSnapshot
       setHasUnsavedChanges(false)
+      setSaveStatus('saved')
+      setLastSavedAt(new Date())
       toast.success('保存成功')
     } catch (error: any) {
       console.error('保存失败:', error)
@@ -251,7 +326,7 @@ export default function EditPostPage() {
   // 发布文章
   const handlePublish = async () => {
     // 如果正在执行，直接返回
-    if (isSavingDraft || isPublishing) {
+    if (isSavingDraft || isPublishing || isAutoSaving) {
       return
     }
 
@@ -285,8 +360,11 @@ export default function EditPostPage() {
         coverImageUrl: coverImageUrl || undefined,
         aiCoverStatus: aiCoverStatus || undefined,
       })
+      baselineSnapshotRef.current = currentSnapshot
       setPublished(true)
       setHasUnsavedChanges(false)
+      setSaveStatus('saved')
+      setLastSavedAt(new Date())
       toast.success('发布成功')
       router.push('/admin/posts')
     } catch (error: any) {
@@ -317,30 +395,33 @@ export default function EditPostPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 h-full flex flex-col">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-3">
       {/* 头部 */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+      <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-theme-text-canvas">编辑文章</h1>
           <p className="text-sm text-theme-text-secondary mt-1">
             {published ? '已发布' : '草稿'}
-            {hasUnsavedChanges && ' • 有未保存的更改'}
+            {saveStatus === 'saving' && ' • 正在自动保存…'}
+            {saveStatus === 'dirty' && ' • 有未保存的更改'}
+            {saveStatus === 'error' && ' • 自动保存失败，请手动保存'}
+            {saveStatus === 'saved' && lastSavedAt && ` • 已保存 ${lastSavedAt.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={handleCancel} disabled={isSavingDraft || isPublishing}>
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center">
+          <Button variant="outline" onClick={handleCancel} disabled={isSavingDraft || isPublishing || isAutoSaving}>
             取消
           </Button>
           <Button
             variant="outline"
             onClick={handleSaveDraft}
-            disabled={isSavingDraft || isPublishing || aiSummaryStatus === SummaryStatus.GENERATING}
+            disabled={isSavingDraft || isPublishing || isAutoSaving || aiSummaryStatus === SummaryStatus.GENERATING}
           >
             {isSavingDraft ? '保存中...' : '保存草稿'}
           </Button>
           <Button
             onClick={handlePublish}
-            disabled={isSavingDraft || isPublishing || aiSummaryStatus === SummaryStatus.GENERATING}
+            disabled={isSavingDraft || isPublishing || isAutoSaving || aiSummaryStatus === SummaryStatus.GENERATING}
           >
             {isPublishing ? '发布中...' : '发布'}
           </Button>
@@ -348,7 +429,7 @@ export default function EditPostPage() {
       </div>
 
       {/* 标题输入 */}
-      <div className="mb-3 flex-shrink-0">
+      <div className="flex-shrink-0">
         <Input
           type="text"
           value={title}
@@ -359,7 +440,7 @@ export default function EditPostPage() {
       </div>
 
       {/* 分类和标签 - 同一行布局 */}
-      <div className="flex items-center gap-3 mb-3 flex-shrink-0">
+      <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
         {/* 分类选择器 */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <FolderOpen className="w-4 h-4 text-theme-text-secondary" />
@@ -418,7 +499,7 @@ export default function EditPostPage() {
 
       {/* 已有标签快速选择 */}
       {!isLoadingOptions && existingTags.length > 0 && (
-        <div className="flex items-center gap-2 mb-3 flex-shrink-0 pl-7">
+        <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:pl-7">
           <span className="text-xs text-theme-text-tertiary">快速选择:</span>
           {existingTags.map(tag => (
             <button
@@ -438,38 +519,38 @@ export default function EditPostPage() {
         </div>
       )}
 
-      {/* 封面预览区域 */}
-      <CoverPreview
-        postId={id}
-        initialCoverUrl={coverImageUrl}
-        initialStatus={aiCoverStatus}
-        onCoverChange={setCoverImageUrl}
-        onStatusChange={setAiCoverStatus}
-        title={title}
-        content={content}
-      />
+      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Milkdown Markdown 编辑器 */}
+        <div className="min-h-[520px] xl:min-h-0">
+          <MilkdownEditor
+            initialValue={initialContentRef.current}
+            onChange={setContent}
+            theme={resolvedTheme}
+            className="h-full min-h-[520px] xl:min-h-0"
+          />
+        </div>
 
-      {/* AI 摘要区域 */}
-      <AISummaryEditor
-        postId={id}
-        initialSummary={excerpt}
-        initialStatus={aiSummaryStatus}
-        onSummaryChange={setExcerpt}
-        onStatusChange={setAiSummaryStatus}
-        title={title}
-        content={content}
-      />
+        <aside className="min-h-0 space-y-3 xl:overflow-y-auto xl:pr-1">
+          <CoverPreview
+            postId={id}
+            initialCoverUrl={coverImageUrl}
+            initialStatus={aiCoverStatus}
+            onCoverChange={setCoverImageUrl}
+            onStatusChange={setAiCoverStatus}
+            title={title}
+            content={content}
+          />
 
-      {/* Milkdown Markdown 编辑器 */}
-      <div className="flex-1 min-h-0 flex-shrink-0">
-        <MilkdownEditor
-          ref={editorRef}
-          initialValue={initialContentRef.current}
-          onChange={setContent}
-          height="100%"
-          theme={resolvedTheme}
-          className="bg-theme-surface border border-theme-border rounded-xl overflow-hidden h-full"
-        />
+          <AISummaryEditor
+            postId={id}
+            initialSummary={excerpt}
+            initialStatus={aiSummaryStatus}
+            onSummaryChange={setExcerpt}
+            onStatusChange={setAiSummaryStatus}
+            title={title}
+            content={content}
+          />
+        </aside>
       </div>
     </div>
   )

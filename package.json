@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "mcp:check": "tsx scripts/check-blog-mcp-http.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -14,15 +15,17 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.37",
     "@auth/drizzle-adapter": "^1.11.1",
-    "@milkdown/core": "7.19.2",
-    "@milkdown/crepe": "7.19.2",
-    "@milkdown/ctx": "7.19.2",
-    "@milkdown/plugin-highlight": "7.19.2",
-    "@milkdown/plugin-history": "7.19.2",
-    "@milkdown/plugin-listener": "7.19.2",
-    "@milkdown/plugin-math": "^7.5.9",
-    "@milkdown/preset-commonmark": "7.19.2",
-    "@milkdown/preset-gfm": "7.19.2",
+    "@milkdown/core": "7.21.1",
+    "@milkdown/crepe": "7.21.1",
+    "@milkdown/ctx": "7.21.1",
+    "@milkdown/kit": "7.21.1",
+    "@milkdown/plugin-highlight": "7.21.1",
+    "@milkdown/plugin-history": "7.21.1",
+    "@milkdown/plugin-listener": "7.21.1",
+    "@milkdown/preset-commonmark": "7.21.1",
+    "@milkdown/preset-gfm": "7.21.1",
+    "@milkdown/utils": "7.21.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -65,6 +68,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "unified": "^11.0.5",
+    "zod": "^3.25.76",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -77,6 +81,7 @@
     "eslint-config-next": "14.2.18",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }

@@ -1,88 +1,33 @@
 "use client";
 
 import {
+  forwardRef,
   useCallback,
   useEffect,
-  useRef,
   useImperativeHandle,
-  forwardRef,
+  useRef,
   useState,
 } from "react";
-import type { Ctx } from "@milkdown/ctx";
-import { defaultValueCtx } from "@milkdown/core";
+import type { Ctx } from "@milkdown/kit/ctx";
 import { Crepe } from "@milkdown/crepe";
-import {
-  wrapInBlockquoteCommand,
-  wrapInBulletListCommand,
-  wrapInHeadingCommand,
-  wrapInOrderedListCommand,
-  createCodeBlockCommand,
-  insertImageCommand,
-  toggleEmphasisCommand,
-  toggleStrongCommand,
-  turnIntoTextCommand,
-} from "@milkdown/preset-commonmark";
-import { toggleStrikethroughCommand } from "@milkdown/preset-gfm";
-import { listener, listenerCtx } from "@milkdown/plugin-listener";
-import { history, redoCommand, undoCommand } from "@milkdown/plugin-history";
 import { highlight, highlightPluginConfig } from "@milkdown/plugin-highlight";
 import { createParser } from "@milkdown/plugin-highlight/shiki";
-import { math } from "@milkdown/plugin-math";
-import { dropIndicatorState } from "@milkdown/plugin-cursor";
-import {
-  upload as uploadPlugin,
-  uploadConfig,
-  type Uploader,
-} from "@milkdown/plugin-upload";
-import { callCommand } from "@milkdown/utils";
+import { replaceAll } from "@milkdown/kit/utils";
 import { getSingletonHighlighter } from "shiki";
 import { uploadFile as uploadAssetFile } from "@/lib/api/upload";
-import {
-  Bold,
-  Code2,
-  Heading1,
-  Heading2,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Redo2,
-  RemoveFormatting,
-  Strikethrough,
-  Undo2,
-} from "lucide-react";
+
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 const uploadImageToCos = async (file: File) => {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("仅支持图片文件");
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error("图片不能超过 10MB");
+  }
   const result = await uploadAssetFile({ file });
   return result.url;
 };
-
-const uploadDroppedImages: Uploader = async (files, schema) => {
-  const imageNode = schema.nodes.image;
-
-  if (!imageNode) {
-    throw new Error("Milkdown image node is missing");
-  }
-
-  const images = Array.from(files)
-    .filter((file): file is File => Boolean(file))
-    .filter((file) => file.type.startsWith("image/"));
-
-  const uploadedNodes = await Promise.all(
-    images.map(async (file) => {
-      const src = await uploadImageToCos(file);
-      return imageNode.create({
-        src,
-        alt: file.name,
-      });
-    })
-  );
-
-  return uploadedNodes;
-};
-
-const getImageFiles = (files?: FileList | null) =>
-  Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
 
 export interface MilkdownEditorRef {
   getContent: () => string;
@@ -98,34 +43,12 @@ export interface MilkdownEditorProps {
   theme?: "light" | "dark";
 }
 
-function ToolbarButton({
-  label,
-  onMouseDown,
-  children,
-}: {
-  label: string;
-  onMouseDown: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onMouseDown={onMouseDown}
-      className="inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-theme-border bg-theme-surface px-2 text-theme-text-secondary transition-colors hover:bg-theme-muted hover:text-theme-text-canvas"
-    >
-      {children}
-    </button>
-  );
-}
-
 export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>(
   (
     {
       initialValue = "",
       onChange,
-      height = "500px",
+      height,
       className = "",
       theme = "light",
     },
@@ -134,129 +57,52 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
     const containerRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<Crepe | null>(null);
     const onChangeRef = useRef(onChange);
-    const initialValueRef = useRef(initialValue);
+    const currentContentRef = useRef(initialValue);
     const [isReady, setIsReady] = useState(false);
     const [uploadingImageCount, setUploadingImageCount] = useState(0);
-    const currentContentRef = useRef(initialValue);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
-    const runCommand = (
-      command: { key: unknown },
-      payload?: unknown,
-      retryCount = 0
-    ) => {
-      if (!editorRef.current) return;
+    const handleImageUpload = useCallback(async (file: File) => {
+      setUploadError(null);
+      setUploadingImageCount((count) => count + 1);
 
       try {
-        editorRef.current.editor.action(
-          callCommand(command.key as never, payload as never)
-        );
-      } catch (e) {
-        if (
-          retryCount < 5 &&
-          e instanceof Error &&
-          e.message.includes('Context "editorView" not found')
-        ) {
-          setTimeout(() => {
-            runCommand(command, payload, retryCount + 1);
-          }, 0);
-          return;
-        }
-        console.error("执行命令失败:", e);
-      }
-    };
-
-    const handleToolbarAction =
-      (command: { key: unknown }, payload?: unknown) =>
-      (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-        runCommand(command, payload);
-      };
-
-    const insertUploadedImage = useCallback((src: string, alt: string) => {
-      runCommand(insertImageCommand, { src, alt });
-    }, []);
-
-    const clearDropIndicator = useCallback(() => {
-      if (!editorRef.current) return;
-
-      try {
-        editorRef.current.editor.action((ctx: Ctx) => {
-          ctx.set(dropIndicatorState.key, null);
-        });
-      } catch (e) {
-        if (e instanceof Error && e.message.includes('Context "editorView" not found')) {
-          return;
-        }
-        console.error("清理拖拽指示器失败:", e);
+        return await uploadImageToCos(file);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "图片上传失败，请稍后重试";
+        setUploadError(message);
+        throw error;
+      } finally {
+        setUploadingImageCount((count) => Math.max(0, count - 1));
       }
     }, []);
-
-    const uploadFilesAndInsertImages = useCallback(
-      async (files?: FileList | null) => {
-        const imageFiles = getImageFiles(files);
-
-        if (imageFiles.length === 0) return false;
-
-        setUploadingImageCount((count) => count + imageFiles.length);
-
-        try {
-          const uploadedImages = await Promise.all(
-            imageFiles.map(async (file) => ({
-              alt: file.name,
-              src: await uploadImageToCos(file),
-            }))
-          );
-
-          uploadedImages.forEach(({ src, alt }) => {
-            insertUploadedImage(src, alt);
-          });
-
-          return true;
-        } finally {
-          setUploadingImageCount((count) =>
-            Math.max(0, count - imageFiles.length)
-          );
-        }
-      },
-      [insertUploadedImage]
-    );
 
     useEffect(() => {
       onChangeRef.current = onChange;
     }, [onChange]);
 
-    useEffect(() => {
-      initialValueRef.current = initialValue;
-    }, [initialValue]);
-
     useImperativeHandle(ref, () => ({
       getContent: () => {
-        if (editorRef.current) {
-          try {
-            return editorRef.current.getMarkdown();
-          } catch (e) {
-            console.error("获取内容失败:", e);
-            return currentContentRef.current;
-          }
+        if (!editorRef.current) return currentContentRef.current;
+
+        try {
+          return editorRef.current.getMarkdown();
+        } catch (error) {
+          console.error("获取内容失败:", error);
+          return currentContentRef.current;
         }
-        return currentContentRef.current;
       },
       setContent: (content: string) => {
+        currentContentRef.current = content;
+
         try {
-          currentContentRef.current = content;
-          if (editorRef.current) {
-            editorRef.current.editor.action((ctx) => {
-              ctx.set(defaultValueCtx, content);
-            });
-          }
-        } catch (e) {
-          console.error("设置内容失败:", e);
+          editorRef.current?.editor.action(replaceAll(content));
+        } catch (error) {
+          console.error("设置内容失败:", error);
         }
       },
-      getHeight: () => {
-        return containerRef.current?.offsetHeight || 0;
-      },
+      getHeight: () => containerRef.current?.offsetHeight ?? 0,
     }));
 
     useEffect(() => {
@@ -264,31 +110,46 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
       if (!container) return;
 
       let mounted = true;
-      let nativePasteHandler: ((event: ClipboardEvent) => Promise<void>) | null =
-        null;
-      let nativeDragOverHandler: ((event: DragEvent) => void) | null = null;
-      let nativeDropHandler: ((event: DragEvent) => Promise<void>) | null = null;
+      let editor: Crepe | null = null;
+      setIsReady(false);
 
-      (async () => {
+      const createEditor = async () => {
         try {
           const highlighter = await getSingletonHighlighter({
             themes: ["github-light", "github-dark"],
             langs: [
               "javascript",
               "typescript",
+              "java",
               "jsx",
               "tsx",
               "python",
+              "c",
+              "cpp",
+              "csharp",
+              "go",
+              "rust",
+              "kotlin",
+              "swift",
+              "php",
+              "ruby",
+              "sql",
               "dockerfile",
               "bash",
+              "powershell",
               "sh",
               "shellscript",
               "json",
               "yaml",
               "toml",
               "ini",
+              "markdown",
+              "graphql",
               "html",
+              "xml",
               "css",
+              "vue",
+              "svelte",
             ],
           });
 
@@ -296,33 +157,78 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
             theme: theme === "dark" ? "github-dark" : "github-light",
           });
 
-          const editor = new Crepe({
+          editor = new Crepe({
             root: container,
-            defaultValue: initialValueRef.current,
+            defaultValue: currentContentRef.current,
             features: {
-              [Crepe.Feature.Toolbar]: false,
-              [Crepe.Feature.CodeMirror]: true,
-              [Crepe.Feature.ListItem]: true,
-              [Crepe.Feature.LinkTooltip]: true,
-              [Crepe.Feature.ImageBlock]: true,
-              [Crepe.Feature.BlockEdit]: false,
-              [Crepe.Feature.Table]: true,
-              [Crepe.Feature.Cursor]: true,
+              [Crepe.Feature.TopBar]: true,
+            },
+            featureConfigs: {
+              [Crepe.Feature.TopBar]: {
+                headingOptions: [
+                  { label: "正文", level: null },
+                  { label: "一级标题", level: 1 },
+                  { label: "二级标题", level: 2 },
+                  { label: "三级标题", level: 3 },
+                  { label: "四级标题", level: 4 },
+                  { label: "五级标题", level: 5 },
+                  { label: "六级标题", level: 6 },
+                ],
+              },
+              [Crepe.Feature.Placeholder]: {
+                text: "输入正文，或输入 / 插入内容…",
+                mode: "block",
+              },
+              [Crepe.Feature.CodeMirror]: {
+                searchPlaceholder: "搜索代码语言",
+                noResultText: "没有匹配的语言",
+                copyText: "复制",
+                previewLabel: "预览",
+              },
+              [Crepe.Feature.ImageBlock]: {
+                onUpload: handleImageUpload,
+                inlineOnUpload: handleImageUpload,
+                blockOnUpload: handleImageUpload,
+                inlineConfirmButton: "确认",
+                inlineUploadButton: "上传",
+                inlineUploadPlaceholderText: "粘贴图片地址或上传图片",
+                blockConfirmButton: "确认",
+                blockUploadButton: "上传",
+                blockCaptionPlaceholderText: "图片说明",
+                blockUploadPlaceholderText: "粘贴图片地址或上传图片",
+              },
+              [Crepe.Feature.BlockEdit]: {
+                textGroup: {
+                  label: "文本",
+                  text: { label: "正文" },
+                  h1: { label: "一级标题" },
+                  h2: { label: "二级标题" },
+                  h3: { label: "三级标题" },
+                  h4: { label: "四级标题" },
+                  h5: { label: "五级标题" },
+                  h6: { label: "六级标题" },
+                  quote: { label: "引用" },
+                  divider: { label: "分隔线" },
+                },
+                listGroup: {
+                  label: "列表",
+                  bulletList: { label: "无序列表" },
+                  orderedList: { label: "有序列表" },
+                  taskList: { label: "任务列表" },
+                },
+                advancedGroup: {
+                  label: "高级",
+                  image: { label: "图片" },
+                  codeBlock: { label: "代码块" },
+                  table: { label: "表格" },
+                  math: { label: "数学公式" },
+                },
+              },
             },
           });
 
           editor.editor
             .config((ctx: Ctx) => {
-              ctx.get(listenerCtx).markdownUpdated((_ctx: Ctx, markdown: string) => {
-                currentContentRef.current = markdown;
-                onChangeRef.current?.(markdown);
-              });
-
-              ctx.update(uploadConfig.key, (prev) => ({
-                ...prev,
-                uploader: uploadDroppedImages,
-              }));
-
               ctx.set(highlightPluginConfig.key, {
                 parser: highlightParser,
                 languageExtractor: (node) => {
@@ -335,24 +241,25 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                   const key = language.trim().toLowerCase();
                   if (!key) return undefined;
 
-                  const alias: Record<string, string> = {
+                  const aliases: Record<string, string> = {
                     js: "javascript",
                     ts: "typescript",
                     yml: "yaml",
                     shell: "bash",
                     zsh: "bash",
                     docker: "dockerfile",
+                    cxx: "cpp",
+                    "c++": "cpp",
+                    cs: "csharp",
+                    md: "markdown",
+                    ps1: "powershell",
                   };
 
-                  return alias[key] ?? key;
+                  return aliases[key] ?? key;
                 },
               });
             })
-            .use(listener)
-            .use(history)
-            .use(highlight)
-            .use(math)
-            .use(uploadPlugin);
+            .use(highlight);
 
           await editor.create();
 
@@ -361,187 +268,80 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
             return;
           }
 
+          editor.on((listener) => {
+            listener.markdownUpdated((_ctx, markdown) => {
+              currentContentRef.current = markdown;
+              onChangeRef.current?.(markdown);
+            });
+          });
+
           editorRef.current = editor;
           setIsReady(true);
-
-          nativePasteHandler = async (event: ClipboardEvent) => {
-            const files = Array.from(event.clipboardData?.files ?? []);
-            const images = files.filter((file) =>
-              file.type.startsWith("image/")
-            );
-
-            if (images.length === 0) return;
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            const uploaded = await uploadFilesAndInsertImages(
-              event.clipboardData?.files
-            );
-
-            if (uploaded) {
-              clearDropIndicator();
-            }
-          };
-
-          nativeDragOverHandler = (event: DragEvent) => {
-            const imageFiles = getImageFiles(event.dataTransfer?.files);
-            if (imageFiles.length === 0) return;
-            event.preventDefault();
-          };
-
-          nativeDropHandler = async (event: DragEvent) => {
-            if (getImageFiles(event.dataTransfer?.files).length === 0) return;
-
-            event.preventDefault();
-            event.stopPropagation();
-            clearDropIndicator();
-            await uploadFilesAndInsertImages(event.dataTransfer?.files);
-          };
-
-          container.addEventListener("paste", nativePasteHandler);
-          container.addEventListener("dragover", nativeDragOverHandler);
-          container.addEventListener("drop", nativeDropHandler);
         } catch (error) {
           console.error("Milkdown 初始化失败:", error);
         }
-      })();
+      };
+
+      void createEditor();
 
       return () => {
         mounted = false;
+        setIsReady(false);
 
-        if (nativePasteHandler) {
-          container.removeEventListener("paste", nativePasteHandler);
-        }
-        if (nativeDragOverHandler) {
-          container.removeEventListener("dragover", nativeDragOverHandler);
-        }
-        if (nativeDropHandler) {
-          container.removeEventListener("drop", nativeDropHandler);
-        }
-
-        if (editorRef.current) {
-          try {
-            void editorRef.current.destroy();
-            editorRef.current = null;
-          } catch (e) {
-            console.error("Milkdown 清理失败:", e);
-          }
+        const activeEditor = editorRef.current ?? editor;
+        editorRef.current = null;
+        if (activeEditor) {
+          void activeEditor.destroy().catch((error) => {
+            console.error("Milkdown 清理失败:", error);
+          });
         }
       };
-    }, [clearDropIndicator, uploadFilesAndInsertImages]);
+    }, [handleImageUpload, theme]);
 
     useEffect(() => {
-      if (editorRef.current && isReady) {
-        editorRef.current.editor.action((ctx) => {
-          ctx.set(defaultValueCtx, initialValue);
-        });
-        currentContentRef.current = initialValue;
-      }
+      if (!editorRef.current || !isReady) return;
+      if (initialValue === currentContentRef.current) return;
+
+      currentContentRef.current = initialValue;
+      editorRef.current.editor.action(replaceAll(initialValue));
     }, [initialValue, isReady]);
 
     return (
-      <div className={className}>
-        <div className={theme === "dark" ? "theme-dark" : "theme-light"}>
-          <div className="flex flex-wrap gap-2 p-3 border border-theme-border rounded-t-lg bg-theme-surface">
-            <ToolbarButton
-              label="H1"
-              onMouseDown={handleToolbarAction(wrapInHeadingCommand, 1)}
-            >
-              <Heading1 size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="H2"
-              onMouseDown={handleToolbarAction(wrapInHeadingCommand, 2)}
-            >
-              <Heading2 size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="粗体"
-              onMouseDown={handleToolbarAction(toggleStrongCommand)}
-            >
-              <Bold size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="斜体"
-              onMouseDown={handleToolbarAction(toggleEmphasisCommand)}
-            >
-              <Italic size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="删除线"
-              onMouseDown={handleToolbarAction(toggleStrikethroughCommand)}
-            >
-              <Strikethrough size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="引用"
-              onMouseDown={handleToolbarAction(wrapInBlockquoteCommand)}
-            >
-              <Quote size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="无序列表"
-              onMouseDown={handleToolbarAction(wrapInBulletListCommand)}
-            >
-              <List size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="有序列表"
-              onMouseDown={handleToolbarAction(wrapInOrderedListCommand)}
-            >
-              <ListOrdered size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="代码块"
-              onMouseDown={handleToolbarAction(createCodeBlockCommand)}
-            >
-              <Code2 size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="清除格式"
-              onMouseDown={handleToolbarAction(turnIntoTextCommand)}
-            >
-              <RemoveFormatting size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="撤销"
-              onMouseDown={handleToolbarAction(undoCommand)}
-            >
-              <Undo2 size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              label="重做"
-              onMouseDown={handleToolbarAction(redoCommand)}
-            >
-              <Redo2 size={16} />
-            </ToolbarButton>
-          </div>
-
+      <div
+        className={`milkdown-editor-shell overflow-hidden rounded-xl border border-theme-border bg-theme-surface ${className}`}
+        style={height ? { height } : undefined}
+      >
+        <div
+          className={`${theme === "dark" ? "theme-dark" : "theme-light"} relative h-full min-h-0 bg-theme-surface`}
+        >
           <div
-            className="relative border-x border-b border-theme-border rounded-b-lg overflow-hidden bg-theme-surface"
-            style={{ height }}
-          >
-            <div
-              ref={containerRef}
-              className="milkdown h-full overflow-auto"
-              style={{
-                visibility: isReady ? "visible" : "hidden",
-              }}
-            />
+            ref={containerRef}
+            className="milkdown milkdown-editor-root"
+            style={{ visibility: isReady ? "visible" : "hidden" }}
+          />
 
-            {!isReady && (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-theme-text-tertiary">加载编辑器...</div>
-              </div>
-            )}
+          {!isReady && (
+            <div className="absolute inset-0 flex items-center justify-center text-sm text-theme-text-tertiary">
+              加载编辑器...
+            </div>
+          )}
 
-            {uploadingImageCount > 0 && (
-              <div className="absolute bottom-4 right-4 rounded-md border border-theme-border bg-theme-surface px-3 py-2 text-sm text-theme-text-secondary shadow-lg">
-                正在上传图片...
-              </div>
-            )}
-          </div>
+          {uploadingImageCount > 0 && (
+            <div className="absolute bottom-4 right-4 z-20 rounded-lg border border-theme-border bg-theme-surface px-3 py-2 text-sm text-theme-text-secondary shadow-lg">
+              正在上传 {uploadingImageCount} 张图片...
+            </div>
+          )}
+
+          {uploadError && (
+            <button
+              type="button"
+              onClick={() => setUploadError(null)}
+              className="absolute bottom-4 left-4 z-20 rounded-lg border border-theme-error-primary/30 bg-theme-error-bg px-3 py-2 text-left text-sm text-theme-error-text shadow-lg"
+              title="点击关闭"
+            >
+              {uploadError}
+            </button>
+          )}
         </div>
       </div>
     );

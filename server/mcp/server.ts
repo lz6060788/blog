@@ -21,6 +21,15 @@ const categorySchema = z.object({
   slug: z.string(),
 })
 
+const createdCategoryOutputSchema = {
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+}
+
 const tagSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -113,7 +122,7 @@ function errorResult(error: unknown) {
 export function createBlogMcpServer(userId: string): McpServer {
   const server = new McpServer({
     name: 'personal-blog-authoring',
-    version: '0.3.0',
+    version: '0.4.0',
   })
 
   server.registerTool(
@@ -138,6 +147,34 @@ export function createBlogMcpServer(userId: string): McpServer {
       try {
         const context = await authoringService.getBlogContext()
         return successResult('已读取博客创作上下文。', context)
+      } catch (error) {
+        return errorResult(error)
+      }
+    }
+  )
+
+  server.registerTool(
+    'create_category',
+    {
+      title: 'Create blog category',
+      description: 'Create a reusable blog category. The slug is optional and will be generated from the name when omitted. Use get_blog_context first to avoid duplicates.',
+      inputSchema: {
+        name: z.string().trim().min(1).max(100),
+        slug: z.string().trim().min(1).max(100).optional(),
+        description: z.string().trim().max(500).optional(),
+      },
+      outputSchema: createdCategoryOutputSchema,
+      annotations: {
+        readOnlyHint: false,
+        openWorldHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+      },
+    },
+    async ({ name, slug, description }) => {
+      try {
+        const result = await authoringService.createCategory({ name, slug, description })
+        return successResult(`分类“${result.name}”已创建。`, result)
       } catch (error) {
         return errorResult(error)
       }

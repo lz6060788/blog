@@ -20,6 +20,7 @@ async function main() {
     const result = await client.listTools()
     const expected = [
       'get_blog_context',
+      'create_category',
       'list_posts',
       'get_post',
       'update_post',

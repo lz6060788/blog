@@ -1,3 +1,6 @@
+import { eq, or } from 'drizzle-orm'
+
+import { generateSlug } from '@/lib/utils/slug'
 import { db } from '@/server/db'
 import { categories, tags } from '@/server/db/schema'
 import { PostRepository } from '@/server/repositories/post.repository'
@@ -17,6 +20,12 @@ export interface UpdateDraftInput {
   excerpt?: string
   categoryId?: string | null
   tags?: string[]
+}
+
+export interface CreateCategoryInput {
+  name: string
+  slug?: string
+  description?: string
 }
 
 function calculateReadTime(content: string): number {
@@ -48,6 +57,56 @@ export class AuthoringService {
       maxTags: 3,
       categories: categoryRows.map(({ id, name, slug }) => ({ id, name, slug })),
       tags: tagRows.map(({ id, name, slug }) => ({ id, name, slug })),
+    }
+  }
+
+  async createCategory(input: CreateCategoryInput) {
+    const name = input.name.trim()
+    const slug = generateSlug(input.slug?.trim() || name)
+    const description = input.description?.trim() || null
+
+    if (!name) throw new Error('分类名称不能为空')
+    if (!slug) throw new Error('无法生成有效的分类 slug，请显式提供包含中文、字母或数字的 slug')
+
+    const existing = await db
+      .select({ id: categories.id, name: categories.name, slug: categories.slug })
+      .from(categories)
+      .where(or(eq(categories.name, name), eq(categories.slug, slug)))
+
+    if (existing.some((category) => category.name === name)) {
+      throw new Error(`分类名称“${name}”已存在`)
+    }
+    if (existing.some((category) => category.slug === slug)) {
+      throw new Error(`分类 slug“${slug}”已存在`)
+    }
+
+    const now = new Date().toISOString()
+    try {
+      const [created] = await db
+        .insert(categories)
+        .values({
+          id: crypto.randomUUID(),
+          name,
+          slug,
+          description,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning({
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+          description: categories.description,
+          createdAt: categories.createdAt,
+          updatedAt: categories.updatedAt,
+        })
+      return created
+    } catch (error) {
+      const databaseError = error as { code?: string; cause?: { code?: string } }
+      if (databaseError.code === '23505' || databaseError.cause?.code === '23505') {
+        throw new Error('分类名称或 slug 已存在')
+      }
+      throw error
     }
   }
 

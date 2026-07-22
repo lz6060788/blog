@@ -189,13 +189,14 @@ try {
 npm run mcp:check
 ```
 
-成功时应发现 10 个工具，并完成 `get_blog_context`、`list_posts` 和 `get_post` 只读调用。
+成功时应发现 11 个工具，并完成 `get_blog_context`、`list_posts` 和 `get_post` 只读调用。
 
 ## 6. 可用工具
 
 | 工具 | 用途 | 写入 | 关键限制 |
 | --- | --- | --- | --- |
 | `get_blog_context` | 查询语言、Markdown 格式、分类、标签和限制 | 否 | 写文章前优先调用 |
+| `create_category` | 创建可复用的文章分类 | 是 | 名称必填；slug 可自动生成；名称和 slug 均不可重复 |
 | `list_posts` | 按状态、关键词和分页查询当前作者的文章 | 否 | 只返回当前管理员自己的文章 |
 | `get_post` | 读取文章完整 Markdown 与元数据 | 否 | 返回编辑所需的 `updatedAt` |
 | `update_post` | 编辑草稿或已发布文章 | 是 | 先读取文章，并传入匹配的 `expectedUpdatedAt` |
@@ -216,16 +217,29 @@ npm run mcp:check
 
 ```text
 1. get_blog_context
-2. list_posts / get_post（编辑已有文章时）
-3. 生成和人工审阅 Markdown
-4. create_post_draft / update_post
-5. upload_post_cover（可选）
-6. get_post_preview
-7. 用户明确确认发布
-8. publish_post
+2. create_category（没有合适分类时，可选）
+3. list_posts / get_post（编辑已有文章时）
+4. 生成和人工审阅 Markdown
+5. create_post_draft / update_post
+6. upload_post_cover（可选）
+7. get_post_preview
+8. 用户明确确认发布
+9. publish_post
 ```
 
-### 7.1 创建草稿示例
+### 7.1 创建分类示例
+
+```json
+{
+  "name": "人工智能",
+  "slug": "artificial-intelligence",
+  "description": "AI、机器学习与智能应用"
+}
+```
+
+只有 `name` 是必填项。省略 `slug` 时服务端会根据名称自动生成；成功后将返回的分类 `id` 传给 `create_post_draft.categoryId`。调用前应先通过 `get_blog_context` 检查是否已有合适分类。
+
+### 7.2 创建草稿示例
 
 ```json
 {
@@ -239,7 +253,7 @@ npm run mcp:check
 
 `create_post_draft` 永远只创建草稿，不会自动发布。
 
-### 7.2 更新草稿示例
+### 7.3 更新草稿示例
 
 ```json
 {
@@ -250,7 +264,7 @@ npm run mcp:check
 }
 ```
 
-### 7.3 发布示例
+### 7.4 发布示例
 
 只有用户在当前对话明确说“确认发布”之后才能调用：
 
@@ -389,7 +403,7 @@ Last-Event-ID
 - [ ] 服务端环境变量已配置且未提交到 Git；
 - [ ] 管理员已登录并存在于数据库；
 - [ ] `npm run mcp:check` 通过；
-- [ ] 客户端能够列出 10 个工具；
+- [ ] 客户端能够列出 11 个工具；
 - [ ] `get_blog_context` 返回 `zh-CN` 和 `markdown`；
 - [ ] 可以创建并回读未发布草稿；
 - [ ] 封面上传能够安全写入 COS；

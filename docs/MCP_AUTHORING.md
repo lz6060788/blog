@@ -47,6 +47,7 @@ npm run mcp:check
 | 工具 | 作用 | 是否产生写入 |
 | --- | --- | --- |
 | `get_blog_context` | 获取语言、分类、标签和限制 | 否 |
+| `create_category` | 创建可复用的文章分类 | 是 |
 | `list_posts` | 按状态、关键词和分页查询当前作者的文章 | 否 |
 | `get_post` | 获取文章完整 Markdown 内容与元数据 | 否 |
 | `update_post` | 编辑当前作者的草稿或已发布文章 | 是 |
@@ -56,6 +57,8 @@ npm run mcp:check
 | `upload_file` | 上传通用文件到 COS，仅返回 URL | 是 |
 | `get_post_preview` | 获取当前文章与预览地址 | 否 |
 | `publish_post` | 发布已确认的文章 | 是 |
+
+`create_category` 接受必填的 `name`，以及可选的 `slug` 和 `description`。省略 `slug` 时会根据名称自动生成；分类名称或 slug 已存在时会拒绝重复创建。创建成功后返回分类的 `id`、`name`、`slug`、`description`、`createdAt` 和 `updatedAt`。
 
 `publish_post` 的 `confirm` 参数必须为 `true`，并且工具描述要求仅在用户于当前对话明确确认发布后调用。
 

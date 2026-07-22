@@ -2,6 +2,7 @@ import { ArticleHeader } from './article-header'
 import { ArticleContent } from './article-content'
 import { ArticleFooter } from './article-footer'
 import { ArticleCover } from '@/components/article'
+import { ArticleReaderTools } from './article-reader-tools'
 
 interface ArticleWrapperProps {
   title: string
@@ -26,10 +27,10 @@ export function ArticleWrapper({
 }: ArticleWrapperProps) {
   return (
     <article className="min-h-screen pt-24 pb-16">
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="mx-auto max-w-4xl px-6">
         {/* 封面图片 */}
         {coverImageUrl && (
-          <div className="mb-8 rounded-2xl overflow-hidden shadow-lg" style={{ maxHeight: '60vh' }}>
+          <div className="mb-8 overflow-hidden rounded-2xl shadow-lg" style={{ maxHeight: '60vh' }}>
             <ArticleCover
               src={coverImageUrl}
               alt={title}
@@ -60,6 +61,7 @@ export function ArticleWrapper({
         {/* Footer */}
         <ArticleFooter />
       </div>
+      <ArticleReaderTools />
     </article>
   )
 }

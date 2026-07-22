@@ -247,7 +247,7 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-3">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 pb-8">
       {/* 头部 */}
       <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -362,18 +362,18 @@ export default function NewPostPage() {
         </div>
       )}
 
-      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_440px]">
         {/* Milkdown Markdown 编辑器 */}
-        <div className="min-h-[520px] xl:min-h-0">
+        <div className="min-w-0">
           <MilkdownEditor
             initialValue=""
             onChange={setContent}
             theme={resolvedTheme}
-            className="h-full min-h-[520px] xl:min-h-0"
+            className="min-h-[640px]"
           />
         </div>
 
-        <aside className="min-h-0 space-y-3 xl:overflow-y-auto xl:pr-1">
+        <aside className="min-w-0 space-y-5">
           <CoverPreview
             postId={postId}
             initialCoverUrl={coverImageUrl}

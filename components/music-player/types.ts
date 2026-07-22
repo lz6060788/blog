@@ -19,6 +19,7 @@ export interface CollapsedWidgetProps {
   isMobile: boolean
   position: 'left' | 'right'
   onClick: () => void
+  ariaLabel?: string
 }
 
 // 黑胶唱片组件 Props

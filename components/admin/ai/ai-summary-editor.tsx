@@ -159,71 +159,58 @@ export function AISummaryEditor({
   // 新建页面：显示提示信息
   if (!postId) {
     return (
-      <div className="mb-3">
-        <div className="bg-theme-surface border border-theme-border rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <Wand2 className="w-4 h-4 text-theme-text-tertiary" />
-            <h3 className="text-sm font-medium text-theme-text-secondary">AI 摘要</h3>
+      <section className="flex min-h-[380px] flex-col overflow-hidden rounded-2xl border border-theme-border bg-theme-surface shadow-sm">
+        <header className="flex items-start justify-between gap-3 border-b border-theme-border bg-theme-muted/30 px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-theme-accent-bg">
+              <Wand2 className="h-5 w-5 text-theme-accent-primary" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-theme-text-canvas">AI 摘要</h3>
+              <p className="mt-0.5 text-xs leading-5 text-theme-text-tertiary">用于文章列表、搜索结果和分享描述</p>
+            </div>
           </div>
-          <p className="text-sm text-theme-text-tertiary mt-2 text-center">
-            保存文章后即可使用 AI 摘要功能
-          </p>
+          <span className="shrink-0 whitespace-nowrap rounded-full bg-theme-muted px-2.5 py-1 text-xs font-medium text-theme-text-tertiary">保存后可用</span>
+        </header>
+        <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-theme-muted text-theme-text-tertiary">
+            <Lock className="h-6 w-6" />
+          </span>
+          <p className="text-sm font-medium text-theme-text-secondary">先保存文章草稿</p>
+          <p className="mt-1 max-w-xs text-xs leading-5 text-theme-text-tertiary">保存后可根据标题与正文生成摘要，并在这里继续编辑。</p>
         </div>
-      </div>
+        <footer className="border-t border-theme-border bg-theme-muted/20 px-5 py-4">
+          <Button className="w-full" disabled><Wand2 />生成 AI 摘要</Button>
+        </footer>
+      </section>
     )
   }
 
   return (
-    <>
-      <div className="mb-3">
-        <div className="bg-theme-surface border border-theme-border rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Wand2 className="w-4 h-4 text-theme-accent-primary" />
-              <h3 className="text-sm font-medium text-theme-text-canvas">AI 摘要</h3>
-              <AISummaryStatusLabel status={aiSummaryStatus} />
-            </div>
-            <div className="flex items-center gap-2">
-              {aiSummaryStatus === SummaryStatus.DONE && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleRegenerateSummary}
-                  disabled={isGeneratingSummary}
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  重新生成
-                </Button>
-              )}
-              {aiSummaryStatus === SummaryStatus.PENDING || aiSummaryStatus === SummaryStatus.FAILED ? (
-                <Button
-                  size="sm"
-                  onClick={handleGenerateSummary}
-                  disabled={isGeneratingSummary}
-                >
-                  {isGeneratingSummary ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      生成中...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-3 h-3 mr-1" />
-                      生成摘要
-                    </>
-                  )}
-                </Button>
-              ) : null}
-            </div>
+    <section className="flex min-h-[380px] flex-col overflow-hidden rounded-2xl border border-theme-border bg-theme-surface shadow-sm">
+      <header className="flex items-start justify-between gap-3 border-b border-theme-border bg-theme-muted/30 px-5 py-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-theme-accent-bg">
+            <Wand2 className="h-5 w-5 text-theme-accent-primary" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-theme-text-canvas">AI 摘要</h3>
+            <p className="mt-0.5 text-xs leading-5 text-theme-text-tertiary">用于文章列表、搜索结果和分享描述</p>
           </div>
+        </div>
+        <div className="pt-1">
+              <AISummaryStatusLabel status={aiSummaryStatus} />
+        </div>
+      </header>
 
-          {/* 摘要内容显示/编辑 */}
+      <div className="flex-1 p-5">
+        {/* 摘要内容显示/编辑 */}
           {aiSummary ? (
             <div className="relative">
               {aiSummaryStatus === SummaryStatus.GENERATING && (
-                <div className="absolute inset-0 bg-theme-canvas/80 flex items-center justify-center rounded-lg z-10">
-                  <div className="flex items-center gap-2 text-theme-accent-primary">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-theme-canvas/85 backdrop-blur-sm">
+                  <div className="flex flex-col items-center gap-2 text-theme-accent-primary">
+                    <Loader2 className="h-6 w-6 animate-spin" />
                     <span className="text-sm">正在生成摘要...</span>
                   </div>
                 </div>
@@ -231,42 +218,48 @@ export function AISummaryEditor({
               <textarea
                 value={aiSummary}
                 onChange={(e) => setAiSummary(e.target.value)}
-                className="w-full px-3 py-2 bg-theme-canvas border border-theme-border rounded-lg text-sm text-theme-text-canvas focus:outline-none focus:ring-2 focus:ring-theme-accent-primary resize-none"
-                rows={3}
-                placeholder="生成的摘要将显示在这里..."
+                className="min-h-[220px] w-full resize-y rounded-xl border border-theme-border bg-theme-canvas px-4 py-3 text-sm leading-6 text-theme-text-canvas outline-none transition focus:border-theme-accent-primary focus:ring-2 focus:ring-theme-accent-primary/20"
+                rows={9}
+                placeholder="生成后仍可在这里继续修改摘要..."
                 disabled={aiSummaryStatus === SummaryStatus.GENERATING}
               />
             </div>
           ) : (
-            <div className="text-sm text-theme-text-tertiary py-2 text-center">
-              {aiSummaryStatus === SummaryStatus.GENERATING
-                ? '正在生成摘要...'
-                : aiSummaryStatus === SummaryStatus.FAILED
-                  ? '摘要生成失败，请重试'
-                  : '点击"生成摘要"按钮，AI 将为您的文章生成摘要'}
+            <div className="flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-theme-border bg-theme-canvas px-8 text-center">
+              {aiSummaryStatus === SummaryStatus.GENERATING ? <Loader2 className="mb-3 h-7 w-7 animate-spin text-theme-accent-primary" /> : <Wand2 className="mb-3 h-7 w-7 text-theme-text-tertiary" />}
+              <p className="text-sm font-medium text-theme-text-secondary">
+                {aiSummaryStatus === SummaryStatus.GENERATING ? '正在生成摘要...' : aiSummaryStatus === SummaryStatus.FAILED ? '摘要生成失败' : '尚未生成 AI 摘要'}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-theme-text-tertiary">
+                {aiSummaryStatus === SummaryStatus.FAILED ? '请检查文章内容后重新尝试' : 'AI 会提炼文章重点，生成后仍可手动修改'}
+              </p>
             </div>
           )}
 
-          {/* 生成期间的锁定提示 */}
-          {aiSummaryStatus === SummaryStatus.GENERATING && (
-            <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-muted px-3 py-2 rounded-lg">
-              <Lock className="w-3 h-3" />
-              <span>摘要生成期间，编辑功能已锁定</span>
-            </div>
-          )}
+        <div className="mt-2 flex items-center justify-between text-xs text-theme-text-tertiary">
+          <span>建议控制在 80–160 字</span>
+          <span>{aiSummary.length} 字</span>
         </div>
+
+        {aiSummaryStatus === SummaryStatus.GENERATING && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-theme-muted px-3 py-2 text-xs text-theme-text-tertiary">
+            <Lock className="h-3 w-3" />
+            <span>摘要生成期间，编辑功能暂不可用</span>
+          </div>
+        )}
       </div>
 
-      {/* 生成期间的遮罩层 */}
-      {aiSummaryStatus === SummaryStatus.GENERATING && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-theme-surface border border-theme-border rounded-xl p-6 flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-theme-accent-primary" />
-            <p className="text-sm font-medium text-theme-text-canvas">正在生成 AI 摘要</p>
-            <p className="text-xs text-theme-text-secondary">请稍候，生成期间无法编辑文章</p>
-          </div>
-        </div>
-      )}
-    </>
+      <footer className="border-t border-theme-border bg-theme-muted/20 px-5 py-4">
+        <Button
+          className="w-full"
+          variant={aiSummaryStatus === SummaryStatus.DONE ? 'outline' : 'default'}
+          onClick={aiSummaryStatus === SummaryStatus.DONE ? handleRegenerateSummary : handleGenerateSummary}
+          disabled={isGeneratingSummary || aiSummaryStatus === SummaryStatus.GENERATING}
+        >
+          {isGeneratingSummary || aiSummaryStatus === SummaryStatus.GENERATING ? <Loader2 className="animate-spin" /> : aiSummaryStatus === SummaryStatus.DONE ? <RefreshCw /> : <Wand2 />}
+          {isGeneratingSummary || aiSummaryStatus === SummaryStatus.GENERATING ? '生成中...' : aiSummaryStatus === SummaryStatus.DONE ? '重新生成摘要' : '生成 AI 摘要'}
+        </Button>
+      </footer>
+    </section>
   )
 }

@@ -25,7 +25,7 @@ function CoverStatusLabel({ status }: CoverStatusLabelProps) {
   const { text, className } = labels[status || 'pending'] || labels.pending
 
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>
+    <span className={`shrink-0 whitespace-nowrap px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>
       {text}
     </span>
   )
@@ -271,144 +271,110 @@ export function CoverPreview({
   // 新建页面：显示提示信息
   if (!postId) {
     return (
-      <div className="mb-3">
-        <div className="bg-theme-surface border border-theme-border rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-theme-text-tertiary" />
-            <h3 className="text-sm font-medium text-theme-text-secondary">文章封面</h3>
+      <section className="overflow-hidden rounded-2xl border border-theme-border bg-theme-surface shadow-sm">
+        <header className="flex items-start justify-between gap-3 border-b border-theme-border bg-theme-muted/30 px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-theme-accent-bg">
+              <ImageIcon className="h-5 w-5 text-theme-accent-primary" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-theme-text-canvas">文章封面</h3>
+              <p className="mt-0.5 text-xs leading-5 text-theme-text-tertiary">16:9 · JPG、PNG 或 WebP · 最大 10MB</p>
+            </div>
           </div>
-          <p className="text-sm text-theme-text-tertiary mt-2 text-center">
-            保存文章后即可使用封面功能
-          </p>
+          <span className="shrink-0 whitespace-nowrap rounded-full bg-theme-muted px-2.5 py-1 text-xs font-medium text-theme-text-tertiary">保存后可用</span>
+        </header>
+        <div className="flex min-h-[230px] flex-col items-center justify-center px-8 text-center">
+          <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-theme-muted text-theme-text-tertiary">
+            <Lock className="h-6 w-6" />
+          </span>
+          <p className="text-sm font-medium text-theme-text-secondary">先保存文章草稿</p>
+          <p className="mt-1 max-w-xs text-xs leading-5 text-theme-text-tertiary">获得文章 ID 后即可上传封面，或根据标题和正文使用 AI 生成。</p>
         </div>
-      </div>
+        <footer className="grid grid-cols-2 gap-2 border-t border-theme-border bg-theme-muted/20 px-5 py-4">
+          <Button variant="outline" className="w-full" disabled><Upload />本地上传</Button>
+          <Button className="w-full" disabled><ImageIcon />AI 生成</Button>
+        </footer>
+      </section>
     )
   }
 
   return (
-    <div className="mb-3">
-      <div className="bg-theme-surface border border-theme-border rounded-xl p-4 space-y-3">
-        {/* 头部：标题和操作按钮 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-theme-accent-primary" />
-            <h3 className="text-sm font-medium text-theme-text-canvas">文章封面</h3>
+    <>
+      <section className="overflow-hidden rounded-2xl border border-theme-border bg-theme-surface shadow-sm">
+        <header className="flex items-start justify-between gap-3 border-b border-theme-border bg-theme-muted/30 px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-theme-accent-bg">
+              <ImageIcon className="h-5 w-5 text-theme-accent-primary" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-theme-text-canvas">文章封面</h3>
+              <p className="mt-0.5 text-xs leading-5 text-theme-text-tertiary">16:9 · JPG、PNG 或 WebP · 最大 10MB</p>
+            </div>
+          </div>
+          <div className="pt-1">
             <CoverStatusLabel status={coverStatus} />
           </div>
-          <div className="flex items-center gap-2">
-            {coverStatus === CoverStatus.DONE || coverStatus === CoverStatus.MANUAL ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleUploadClick}
-                  disabled={isUploading}
-                >
-                  <Upload className="w-3 h-3 mr-1" />
-                  更换
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleRemoveCover}
-                >
-                  <Trash2 className="w-3 h-3 mr-1" />
-                  删除
-                </Button>
-                {coverStatus === CoverStatus.DONE && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleRegenerateCover}
-                    disabled={isGenerating}
-                  >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    重新生成
-                  </Button>
-                )}
-              </>
-            ) : coverStatus === CoverStatus.PENDING || coverStatus === CoverStatus.FAILED || coverStatus === null ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleUploadClick}
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      上传中...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-3 h-3 mr-1" />
-                      上传封面
-                    </>
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleGenerateCover}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      生成中...
-                    </>
-                  ) : (
-                    <>
-                      <ImageIcon className="w-3 h-3 mr-1" />
-                      AI 生成
-                    </>
-                  )}
-                </Button>
-              </>
-            ) : null}
-          </div>
-        </div>
+        </header>
 
         {/* 封面预览区域 */}
-        {coverUrl ? (
-          <div className="relative group">
+        <div className="p-5">
+          <div className="group relative aspect-video w-full overflow-hidden rounded-xl border border-theme-border bg-theme-canvas">
             {coverStatus === CoverStatus.GENERATING && (
-              <div className="absolute inset-0 bg-theme-canvas/80 flex items-center justify-center rounded-lg z-10">
-                <div className="flex items-center gap-2 text-theme-accent-primary">
-                  <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-theme-canvas/85 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-2 text-theme-accent-primary">
+                  <Loader2 className="h-6 w-6 animate-spin" />
                   <span className="text-sm">正在生成封面...</span>
                 </div>
               </div>
             )}
-            <div className="relative w-full rounded-lg overflow-hidden bg-theme-canvas aspect-video">
+            {coverUrl ? (
+              <>
               <img
                 src={coverUrl}
                 alt="文章封面"
-                className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
               />
-            </div>
+                {coverStatus !== CoverStatus.GENERATING && (
+                  <Button size="icon" variant="destructive" aria-label="删除封面" className="absolute right-3 top-3 z-10 h-9 w-9 opacity-0 shadow-md transition-opacity group-hover:opacity-100" onClick={handleRemoveCover}>
+                    <Trash2 />
+                  </Button>
+                )}
+              </>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center px-8 text-center">
+                <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-theme-muted text-theme-text-tertiary">
+                  <ImageIcon className="h-6 w-6 opacity-60" />
+                </span>
+                <p className="text-sm font-medium text-theme-text-secondary">
+                  {coverStatus === CoverStatus.FAILED ? '封面生成失败' : '尚未设置文章封面'}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-theme-text-tertiary">
+                  {coverStatus === CoverStatus.FAILED ? '请重新生成，或改为本地上传' : '上传图片，或根据标题和正文自动生成'}
+                </p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="w-full aspect-video rounded-lg border-2 border-dashed border-theme-border flex flex-col items-center justify-center text-theme-text-tertiary">
-            <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm">
-              {coverStatus === CoverStatus.GENERATING
-                ? '正在生成封面...'
-                : coverStatus === CoverStatus.FAILED
-                  ? '封面生成失败，请重试'
-                  : '上传封面或使用 AI 生成'}
-            </p>
-          </div>
-        )}
 
-        {/* 生成期间的锁定提示 */}
-        {coverStatus === CoverStatus.GENERATING && (
-          <div className="flex items-center gap-2 text-xs text-theme-text-tertiary bg-theme-muted px-3 py-2 rounded-lg">
-            <Lock className="w-3 h-3" />
-            <span>封面生成期间，部分功能受限</span>
-          </div>
-        )}
-      </div>
+          {coverStatus === CoverStatus.GENERATING && (
+            <div className="mt-3 flex items-center gap-2 rounded-lg bg-theme-muted px-3 py-2 text-xs text-theme-text-tertiary">
+              <Lock className="h-3 w-3" />
+              <span>封面生成期间，相关操作暂不可用</span>
+            </div>
+          )}
+        </div>
+
+        <footer className="grid grid-cols-2 gap-2 border-t border-theme-border bg-theme-muted/20 px-5 py-4">
+          <Button variant="outline" className="w-full" onClick={handleUploadClick} disabled={isUploading || isGenerating}>
+            {isUploading ? <Loader2 className="animate-spin" /> : <Upload />}
+            {isUploading ? '上传中...' : coverUrl ? '更换封面' : '本地上传'}
+          </Button>
+          <Button className="w-full" onClick={coverUrl && coverStatus === CoverStatus.DONE ? handleRegenerateCover : handleGenerateCover} disabled={isGenerating || isUploading}>
+            {isGenerating ? <Loader2 className="animate-spin" /> : coverUrl && coverStatus === CoverStatus.DONE ? <RefreshCw /> : <ImageIcon />}
+            {isGenerating ? '生成中...' : coverUrl && coverStatus === CoverStatus.DONE ? '重新生成' : 'AI 生成'}
+          </Button>
+        </footer>
+      </section>
 
       {/* 隐藏的文件输入 */}
       <input
@@ -418,6 +384,6 @@ export function CoverPreview({
         onChange={handleFileChange}
         className="hidden"
       />
-    </div>
+    </>
   )
 }

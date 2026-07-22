@@ -180,6 +180,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 mode: "block",
               },
               [Crepe.Feature.CodeMirror]: {
+                ...(theme === "light" ? { theme: [] } : {}),
                 searchPlaceholder: "搜索代码语言",
                 noResultText: "没有匹配的语言",
                 copyText: "复制",
@@ -308,11 +309,11 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
 
     return (
       <div
-        className={`milkdown-editor-shell overflow-hidden rounded-xl border border-theme-border bg-theme-surface ${className}`}
+        className={`milkdown-editor-shell overflow-visible rounded-xl border border-theme-border bg-theme-surface ${className}`}
         style={height ? { height } : undefined}
       >
         <div
-          className={`${theme === "dark" ? "theme-dark" : "theme-light"} relative h-full min-h-0 bg-theme-surface`}
+          className={`${theme === "dark" ? "theme-dark" : "theme-light"} relative`}
         >
           <div
             ref={containerRef}

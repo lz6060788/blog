@@ -55,8 +55,10 @@ function AdminLayoutContent({
         {/* Main Content Area */}
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <TopBar onMobileMenuOpen={() => setMobileMenuOpen(true)} />
-          <main className="min-h-0 flex-1 overflow-auto p-4 lg:p-8">
-            {children}
+          <main className="min-h-0 flex-1 overflow-auto">
+            <div className="min-h-full p-4 lg:p-8">
+              {children}
+            </div>
           </main>
         </div>
       </div>

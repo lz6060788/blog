@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { Music, X } from 'lucide-react'
 import { useMusicStore } from '@/stores/music-store'
 import { parseLrc } from '@/lib/music/mock-data'
 import { MusicPlayerProps, LyricLine } from './types'
@@ -103,43 +104,47 @@ export function MusicPlayer({
   }
 
   const displaySong = currentSong || playlist[0]
-  const hasNoMusic = playlist.length === 0
-
   if (!mounted) return null
 
   return (
     <React.Fragment>
       {/* Collapsed Widget */}
-      {!isExpanded && displaySong && (
+      {!isExpanded && (
         <CollapsedWidget
-          isPlaying={isPlaying}
+          isPlaying={isPlaying && !!displaySong}
           isMobile={isMobile}
           position={position}
           onClick={toggleExpand}
+          ariaLabel={displaySong ? '打开音乐播放器' : '音乐播放器（暂无曲目）'}
         />
       )}
 
-      {/* Empty State */}
-      {hasNoMusic && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: position === 'left' ? 20 : 'auto',
-            right: position === 'right' ? 20 : 'auto',
-            left: position === 'left' ? 20 : 'auto',
-            padding: '12px 20px',
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '12px',
-            color: 'rgba(255, 255, 255, 0.6)',
-            fontSize: '14px',
-            cursor: 'default',
-            userSelect: 'none',
-            zIndex: 9999,
-          }}
+      {/* Empty library panel: keep the player interactive even before music is added. */}
+      {isExpanded && !displaySong && (
+        <section
+          className={`fixed bottom-6 ${position === 'left' ? 'left-6' : 'right-6'} z-50 w-[min(20rem,calc(100vw-3rem))] rounded-2xl border border-theme-border bg-theme-surface/95 p-5 shadow-card backdrop-blur-md`}
+          aria-label="音乐播放器"
         >
-          暂无音乐
-        </div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-theme-muted text-theme-text-canvas">
+                <Music className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-theme-text-canvas">音乐播放器</p>
+                <p className="mt-1 text-xs text-theme-text-tertiary">音乐库中还没有可播放的曲目</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={toggleExpand}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-theme-text-secondary transition-colors hover:bg-theme-muted hover:text-theme-text-canvas"
+              aria-label="收起音乐播放器"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </section>
       )}
 
       {/* Expanded Player */}

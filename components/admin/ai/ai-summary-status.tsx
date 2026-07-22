@@ -42,7 +42,7 @@ export function AISummaryStatus({ status, showLabel = false }: AISummaryStatusPr
   const Icon = current.icon
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md ${current.bgColor}`}>
+    <div className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2 py-1 rounded-md ${current.bgColor}`}>
       <Icon className={`w-4 h-4 ${current.color} ${current.animate ? 'animate-spin' : ''}`} />
       {showLabel && (
         <span className={`text-xs font-medium ${current.color}`}>

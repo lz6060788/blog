@@ -7,11 +7,13 @@ export function CollapsedWidget({
   isMobile,
   position,
   onClick,
+  ariaLabel = '打开音乐播放器',
 }: CollapsedWidgetProps) {
   return (
     <>
       <button
         onClick={onClick}
+        aria-label={ariaLabel}
         className={`fixed bottom-6 ${position === 'left' ? 'left-6' : 'right-6'} rounded-full cursor-pointer z-50 hover:scale-110 transition-all duration-300 backdrop-blur-md border bg-theme-surface/80 border-theme-border shadow-card ${
           isMobile ? 'w-[56px] h-[56px]' : 'w-16 h-16'
         }`}

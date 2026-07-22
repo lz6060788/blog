@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, Menu } from 'lucide-react'
+import { Home, LogOut, Menu } from 'lucide-react'
 import { ThemeToggle } from '@/components/layout/header/ThemeToggle'
 
 interface TopBarProps {
@@ -34,6 +34,11 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     } finally {
       setIsLoggingOut(false)
     }
+  }
+
+  const handleGoHome = () => {
+    const locale = document.documentElement.lang
+    router.push(locale === 'zh' || locale === 'en' ? `/${locale}` : '/')
   }
 
   const user = session?.user || { name: 'User', email: '', image: null }
@@ -96,6 +101,16 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                 <p className="text-xs text-theme-text-tertiary">{user.email}</p>
               </div>
             </DropdownMenuLabel>
+
+            <DropdownMenuSeparator className="bg-theme-border" />
+
+            <DropdownMenuItem
+              onClick={handleGoHome}
+              className="text-theme-text-secondary hover:bg-theme-muted hover:text-theme-text-canvas cursor-pointer"
+            >
+              <Home className="w-4 h-4 mr-2" strokeWidth={2} />
+              <span>返回博客主页</span>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator className="bg-theme-border" />
 

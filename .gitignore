@@ -49,8 +49,10 @@ Thumbs.db
 
 # database
 /data
+/.backups/
 
 .claude/
 
-scripts/
+scripts/*
+!scripts/backup-database.ts
 

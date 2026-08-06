@@ -2,7 +2,7 @@ import { lookup } from 'dns/promises'
 import { and, eq } from 'drizzle-orm'
 
 import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
+import { posts, postDrafts } from '@/server/db/schema'
 import { isPrivateUrl } from '@/server/ai/security'
 import {
   deleteFile,
@@ -296,18 +296,26 @@ export class McpUploadService {
     file: McpFileInput
     prompt?: string
   }) {
-    const ownedPost = await db
+    const ownedDraft = await db
+      .select({ id: postDrafts.id })
+      .from(postDrafts)
+      .where(and(eq(postDrafts.id, input.postId), eq(postDrafts.authorId, input.userId)))
+      .limit(1)
+    const ownedPost = ownedDraft[0] ? [] : await db
       .select({ id: posts.id })
       .from(posts)
       .where(and(eq(posts.id, input.postId), eq(posts.authorId, input.userId)))
       .limit(1)
-    if (!ownedPost[0]) throw new Error('文章不存在或无权修改')
+    if (!ownedDraft[0] && !ownedPost[0]) throw new Error('文章或草稿不存在，或无权修改')
 
     const uploaded = await this.uploadInput(input.file, 'chatgpt-cover', COVER_MIME_TYPES)
     const now = new Date().toISOString()
     try {
+      const target = ownedDraft[0] ? postDrafts : posts
+      const targetId = ownedDraft[0] ? postDrafts.id : posts.id
+      const targetAuthorId = ownedDraft[0] ? postDrafts.authorId : posts.authorId
       await db
-        .update(posts)
+        .update(target)
         .set({
           coverImageUrl: uploaded.url,
           aiCoverStatus: 'done',
@@ -315,7 +323,7 @@ export class McpUploadService {
           aiCoverPrompt: input.prompt || null,
           updatedAt: now,
         })
-        .where(and(eq(posts.id, input.postId), eq(posts.authorId, input.userId)))
+        .where(and(eq(targetId, input.postId), eq(targetAuthorId, input.userId)))
     } catch (error) {
       await deleteFile(uploaded.key).catch(() => undefined)
       throw error

@@ -6,6 +6,9 @@ import { mcpUploadService } from '@/server/services/mcp-upload.service'
 
 const previewOutputSchema = {
   postId: z.string(),
+  draftId: z.string().nullable(),
+  sourcePostId: z.string().nullable(),
+  documentType: z.enum(['draft', 'published']),
   title: z.string(),
   content: z.string(),
   excerpt: z.string().nullable(),
@@ -36,12 +39,21 @@ const tagSchema = z.object({
   slug: z.string(),
 })
 
+const seriesSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+})
+
 const postSummarySchema = z.object({
   id: z.string(),
   title: z.string(),
   excerpt: z.string().nullable(),
   published: z.boolean(),
   category: categorySchema.nullable(),
+  series: seriesSchema.nullable(),
+  seriesOrder: z.number().nullable(),
+  hasDraft: z.boolean().optional(),
   tags: z.array(tagSchema),
   readTime: z.number(),
   coverImageUrl: z.string().nullable(),
@@ -59,6 +71,8 @@ const postDetailOutputSchema = {
   excerpt: z.string().nullable(),
   published: z.boolean(),
   category: categorySchema.nullable(),
+  series: seriesSchema.nullable(),
+  seriesOrder: z.number().nullable(),
   tags: z.array(tagSchema),
   readTime: z.number(),
   wordCount: z.number(),
@@ -71,8 +85,12 @@ const postDetailOutputSchema = {
 }
 
 function previewResult(preview: any) {
+  const isDraft = preview.post.documentType === 'draft' || !preview.post.published
   return {
     postId: preview.post.id,
+    draftId: isDraft ? preview.post.id : null,
+    sourcePostId: preview.post.postId || (isDraft ? null : preview.post.id),
+    documentType: isDraft ? 'draft' as const : 'published' as const,
     title: preview.post.title,
     content: preview.post.content || '',
     excerpt: preview.post.excerpt || null,
@@ -92,6 +110,8 @@ function postDetailResult(preview: any) {
     excerpt: post.excerpt || null,
     published: Boolean(post.published),
     category: post.category || null,
+    series: post.series || null,
+    seriesOrder: post.seriesOrder ?? null,
     tags: post.tags || [],
     readTime: post.readTime || 0,
     wordCount: post.wordCount || (post.content || '').length,
@@ -122,20 +142,23 @@ function errorResult(error: unknown) {
 export function createBlogMcpServer(userId: string): McpServer {
   const server = new McpServer({
     name: 'personal-blog-authoring',
-    version: '0.4.0',
+    version: '0.5.0',
   })
 
   server.registerTool(
     'get_blog_context',
     {
       title: 'Get blog context',
-      description: 'Read the blog language, content format, categories, tags, and authoring limits before composing a post.',
+      description: 'Read the blog language, draft workflow, internal-link syntax, series, categories, tags, and authoring limits before composing a post.',
       outputSchema: {
         language: z.string(),
         contentFormat: z.string(),
         maxTags: z.number(),
+        internalLinks: z.object({ authoringStyle: z.string(), storedSyntax: z.string(), note: z.string() }),
+        draftWorkflow: z.object({ newArticle: z.string(), revision: z.string() }),
         categories: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
         tags: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
+        series: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string(), description: z.string().nullable(), postCount: z.number() })),
       },
       annotations: {
         readOnlyHint: true,
@@ -182,6 +205,66 @@ export function createBlogMcpServer(userId: string): McpServer {
   )
 
   server.registerTool(
+    'list_series',
+    {
+      title: 'List article series',
+      description: 'List reusable article series and their current published article counts.',
+      inputSchema: {},
+      outputSchema: {
+        series: z.array(z.object({
+          id: z.string(), name: z.string(), slug: z.string(), description: z.string().nullable(),
+          postCount: z.number(), createdAt: z.string(), updatedAt: z.string(),
+        })),
+      },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
+    },
+    async () => {
+      try {
+        const values = await authoringService.listSeries(userId)
+        return successResult('已读取文章专题。', { series: values.map((item) => ({ ...item, postCount: Number(item.postCount) })) })
+      } catch (error) { return errorResult(error) }
+    },
+  )
+
+  server.registerTool(
+    'create_series',
+    {
+      title: 'Create article series',
+      description: 'Create a reusable ordered article series. Use its id as seriesId on a draft.',
+      inputSchema: {
+        name: z.string().trim().min(1).max(120),
+        slug: z.string().trim().min(1).max(120).optional(),
+        description: z.string().trim().max(1000).optional(),
+      },
+      outputSchema: { id: z.string(), name: z.string(), slug: z.string(), description: z.string().nullable(), createdAt: z.string(), updatedAt: z.string() },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false, idempotentHint: false },
+    },
+    async (input) => {
+      try {
+        const result = await authoringService.createSeries(userId, input)
+        return successResult(`专题“${result.name}”已创建。`, result)
+      } catch (error) { return errorResult(error) }
+    },
+  )
+
+  server.registerTool(
+    'search_internal_posts',
+    {
+      title: 'Search articles for an internal link',
+      description: 'Search published articles and return stable post:UUID Markdown links. Use the returned internalLink directly or replace only its display text.',
+      inputSchema: { search: z.string().trim().max(200).optional(), limit: z.number().int().min(1).max(50).optional().default(20) },
+      outputSchema: { posts: z.array(z.object({ id: z.string(), title: z.string(), excerpt: z.string().nullable(), category: categorySchema.nullable(), internalLink: z.string() })) },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
+    },
+    async ({ search, limit }) => {
+      try {
+        const posts = await authoringService.searchInternalPosts(userId, search, limit)
+        return successResult(`找到 ${posts.length} 篇可引用文章。`, { posts })
+      } catch (error) { return errorResult(error) }
+    },
+  )
+
+  server.registerTool(
     'create_post_draft',
     {
       title: 'Create blog post draft',
@@ -191,6 +274,8 @@ export function createBlogMcpServer(userId: string): McpServer {
         content: z.string().trim().min(1).max(300_000).describe('Complete Markdown article body.'),
         excerpt: z.string().trim().min(1).max(500).describe('Short article introduction/summary.'),
         categoryId: z.string().uuid().nullable().optional(),
+        seriesId: z.string().uuid().nullable().optional(),
+        seriesOrder: z.number().int().min(1).nullable().optional(),
         tags: z.array(z.string().trim().min(1).max(50)).max(3).optional(),
       },
       outputSchema: previewOutputSchema,
@@ -201,13 +286,15 @@ export function createBlogMcpServer(userId: string): McpServer {
         idempotentHint: false,
       },
     },
-    async ({ title, content, excerpt, categoryId, tags }) => {
+    async ({ title, content, excerpt, categoryId, seriesId, seriesOrder, tags }) => {
       try {
         const preview = await authoringService.createDraft(userId, {
           title,
           content,
           excerpt,
           categoryId: categoryId || undefined,
+          seriesId: seriesId || undefined,
+          seriesOrder: seriesOrder ?? undefined,
           tags,
         })
         const result = previewResult(preview)
@@ -222,7 +309,7 @@ export function createBlogMcpServer(userId: string): McpServer {
     'list_posts',
     {
       title: 'List blog posts',
-      description: 'List the current author’s posts with pagination. Supports all posts, drafts only, published only, and full-text search. Use this before selecting an article to read or edit.',
+      description: 'List the current author’s published articles, or independent draft instances when status=draft. A published article and its bound revision draft can coexist.',
       inputSchema: {
         status: z.enum(['all', 'draft', 'published']).optional().default('all'),
         search: z.string().trim().max(200).optional(),
@@ -287,7 +374,7 @@ export function createBlogMcpServer(userId: string): McpServer {
     'update_post',
     {
       title: 'Update blog post',
-      description: 'Edit an existing author-owned draft or published article. Read it with get_post first and pass its exact updatedAt as expectedUpdatedAt to prevent overwriting newer changes.',
+      description: 'Create or reuse the single revision draft bound to a published article, then apply edits to that draft. The published article remains unchanged until publish_post.',
       inputSchema: {
         postId: z.string().uuid(),
         expectedUpdatedAt: z.string().min(1),
@@ -295,6 +382,8 @@ export function createBlogMcpServer(userId: string): McpServer {
         content: z.string().trim().min(1).max(300_000).optional(),
         excerpt: z.string().trim().max(500).optional(),
         categoryId: z.string().uuid().nullable().optional(),
+        seriesId: z.string().uuid().nullable().optional(),
+        seriesOrder: z.number().int().min(1).nullable().optional(),
         tags: z.array(z.string().trim().min(1).max(50)).max(3).optional(),
       },
       outputSchema: postDetailOutputSchema,
@@ -305,9 +394,9 @@ export function createBlogMcpServer(userId: string): McpServer {
         idempotentHint: true,
       },
     },
-    async ({ postId, expectedUpdatedAt, title, content, excerpt, categoryId, tags }) => {
+    async ({ postId, expectedUpdatedAt, title, content, excerpt, categoryId, seriesId, seriesOrder, tags }) => {
       try {
-        const input = { title, content, excerpt, categoryId, tags }
+        const input = { title, content, excerpt, categoryId, seriesId, seriesOrder, tags }
         const changes = Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined))
         const preview = await authoringService.updatePost(userId, postId, changes, expectedUpdatedAt)
         const result = postDetailResult(preview)
@@ -322,13 +411,15 @@ export function createBlogMcpServer(userId: string): McpServer {
     'update_post_draft',
     {
       title: 'Update blog post draft',
-      description: 'Update an existing private draft in response to the user’s requested revisions.',
+      description: 'Update an independent draft instance. postId is the draft instance ID returned by create_post_draft or update_post.',
       inputSchema: {
         postId: z.string().uuid(),
         title: z.string().trim().min(1).max(200).optional(),
         content: z.string().trim().min(1).max(300_000).optional(),
         excerpt: z.string().trim().min(1).max(500).optional(),
         categoryId: z.string().uuid().nullable().optional(),
+        seriesId: z.string().uuid().nullable().optional(),
+        seriesOrder: z.number().int().min(1).nullable().optional(),
         tags: z.array(z.string().trim().min(1).max(50)).max(3).optional(),
       },
       outputSchema: previewOutputSchema,
@@ -339,13 +430,15 @@ export function createBlogMcpServer(userId: string): McpServer {
         idempotentHint: true,
       },
     },
-    async ({ postId, title, content, excerpt, categoryId, tags }) => {
+    async ({ postId, title, content, excerpt, categoryId, seriesId, seriesOrder, tags }) => {
       try {
         const preview = await authoringService.updateDraft(userId, postId, {
           title,
           content,
           excerpt,
           categoryId: categoryId || undefined,
+          seriesId: seriesId || undefined,
+          seriesOrder: seriesOrder ?? undefined,
           tags,
         })
         const result = previewResult(preview)
@@ -419,6 +512,57 @@ export function createBlogMcpServer(userId: string): McpServer {
   )
 
   server.registerTool(
+    'list_post_drafts',
+    {
+      title: 'List independent post drafts',
+      description: 'List new-article drafts and revision drafts. A revision draft includes a non-null postId in its data and does not replace the published article until publication.',
+      inputSchema: { search: z.string().trim().max(200).optional(), page: z.number().int().min(1).optional().default(1), pageSize: z.number().int().min(1).max(100).optional().default(20) },
+      outputSchema: { posts: z.array(postSummarySchema), total: z.number(), page: z.number(), limit: z.number(), totalPages: z.number(), hasNext: z.boolean(), hasPrev: z.boolean() },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
+    },
+    async ({ search, page, pageSize }) => {
+      try {
+        const result = await authoringService.listDrafts(userId, { search, page, limit: pageSize })
+        return successResult(`已读取 ${result.posts.length} 份草稿。`, result)
+      } catch (error) { return errorResult(error) }
+    },
+  )
+
+  server.registerTool(
+    'create_post_revision',
+    {
+      title: 'Create or get a post revision draft',
+      description: 'Create or reuse the one revision draft bound to a published article without changing the live article.',
+      inputSchema: { postId: z.string().uuid() },
+      outputSchema: postDetailOutputSchema,
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false, idempotentHint: true },
+    },
+    async ({ postId }) => {
+      try {
+        const result = postDetailResult(await authoringService.createRevision(userId, postId))
+        return successResult(`已准备《${result.title}》的修订草稿。`, result)
+      } catch (error) { return errorResult(error) }
+    },
+  )
+
+  server.registerTool(
+    'get_post_draft',
+    {
+      title: 'Get post draft',
+      description: 'Read one independent draft instance by its draft ID.',
+      inputSchema: { draftId: z.string().uuid() },
+      outputSchema: postDetailOutputSchema,
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
+    },
+    async ({ draftId }) => {
+      try {
+        const result = postDetailResult(await authoringService.getDraft(userId, draftId))
+        return successResult(`已读取草稿《${result.title}》。`, result)
+      } catch (error) { return errorResult(error) }
+    },
+  )
+
+  server.registerTool(
     'upload_file',
     {
       title: 'Upload file to COS',
@@ -477,7 +621,7 @@ export function createBlogMcpServer(userId: string): McpServer {
     'publish_post',
     {
       title: 'Publish blog post',
-      description: 'Publish a reviewed draft. Call only after the user explicitly confirms publication in the current conversation.',
+      description: 'Publish a reviewed draft instance. A new-article draft creates the published article; a revision draft atomically updates its bound article; the draft is deleted after success.',
       inputSchema: {
         postId: z.string().uuid(),
         confirm: z.literal(true).describe('Must be true after explicit user confirmation.'),

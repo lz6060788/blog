@@ -138,6 +138,8 @@ export default async function PostPage({
         readTime={post.readTime}
         date={post.date}
         tags={post.tags}
+        categorySlug={post.categoryObj?.slug}
+        tagObjs={post.tagObjs}
         content={post.content}
         coverImageUrl={post.coverImageUrl}
         previousPost={previousPost}

@@ -38,7 +38,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }),
     )
 
-    return [...staticEntries, ...postEntries]
+    const categorySlugs = new Set(posts.flatMap(post => post.categoryObj?.slug ? [post.categoryObj.slug] : []))
+    const tagSlugs = new Set(posts.flatMap(post => post.tagObjs?.map(tag => tag.slug) || []))
+    const discoveryEntries = [
+      ...Array.from(categorySlugs).flatMap(slug => localizedEntries(`/category/${slug}`, {
+        changeFrequency: 'weekly',
+        priority: 0.65,
+      })),
+      ...Array.from(tagSlugs).flatMap(slug => localizedEntries(`/tag/${slug}`, {
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      })),
+    ]
+
+    return [...staticEntries, ...discoveryEntries, ...postEntries]
   } catch (error) {
     console.error('Failed to generate article sitemap entries:', error)
     return staticEntries

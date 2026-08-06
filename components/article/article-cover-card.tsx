@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/app/i18n/routing'
 import { ArticleCover } from './article-cover'
 import { cn } from '@/lib/utils'
 
@@ -29,7 +29,7 @@ interface ArticleCoverCardProps {
 
 export function ArticleCoverCard({
   articleId,
-  slug,
+  slug: _slug,
   coverUrl,
   title,
   excerpt,

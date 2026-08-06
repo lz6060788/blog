@@ -3,7 +3,7 @@ import { ArticleContent } from './article-content'
 import { ArticleFooter } from './article-footer'
 import { ArticleCover } from '@/components/article'
 import { ArticleReaderTools } from './article-reader-tools'
-import type { PostSummary } from '@/lib/types'
+import type { PostSummary, Tag } from '@/lib/types'
 
 interface ArticleWrapperProps {
   title: string
@@ -12,6 +12,8 @@ interface ArticleWrapperProps {
   readTime: number
   date: string
   tags: string[]
+  categorySlug?: string
+  tagObjs?: Tag[]
   content: string
   coverImageUrl?: string | null
   previousPost?: PostSummary
@@ -26,6 +28,8 @@ export function ArticleWrapper({
   readTime,
   date,
   tags,
+  categorySlug,
+  tagObjs,
   content,
   coverImageUrl,
   previousPost,
@@ -56,6 +60,8 @@ export function ArticleWrapper({
           readTime={readTime}
           date={date}
           tags={tags}
+          categorySlug={categorySlug}
+          tagObjs={tagObjs}
         />
 
         {/* Content */}

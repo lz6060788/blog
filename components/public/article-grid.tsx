@@ -3,6 +3,8 @@
 import { PostSummary } from '@/lib/types'
 import { motion } from 'framer-motion'
 import { ArticleCoverCard } from '@/components/article'
+import { Link } from '@/app/i18n/routing'
+import { useTranslations } from 'next-intl'
 
 interface ArticleGridProps {
   posts: PostSummary[]
@@ -29,6 +31,8 @@ const item = {
 }
 
 export function ArticleGrid({ posts }: ArticleGridProps) {
+  const t = useTranslations('article')
+
   return (
     <motion.div
       variants={container}
@@ -54,18 +58,27 @@ export function ArticleGrid({ posts }: ArticleGridProps) {
 
           {/* Article Info */}
           <div className="mt-4 space-y-2">
-            <h3 className="text-lg font-semibold tracking-tight text-theme-text-canvas group-hover:text-theme-accent-primary transition-colors line-clamp-2">
-              {post.title}
-            </h3>
+            <Link href={`/post/${post.id}`}>
+              <h3 className="text-lg font-semibold tracking-tight text-theme-text-canvas group-hover:text-theme-accent-primary transition-colors line-clamp-2">
+                {post.title}
+              </h3>
+            </Link>
             <p className="text-sm text-theme-text-secondary line-clamp-2">
               {post.excerpt}
             </p>
             <div className="flex items-center gap-3 text-xs text-theme-text-tertiary">
-              <span className="px-2 py-1 rounded bg-theme-surface-alt font-medium">
-                {post.category}
-              </span>
+              {post.categoryObj?.slug ? (
+                <Link
+                  href={`/category/${post.categoryObj.slug}`}
+                  className="rounded bg-theme-surface-alt px-2 py-1 font-medium transition-colors hover:text-theme-accent-primary"
+                >
+                  {post.category}
+                </Link>
+              ) : (
+                <span className="rounded bg-theme-surface-alt px-2 py-1 font-medium">{post.category}</span>
+              )}
               <span>•</span>
-              <span>{post.readTime} min read</span>
+              <span>{t('minutesRead', { count: post.readTime })}</span>
             </div>
           </div>
         </motion.div>

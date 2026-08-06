@@ -5,6 +5,24 @@ import createMiddleware from 'next-intl/middleware'
 import { routing } from '@/app/i18n/routing'
 
 const intlMiddleware = createMiddleware(routing)
+const privateRobotsPolicy = 'noindex, nofollow, noarchive'
+
+function preventIndexing(response: NextResponse): NextResponse {
+  response.headers.set('X-Robots-Tag', privateRobotsPolicy)
+  return response
+}
+
+function redirectToLogin(req: NextRequest, pathname: string): NextResponse {
+  let locale: string = defaultLocale
+  const localeMatch = pathname.match(/^\/(en|zh)(\/|$)/)
+  if (localeMatch) {
+    locale = localeMatch[1]
+  }
+
+  const loginUrl = new URL(`/${locale}/login`, req.url)
+  loginUrl.searchParams.set('callbackUrl', pathname)
+  return preventIndexing(NextResponse.redirect(loginUrl))
+}
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -35,7 +53,7 @@ export default async function middleware(req: NextRequest) {
   // but strictly speaking admin routes are at root /admin in this app.
   // However, keeping this logic for consistency with existing auth checks.
   const isAdminRoute = pathWithoutLocale.startsWith('/admin')
-  const isLoginPage = pathWithoutLocale.includes('/login')
+  const isLoginPage = pathWithoutLocale === '/login'
 
   // Admin route protection - must come BEFORE locale handling
   if (isAdminRoute && !isLoginPage) {
@@ -89,24 +107,15 @@ export default async function middleware(req: NextRequest) {
 
       // Check auth
       if (!token) {
-        let locale: string = defaultLocale
-        const localeMatch = pathname.match(/^\/(en|zh)(\/|$)/)
-        if (localeMatch) {
-          locale = localeMatch[1]
-        }
-
-        const loginUrl = new URL(`/${locale}/login`, req.url)
-        loginUrl.searchParams.set('callbackUrl', pathname)
-        return NextResponse.redirect(loginUrl)
+        return redirectToLogin(req, pathname)
       }
 
       
       // If authorized admin route, we skip intlMiddleware as admin routes are not localized
-      return NextResponse.next()
+      return preventIndexing(NextResponse.next())
     } catch (error) {
       console.error('❌ [Middleware] Auth error:', error)
-      // On error, we might want to redirect to login or just let it fail safely
-      // For now, falling through to next() which might be intlMiddleware or Next.js handler
+      return redirectToLogin(req, pathname)
     }
   }
 
@@ -116,12 +125,13 @@ export default async function middleware(req: NextRequest) {
   // The admin dashboard (app/admin) is NOT localized, so it should skip intlMiddleware.
   
   if (pathname.startsWith('/admin')) {
-    return NextResponse.next()
+    return preventIndexing(NextResponse.next())
   }
 
   // For all other routes (including login), use next-intl middleware
   // This handles locale detection, redirection, and setting headers for getRequestConfig
-  return intlMiddleware(req)
+  const response = intlMiddleware(req)
+  return isLoginPage ? preventIndexing(response) : response
 }
 
 export const config = {

@@ -2,7 +2,17 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Clock, FunnelSimple, Tag, X } from '@phosphor-icons/react'
+import {
+  ArrowUpRight,
+  CalendarBlank,
+  CaretDown,
+  Clock,
+  FolderOpen,
+  FunnelSimple,
+  Hash,
+  Tag,
+  X,
+} from '@phosphor-icons/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Link } from '@/app/i18n/routing'
@@ -107,12 +117,13 @@ export default function ArchiveExplorer({ posts }: ArchiveExplorerProps) {
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-14 rounded-[2rem] border border-theme-card bg-theme-card-bg p-4 shadow-card sm:p-6"
+        className="mb-14 border-y border-theme-border py-4 sm:py-5"
         aria-label={t('jumpToYear')}
       >
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-theme-text-tertiary">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+          <div className="flex shrink-0 items-center gap-4">
+            <p className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-theme-text-tertiary">
+              <CalendarBlank size={14} />
               {t('jumpToYear')}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -120,7 +131,7 @@ export default function ArchiveExplorer({ posts }: ArchiveExplorerProps) {
                 <a
                   key={group.year}
                   href={`#year-${group.year}`}
-                  className="rounded-full border border-theme-border bg-theme-surface px-3 py-1.5 font-mono text-xs text-theme-text-secondary transition-colors hover:border-theme-accent-primary hover:text-theme-accent-primary"
+                  className="border-b border-transparent px-1 py-1 font-mono text-sm text-theme-text-canvas transition-colors hover:border-theme-accent-primary hover:text-theme-accent-primary"
                 >
                   {group.year}
                 </a>
@@ -128,49 +139,56 @@ export default function ArchiveExplorer({ posts }: ArchiveExplorerProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <label className="block min-w-44">
-              <span className="mb-2 block font-mono text-[11px] uppercase tracking-[0.14em] text-theme-text-tertiary">
-                {t('categoryFilter')}
-              </span>
+          <div className="hidden h-6 w-px bg-theme-border lg:block" />
+
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:justify-end">
+            <span className="hidden items-center gap-1.5 pr-1 font-mono text-[11px] uppercase tracking-[0.14em] text-theme-text-tertiary sm:inline-flex">
+              <FunnelSimple size={13} />
+            </span>
+            <label className="relative min-w-[9rem] flex-1 sm:flex-none">
+              <span className="sr-only">{t('categoryFilter')}</span>
+              <FolderOpen size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-tertiary" />
               <select
                 value={selectedCategory}
                 onChange={event => setFilter('category', event.target.value)}
-                className="h-10 w-full rounded-xl border border-theme-border bg-theme-surface px-3 text-sm text-theme-text-canvas outline-none transition-colors focus:border-theme-accent-primary"
+                className="h-9 w-full appearance-none rounded-full border border-theme-border bg-transparent pl-8 pr-8 text-xs text-theme-text-canvas outline-none transition-colors hover:border-theme-text-tertiary focus:border-theme-accent-primary sm:w-44"
               >
                 <option value="">{t('allCategories')}</option>
                 {categories.map(category => <option key={category.slug} value={category.slug}>{category.name}</option>)}
               </select>
+              <CaretDown size={12} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-theme-text-tertiary" />
             </label>
-            <label className="block min-w-44">
-              <span className="mb-2 block font-mono text-[11px] uppercase tracking-[0.14em] text-theme-text-tertiary">
-                {t('tagFilter')}
-              </span>
+            <label className="relative min-w-[9rem] flex-1 sm:flex-none">
+              <span className="sr-only">{t('tagFilter')}</span>
+              <Hash size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-tertiary" />
               <select
                 value={selectedTag}
                 onChange={event => setFilter('tag', event.target.value)}
-                className="h-10 w-full rounded-xl border border-theme-border bg-theme-surface px-3 text-sm text-theme-text-canvas outline-none transition-colors focus:border-theme-accent-primary"
+                className="h-9 w-full appearance-none rounded-full border border-theme-border bg-transparent pl-8 pr-8 text-xs text-theme-text-canvas outline-none transition-colors hover:border-theme-text-tertiary focus:border-theme-accent-primary sm:w-40"
               >
                 <option value="">{t('allTags')}</option>
                 {tags.map(tag => <option key={tag.slug} value={tag.slug}>{tag.name}</option>)}
               </select>
+              <CaretDown size={12} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-theme-text-tertiary" />
             </label>
             {hasFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm text-theme-text-secondary transition-colors hover:bg-theme-surface-alt hover:text-theme-text-canvas"
-              >
-                <X size={15} /> {t('clearFilters')}
-              </button>
+              <>
+                <span className="px-1 font-mono text-[11px] text-theme-text-tertiary">
+                  {t('postCount', { count: filteredPosts.length })}
+                </span>
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  aria-label={t('clearFilters')}
+                  title={t('clearFilters')}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-theme-text-tertiary transition-colors hover:bg-theme-surface-alt hover:text-theme-text-canvas"
+                >
+                  <X size={14} />
+                </button>
+              </>
             )}
           </div>
         </div>
-        {hasFilters && (
-          <div className="mt-5 flex items-center gap-2 border-t border-theme-border-muted pt-4 font-mono text-xs text-theme-text-tertiary">
-            <FunnelSimple size={14} /> {t('postCount', { count: filteredPosts.length })}
-          </div>
-        )}
       </motion.section>
 
       {groups.length === 0 ? (

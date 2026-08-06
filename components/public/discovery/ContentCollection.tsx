@@ -27,26 +27,36 @@ export function ContentCollection({ kind, name, description, posts }: ContentCol
         <motion.header
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative mb-12 overflow-hidden rounded-[2rem] border border-theme-card bg-theme-card-bg px-6 py-9 shadow-card sm:px-10 sm:py-12 md:mb-16"
+          className="mb-12 pt-6 md:mb-16 md:pt-10"
         >
-          <div className="pointer-events-none absolute -right-6 -top-10 font-mono text-[9rem] leading-none text-theme-text-disabled/25 sm:text-[12rem]">
-            {kind === 'category' ? 'C' : '#'}
-          </div>
-          <div className="relative max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-theme-accent-bg px-3 py-1.5 text-xs font-medium text-theme-accent-primary">
+          <div className="mb-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.16em] text-theme-accent-primary">
+            <span className="h-px w-8 bg-theme-accent-primary" />
+            <div className="inline-flex items-center gap-2">
               <Icon size={14} weight="fill" />
               {t(kind)}
             </div>
-            <h1 className="break-words text-5xl leading-none tracking-tighter text-theme-text-canvas sm:text-6xl md:text-7xl">
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,30rem)] lg:items-end lg:gap-12">
+            <h1 className="break-words text-5xl leading-[0.95] tracking-tighter text-theme-text-canvas sm:text-6xl md:text-7xl">
               {kind === 'tag' && <span className="mr-1 text-theme-accent-primary">#</span>}
               {name}
             </h1>
-            <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-theme-text-secondary sm:text-lg">
-              {description || fallbackDescription}
-            </p>
-            <p className="mt-5 font-mono text-xs uppercase tracking-[0.16em] text-theme-text-tertiary">
+            <div className="lg:pb-1">
+              <p className="max-w-[58ch] text-base leading-relaxed text-theme-text-secondary sm:text-lg">
+                {description || fallbackDescription}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-9 flex items-center gap-4 border-t border-theme-border pt-4">
+            <p className="font-mono text-xs uppercase tracking-[0.16em] text-theme-text-tertiary">
               {t('postCount', { count: posts.length })}
             </p>
+            <span className="h-1 w-1 rounded-full bg-theme-accent-primary" />
+            <Link href="/archive" className="text-xs text-theme-text-tertiary transition-colors hover:text-theme-accent-primary">
+              {t('browseArchive')}
+            </Link>
           </div>
         </motion.header>
 

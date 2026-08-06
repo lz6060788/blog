@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { auth } from '@/server/auth'
 import { PostRepository } from '@/server/repositories/post.repository'
 import { PostService } from '@/server/services/post.service'
@@ -8,6 +8,7 @@ import { locales } from '@/i18n.config'
 import { localizedPath } from '@/lib/seo'
 
 function revalidatePublicContent(postId?: string) {
+  revalidateTag('public-posts')
   for (const locale of locales) {
     revalidatePath(localizedPath(locale, '/'))
     revalidatePath(localizedPath(locale, '/archive'))

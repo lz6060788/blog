@@ -14,6 +14,7 @@ export function GlobalSearch() {
   const router = useRouter()
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
+  const resultCacheRef = useRef(new Map<string, SearchResult[]>())
   const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -61,6 +62,15 @@ export function GlobalSearch() {
       return
     }
 
+    const cacheKey = trimmedQuery.toLocaleLowerCase().normalize('NFKC')
+    const cachedResults = resultCacheRef.current.get(cacheKey)
+    if (cachedResults) {
+      setResults(cachedResults)
+      setActiveIndex(0)
+      setLoading(false)
+      return
+    }
+
     const controller = new AbortController()
     const timer = window.setTimeout(async () => {
       setLoading(true)
@@ -70,14 +80,16 @@ export function GlobalSearch() {
         })
         if (!response.ok) throw new Error('Search request failed')
         const payload = (await response.json()) as { results?: SearchResult[] }
-        setResults(payload.results || [])
+        const nextResults = payload.results || []
+        resultCacheRef.current.set(cacheKey, nextResults)
+        setResults(nextResults)
         setActiveIndex(0)
       } catch (error) {
         if ((error as Error).name !== 'AbortError') setResults([])
       } finally {
         if (!controller.signal.aborted) setLoading(false)
       }
-    }, 180)
+    }, 260)
 
     return () => {
       window.clearTimeout(timer)

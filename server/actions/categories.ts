@@ -1,10 +1,15 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { db } from '@/server/db'
 import { categories } from '@/server/db/schema'
 import { auth } from '@/server/auth'
 import { eq } from 'drizzle-orm'
+
+function revalidatePublicCategories() {
+  revalidateTag('public-posts')
+  revalidatePath('/sitemap.xml')
+}
 
 async function getCurrentUser() {
   const session = await auth()
@@ -42,6 +47,7 @@ export async function createCategory(data: { name: string; slug: string; descrip
     updatedAt: new Date().toISOString(),
   })
   revalidatePath('/admin/categories')
+  revalidatePublicCategories()
   return { success: true, id }
 }
 
@@ -57,6 +63,7 @@ export async function updateCategory(id: string, data: { name: string; slug: str
     })
     .where(eq(categories.id, id))
   revalidatePath('/admin/categories')
+  revalidatePublicCategories()
   return { success: true }
 }
 
@@ -64,5 +71,6 @@ export async function deleteCategory(id: string) {
   const user = await getCurrentUser()
   await db.delete(categories).where(eq(categories.id, id))
   revalidatePath('/admin/categories')
+  revalidatePublicCategories()
   return { success: true }
 }

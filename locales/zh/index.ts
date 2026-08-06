@@ -15,7 +15,7 @@ export const zh: Messages = {
     label: '搜索文章',
     shortcut: '快捷搜索',
     title: '站内搜索',
-    placeholder: '搜索标题、正文、分类或标签…',
+    placeholder: '搜索标题、摘要、分类或标签…',
     hint: '输入关键词开始搜索已发布文章',
     searching: '正在搜索…',
     noResults: '没有找到匹配的文章',

@@ -9,7 +9,14 @@ export async function GET(request: Request) {
 
   try {
     const results = await searchPublishedPosts(query)
-    return NextResponse.json({ results })
+    return NextResponse.json(
+      { results },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+        },
+      },
+    )
   } catch (error) {
     console.error('Article search failed:', error)
     return NextResponse.json({ error: 'Search is temporarily unavailable' }, { status: 500 })

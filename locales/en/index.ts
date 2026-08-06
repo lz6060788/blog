@@ -15,7 +15,7 @@ export const en: Messages = {
     label: 'Search articles',
     shortcut: 'Quick search',
     title: 'Search',
-    placeholder: 'Search titles, content, categories, or tags…',
+    placeholder: 'Search titles, summaries, categories, or tags…',
     hint: 'Type a keyword to search published articles',
     searching: 'Searching…',
     noResults: 'No matching articles found',

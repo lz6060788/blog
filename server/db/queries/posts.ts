@@ -2,6 +2,7 @@ import { db } from '../index'
 import { posts, categories, tags, postTags, users, aiCallLogs } from '../schema'
 import { eq, desc, sql, and, inArray } from 'drizzle-orm'
 import type { Post, PostSummary, SearchResult, Tag } from '@/lib/types'
+import { unstable_cache } from 'next/cache'
 
 function parsePostDate(value?: string | null): number {
   if (!value) return 0
@@ -15,7 +16,7 @@ function parsePostDate(value?: string | null): number {
  * @param tagId 可选的标签 ID 筛选
  * @returns 已发布的文章列表
  */
-export async function getPublishedPosts(categoryId?: string, tagId?: string): Promise<PostSummary[]> {
+async function loadPublishedPosts(): Promise<PostSummary[]> {
   let query = db
     .select({
       id: posts.id,
@@ -70,18 +71,6 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
   // 转换为公开列表类型。数据库字段是 text，最终再按真实时间值稳定排序，
   // 避免不同 ISO 格式的字符串排序让新文章落到旧文章之后。
   return result
-    .filter(post => {
-      // 分类筛选
-      if (categoryId && post.categoryId !== categoryId) return false
-      // 标签筛选
-      if (tagId) {
-        const postTagIds = postTagRelations
-          .filter(pt => pt.postId === post.id)
-          .map(pt => pt.tagId)
-        if (!postTagIds.includes(tagId)) return false
-      }
-      return true
-    })
     .map<PostSummary>(post => {
       const category = post.categoryId ? categoryMap.get(post.categoryId) : null
       return {
@@ -115,25 +104,28 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
     })
 }
 
+const getCachedPublishedPosts = unstable_cache(
+  loadPublishedPosts,
+  ['published-post-summaries-v2'],
+  { revalidate: 300, tags: ['public-posts'] },
+)
+
+export async function getPublishedPosts(categoryId?: string, tagId?: string): Promise<PostSummary[]> {
+  const publishedPosts = await getCachedPublishedPosts()
+
+  return publishedPosts.filter(post => {
+    if (categoryId && post.categoryId !== categoryId) return false
+    if (tagId && !post.tagObjs?.some(tag => tag.id === tagId)) return false
+    return true
+  })
+}
+
 function normalizeSearchText(value: string): string {
   return value.toLocaleLowerCase().normalize('NFKC')
 }
 
-function stripMarkdown(value: string): string {
-  return value
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[>*_~|-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
 function createSearchSnippet(value: string, normalizedQuery: string): string {
-  const plainText = stripMarkdown(value)
+  const plainText = value.replace(/\s+/g, ' ').trim()
   if (!plainText) return ''
 
   const normalizedText = normalizeSearchText(plainText)
@@ -144,53 +136,21 @@ function createSearchSnippet(value: string, normalizedQuery: string): string {
 }
 
 /**
- * 在已发布文章中搜索。当前内容规模较小，服务端统一评分能同时兼顾中英文，
- * 也避免维护额外的静态搜索索引。
+ * 在缓存的公开文章摘要中搜索。缓存由内容变更动作主动失效，不需要维护
+ * 独立索引，也不会在每次输入时重复读取全部文章正文。
  */
 export async function searchPublishedPosts(query: string, limit = 8): Promise<SearchResult[]> {
   const normalizedQuery = normalizeSearchText(query.trim())
   if (!normalizedQuery) return []
 
-  const [publishedRows, postTagRelations, allTags] = await Promise.all([
-    db
-      .select({
-        id: posts.id,
-        title: posts.title,
-        excerpt: posts.excerpt,
-        content: posts.content,
-        readTime: posts.readTime,
-        publishedDate: posts.publishedDate,
-        createdAt: posts.createdAt,
-        categoryName: categories.name,
-        categorySlug: categories.slug,
-      })
-      .from(posts)
-      .leftJoin(categories, eq(posts.categoryId, categories.id))
-      .where(eq(posts.published, true)),
-    db
-      .select({ postId: postTags.postId, tagId: postTags.tagId })
-      .from(postTags),
-    db.select().from(tags),
-  ])
-
-  const tagMap = new Map(allTags.map(tag => [tag.id, tag]))
-  const tagsByPost = new Map<string, Tag[]>()
-  for (const relation of postTagRelations) {
-    const tag = tagMap.get(relation.tagId)
-    if (!tag) continue
-    const currentTags = tagsByPost.get(relation.postId) || []
-    currentTags.push(tag)
-    tagsByPost.set(relation.postId, currentTags)
-  }
+  const publishedRows = await getPublishedPosts()
 
   return publishedRows
     .map(row => {
-      const rowTags = tagsByPost.get(row.id) || []
       const title = normalizeSearchText(row.title)
-      const excerpt = normalizeSearchText(row.excerpt || '')
-      const content = normalizeSearchText(stripMarkdown(row.content))
-      const category = normalizeSearchText(row.categoryName || '')
-      const normalizedTags = rowTags.map(tag => normalizeSearchText(tag.name))
+      const excerpt = normalizeSearchText(row.excerpt)
+      const category = normalizeSearchText(row.category)
+      const normalizedTags = row.tags.map(tag => normalizeSearchText(tag))
 
       let score = 0
       if (title.startsWith(normalizedQuery)) score += 120
@@ -200,25 +160,20 @@ export async function searchPublishedPosts(query: string, limit = 8): Promise<Se
       if (normalizedTags.some(tag => tag === normalizedQuery)) score += 70
       else if (normalizedTags.some(tag => tag.includes(normalizedQuery))) score += 50
       if (excerpt.includes(normalizedQuery)) score += 30
-      if (content.includes(normalizedQuery)) score += 10
-
-      const snippetSource = excerpt.includes(normalizedQuery)
-        ? row.excerpt || ''
-        : row.content
 
       return {
         score,
-        timestamp: parsePostDate(row.publishedDate || row.createdAt),
+        timestamp: parsePostDate(row.date),
         result: {
           id: row.id,
           title: row.title,
-          excerpt: row.excerpt || '',
-          snippet: createSearchSnippet(snippetSource, normalizedQuery),
-          date: row.publishedDate || row.createdAt,
+          excerpt: row.excerpt,
+          snippet: createSearchSnippet(row.excerpt, normalizedQuery),
+          date: row.date,
           readTime: row.readTime,
-          category: row.categoryName || 'Uncategorized',
-          categorySlug: row.categorySlug || undefined,
-          tags: rowTags.map(tag => tag.name),
+          category: row.category,
+          categorySlug: row.categoryObj?.slug,
+          tags: row.tags,
         } satisfies SearchResult,
       }
     })

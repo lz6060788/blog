@@ -1,10 +1,15 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { db } from '@/server/db'
 import { tags } from '@/server/db/schema'
 import { auth } from '@/server/auth'
 import { eq } from 'drizzle-orm'
+
+function revalidatePublicTags() {
+  revalidateTag('public-posts')
+  revalidatePath('/sitemap.xml')
+}
 
 async function getCurrentUser() {
   const session = await auth()
@@ -37,6 +42,7 @@ export async function createTag(data: { name: string; slug: string }) {
     updatedAt: new Date().toISOString(),
   })
   revalidatePath('/admin/tags')
+  revalidatePublicTags()
   return { success: true, id }
 }
 
@@ -51,6 +57,7 @@ export async function updateTag(id: string, data: { name: string; slug: string }
     })
     .where(eq(tags.id, id))
   revalidatePath('/admin/tags')
+  revalidatePublicTags()
   return { success: true }
 }
 
@@ -58,5 +65,6 @@ export async function deleteTag(id: string) {
   const user = await getCurrentUser()
   await db.delete(tags).where(eq(tags.id, id))
   revalidatePath('/admin/tags')
+  revalidatePublicTags()
   return { success: true }
 }

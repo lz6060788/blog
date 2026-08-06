@@ -6,8 +6,8 @@ import { Sheet, SheetContent, SheetOverlay } from '@/components/ui/sheet'
 import { AdminSidebar as Sidebar } from '@/components/admin/shared'
 import { AdminTopBar as TopBar } from '@/components/admin/shared'
 import { useSession } from 'next-auth/react'
-import { SessionProvider } from '@/components/auth/SessionProvider'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { SessionProvider } from '@/components/auth/SessionProvider'
 
 // 内部组件：使用 useSession hook
 function AdminLayoutContent({

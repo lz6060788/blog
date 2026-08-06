@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Filter, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,12 +52,7 @@ export default function AILogsPage() {
   const [selectedStatus, setSelectedStatus] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
-  // 加载日志数据
-  useEffect(() => {
-    loadLogs()
-  }, [currentPage, selectedConfig, selectedStatus])
-
-  async function loadLogs() {
+  const loadLogs = useCallback(async () => {
     setIsLoading(true)
     try {
       const params = new URLSearchParams({
@@ -80,7 +75,12 @@ export default function AILogsPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentPage, selectedConfig, selectedStatus])
+
+  // 加载日志数据
+  useEffect(() => {
+    loadLogs()
+  }, [loadLogs])
 
   // 格式化日期
   const formatDate = (dateString: string) => {

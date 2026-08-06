@@ -66,35 +66,6 @@ export function ArticleCover({
   const isNumericWidth = typeof width === 'number'
   const isNumericHeight = typeof height === 'number'
 
-  // Next.js Image 组件的配置
-  const imageProps = {
-    src,
-    alt,
-    width: isNumericWidth ? width : undefined,
-    height: isNumericHeight ? height : undefined,
-    fill: !isNumericWidth || !isNumericHeight,
-    priority,
-    loading: lazy && !priority ? ('lazy' as const) : undefined,
-    className: cn(
-      'w-full h-full object-cover',
-      objectFit === 'cover' && 'object-cover',
-      objectFit === 'contain' && 'object-contain',
-      objectFit === 'fill' && 'object-fill',
-      isLoading && 'opacity-0',
-      !isLoading && 'opacity-100 transition-opacity duration-300',
-      className
-    ),
-    onError: () => {
-      setImageError(true)
-      setIsLoading(false)
-      onError?.()
-    },
-    onLoad: () => {
-      setIsLoading(false)
-      onLoad?.()
-    },
-  }
-
   return (
     <div
       className={cn(
@@ -105,7 +76,33 @@ export function ArticleCover({
         width: isNumericWidth ? undefined : width,
       }}
     >
-      <Image {...imageProps} />
+      <Image
+        src={src}
+        alt={alt}
+        width={isNumericWidth ? width : undefined}
+        height={isNumericHeight ? height : undefined}
+        fill={!isNumericWidth || !isNumericHeight}
+        priority={priority}
+        loading={lazy && !priority ? 'lazy' : undefined}
+        className={cn(
+          'w-full h-full object-cover',
+          objectFit === 'cover' && 'object-cover',
+          objectFit === 'contain' && 'object-contain',
+          objectFit === 'fill' && 'object-fill',
+          isLoading && 'opacity-0',
+          !isLoading && 'opacity-100 transition-opacity duration-300',
+          className
+        )}
+        onError={() => {
+          setImageError(true)
+          setIsLoading(false)
+          onError?.()
+        }}
+        onLoad={() => {
+          setIsLoading(false)
+          onLoad?.()
+        }}
+      />
 
       {/* 加载中的占位符 */}
       {isLoading && (

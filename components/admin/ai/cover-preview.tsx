@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
 import { Image as ImageIcon, Loader2, Lock, RefreshCw, Trash2, Upload, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CoverStatus } from '@/server/ai/types'
@@ -82,8 +83,16 @@ export function CoverPreview({
     onStatusChange?.(coverStatus)
   }, [coverStatus, onStatusChange])
 
+  // 停止轮询封面状态
+  const stopCoverPolling = useCallback(() => {
+    if (coverPollIntervalRef.current) {
+      clearInterval(coverPollIntervalRef.current)
+      coverPollIntervalRef.current = null
+    }
+  }, [])
+
   // 开始轮询封面状态
-  const startCoverPolling = () => {
+  const startCoverPolling = useCallback(() => {
     if (!postId || coverPollIntervalRef.current) {
       return
     }
@@ -110,29 +119,21 @@ export function CoverPreview({
         console.error('获取封面状态失败:', error)
       }
     }, 3000) // 每 3 秒轮询一次
-  }
-
-  // 停止轮询封面状态
-  const stopCoverPolling = () => {
-    if (coverPollIntervalRef.current) {
-      clearInterval(coverPollIntervalRef.current)
-      coverPollIntervalRef.current = null
-    }
-  }
+  }, [postId, stopCoverPolling])
 
   // 清理轮询
   useEffect(() => {
     return () => {
       stopCoverPolling()
     }
-  }, [])
+  }, [stopCoverPolling])
 
   // 如果初始状态是生成中，开始轮询
   useEffect(() => {
     if (postId && initialStatus === CoverStatus.GENERATING) {
       startCoverPolling()
     }
-  }, [postId])
+  }, [initialStatus, postId, startCoverPolling])
 
   // 生成 AI 封面
   const handleGenerateCover = async () => {
@@ -330,10 +331,12 @@ export function CoverPreview({
             )}
             {coverUrl ? (
               <>
-              <img
+              <Image
                 src={coverUrl}
                 alt="文章封面"
-                  className="h-full w-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="h-full w-full object-cover"
               />
                 {coverStatus !== CoverStatus.GENERATING && (
                   <Button size="icon" variant="destructive" aria-label="删除封面" className="absolute right-3 top-3 z-10 h-9 w-9 opacity-0 shadow-md transition-opacity group-hover:opacity-100" onClick={handleRemoveCover}>

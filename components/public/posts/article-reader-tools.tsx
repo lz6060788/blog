@@ -166,7 +166,7 @@ export function ArticleReaderTools() {
     )
   })
 
-  const outline = useMemo(() => (
+  const outline = (
     <nav aria-label="文章目录" className="flex max-h-[inherit] min-h-0 flex-col">
       <button
         type="button"
@@ -189,7 +189,7 @@ export function ArticleReaderTools() {
         </ol>
       )}
     </nav>
-  ), [activeId, collapsedHeadingIds, headingTree, outlineCollapsed])
+  )
 
   return (
     <>

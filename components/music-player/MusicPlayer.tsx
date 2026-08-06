@@ -66,9 +66,10 @@ export function MusicPlayer({
         setPlaylist([]) // 失败时也使用空数组
       })
     return () => {
-      if (isPlaying) pause()
+      const state = useMusicStore.getState()
+      if (state.isPlaying) state.pause()
     }
-  }, [])
+  }, [initializeAudio, setPlaylist])
 
   useEffect(() => {
     if (currentSong?.lyrics) {

@@ -213,7 +213,7 @@ export async function uploadMultipleFiles(
 // 导出
 // ============================================================================
 
-export default {
+const uploadApi = {
   uploadFile,
   deleteFile,
   uploadMultipleFiles,
@@ -221,3 +221,5 @@ export default {
   getFileExtension,
   formatFileSize,
 };
+
+export default uploadApi;

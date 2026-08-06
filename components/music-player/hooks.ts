@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, RefObject } from 'react'
+import { useCallback, useEffect, useState, useRef, RefObject } from 'react'
 import { LyricLine } from './types'
 
 // 歌词同步 Hook
@@ -11,10 +11,12 @@ export function useLyricsSync(
   const lyricItemsRef = useRef<Map<number, HTMLParagraphElement>>(new Map())
 
   // 歌词滚动和高亮
+  const audioCurrentTime = audio?.currentTime
+
   useEffect(() => {
     if (lyricLines.length === 0 || !audio) return
 
-    const currentTime = audio.currentTime
+    const currentTime = audioCurrentTime || 0
     const index = lyricLines.findIndex(
       (line, i) => currentTime >= line.time && (!lyricLines[i + 1] || currentTime < lyricLines[i + 1].time)
     )
@@ -48,7 +50,7 @@ export function useLyricsSync(
         })
       }
     }
-  }, [audio?.currentTime, lyricLines, currentLyricIndex])
+  }, [audio, audioCurrentTime, lyricLines, currentLyricIndex])
 
   return {
     currentLyricIndex,
@@ -61,14 +63,14 @@ export function useLyricsSync(
 export function useProgressBar(onProgressChange: (progress: number) => void) {
   const [isDragging, setIsDragging] = useState(false)
 
-  const handleProgressChange = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleProgressChange = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const clickX = e.clientX - rect.left
     const newProgress = (clickX / rect.width) * 100
     onProgressChange(newProgress)
-  }
+  }, [onProgressChange])
 
-  const handleProgressDrag = (clientX: number) => {
+  const handleProgressDrag = useCallback((clientX: number) => {
     const progressBars = document.querySelectorAll('[data-progress-bar]')
     progressBars.forEach((bar) => {
       const rect = bar.getBoundingClientRect()
@@ -77,7 +79,7 @@ export function useProgressBar(onProgressChange: (progress: number) => void) {
       const newProgress = Math.max(0, Math.min(100, (clickX / rect.width) * 100))
       onProgressChange(newProgress)
     })
-  }
+  }, [onProgressChange])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -98,7 +100,7 @@ export function useProgressBar(onProgressChange: (progress: number) => void) {
         window.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [isDragging])
+  }, [handleProgressDrag, isDragging])
 
   return {
     isDragging,
@@ -111,14 +113,14 @@ export function useProgressBar(onProgressChange: (progress: number) => void) {
 export function useVolumeControl(onVolumeChange: (volume: number) => void) {
   const [isDragging, setIsDragging] = useState(false)
 
-  const handleVolumeChange = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleVolumeChange = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const clickX = e.clientX - rect.left
     const newVolume = Math.max(0, Math.min(100, (clickX / rect.width) * 100))
     onVolumeChange(newVolume)
-  }
+  }, [onVolumeChange])
 
-  const handleVolumeDrag = (clientX: number) => {
+  const handleVolumeDrag = useCallback((clientX: number) => {
     const volumeBars = document.querySelectorAll('[data-volume-bar]')
     volumeBars.forEach((bar) => {
       const rect = bar.getBoundingClientRect()
@@ -127,7 +129,7 @@ export function useVolumeControl(onVolumeChange: (volume: number) => void) {
       const newVolume = Math.max(0, Math.min(100, (clickX / rect.width) * 100))
       onVolumeChange(newVolume)
     })
-  }
+  }, [onVolumeChange])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -148,7 +150,7 @@ export function useVolumeControl(onVolumeChange: (volume: number) => void) {
         window.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [isDragging])
+  }, [handleVolumeDrag, isDragging])
 
   return {
     isDragging,

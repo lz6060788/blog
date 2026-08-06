@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Wand2, Lock, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AISummaryStatusLabel } from '@/components/admin/ai'
@@ -58,8 +58,16 @@ export function AISummaryEditor({
     onStatusChange?.(aiSummaryStatus)
   }, [aiSummaryStatus, onStatusChange])
 
+  // 停止轮询摘要状态
+  const stopSummaryPolling = useCallback(() => {
+    if (summaryPollIntervalRef.current) {
+      clearInterval(summaryPollIntervalRef.current)
+      summaryPollIntervalRef.current = null
+    }
+  }, [])
+
   // 开始轮询摘要状态
-  const startSummaryPolling = () => {
+  const startSummaryPolling = useCallback(() => {
     if (!postId || summaryPollIntervalRef.current) {
       return
     }
@@ -86,29 +94,21 @@ export function AISummaryEditor({
         console.error('获取摘要状态失败:', error)
       }
     }, 3000) // 每 3 秒轮询一次
-  }
-
-  // 停止轮询摘要状态
-  const stopSummaryPolling = () => {
-    if (summaryPollIntervalRef.current) {
-      clearInterval(summaryPollIntervalRef.current)
-      summaryPollIntervalRef.current = null
-    }
-  }
+  }, [postId, stopSummaryPolling])
 
   // 清理轮询
   useEffect(() => {
     return () => {
       stopSummaryPolling()
     }
-  }, [])
+  }, [stopSummaryPolling])
 
   // 如果初始状态是生成中，开始轮询
   useEffect(() => {
     if (postId && initialStatus === SummaryStatus.GENERATING) {
       startSummaryPolling()
     }
-  }, [postId])
+  }, [initialStatus, postId, startSummaryPolling])
 
   // 生成 AI 摘要
   const handleGenerateSummary = async () => {

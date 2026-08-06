@@ -1,6 +1,5 @@
 'use client'
 
-import { useMusicStore } from '@/stores/music-store'
 import { MusicPlayer } from './MusicPlayer'
 
 export function MusicPlayerWrapper() {

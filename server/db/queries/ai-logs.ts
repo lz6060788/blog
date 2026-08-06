@@ -1,6 +1,6 @@
 import { db } from '../index'
 import { aiCallLogs } from '../schema'
-import { eq, desc, gte, lte, sql, and } from 'drizzle-orm'
+import { eq, desc, gte, lte, sql, and, type SQL } from 'drizzle-orm'
 import { AICallStatus } from '../../ai/types'
 
 /**
@@ -25,7 +25,7 @@ export async function getCallLogs(options?: {
   const offset = (page - 1) * limit
 
   // 构建查询条件
-  const conditions = []
+  const conditions: SQL[] = []
 
   if (options?.modelConfigId) {
     conditions.push(eq(aiCallLogs.modelConfigId, options.modelConfigId))
@@ -95,7 +95,7 @@ export async function getCallLogStats(options?: {
   startDate?: string
   endDate?: string
 }) {
-  const conditions = []
+  const conditions: SQL[] = []
 
   if (options?.startDate) {
     conditions.push(gte(aiCallLogs.createdAt, options.startDate))

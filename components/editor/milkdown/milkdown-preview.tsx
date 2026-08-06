@@ -55,7 +55,20 @@ const rehypeArticleEnhancements = () => (tree: any) => {
       }
     }
 
-    node.children?.forEach(visit);
+    if (Array.isArray(node.children)) {
+      node.children = node.children.map((child: any) => {
+        visit(child);
+        if (child.type === "element" && child.tagName === "table") {
+          return {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["article-table-scroll"] },
+            children: [child],
+          };
+        }
+        return child;
+      });
+    }
   };
 
   visit(tree);

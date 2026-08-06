@@ -3,6 +3,7 @@ import { ArticleContent } from './article-content'
 import { ArticleFooter } from './article-footer'
 import { ArticleCover } from '@/components/article'
 import { ArticleReaderTools } from './article-reader-tools'
+import type { PostSummary } from '@/lib/types'
 
 interface ArticleWrapperProps {
   title: string
@@ -13,6 +14,9 @@ interface ArticleWrapperProps {
   tags: string[]
   content: string
   coverImageUrl?: string | null
+  previousPost?: PostSummary
+  nextPost?: PostSummary
+  relatedPosts: PostSummary[]
 }
 
 export function ArticleWrapper({
@@ -24,6 +28,9 @@ export function ArticleWrapper({
   tags,
   content,
   coverImageUrl,
+  previousPost,
+  nextPost,
+  relatedPosts,
 }: ArticleWrapperProps) {
   return (
     <article className="min-h-screen pt-24 pb-16">
@@ -53,13 +60,17 @@ export function ArticleWrapper({
 
         {/* Content */}
         <div className="max-w-none">
-          <div className="bg-theme-card-bg rounded-[2rem] p-8 md:p-12 border border-theme-card shadow-card">
+          <div className="rounded-[2rem] border border-theme-card bg-theme-card-bg p-5 shadow-card sm:p-8 md:p-12">
             <ArticleContent content={content} />
           </div>
         </div>
 
         {/* Footer */}
-        <ArticleFooter />
+        <ArticleFooter
+          previousPost={previousPost}
+          nextPost={nextPost}
+          relatedPosts={relatedPosts}
+        />
       </div>
       <ArticleReaderTools />
     </article>

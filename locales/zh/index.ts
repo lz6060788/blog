@@ -15,6 +15,14 @@ export const zh: Messages = {
     description: '一个极简的个人博客，采用非对称设计、简洁美学和精心设计的交互。',
     latestPosts: '最新文章',
   },
+  article: {
+    minutesRead: '{count} 分钟阅读',
+    continueReading: '继续阅读',
+    previousPost: '上一篇文章',
+    nextPost: '下一篇文章',
+    relatedPosts: '相关推荐',
+    backToAllPosts: '返回文章归档',
+  },
   login: {
     welcome: '欢迎回来',
     subtitle: '登录以继续访问',

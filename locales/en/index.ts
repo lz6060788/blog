@@ -16,6 +16,14 @@ export const en: Messages = {
       'A minimalist personal blog with asymmetric design, clean aesthetics, and thoughtful interactions.',
     latestPosts: 'Latest Posts',
   },
+  article: {
+    minutesRead: '{count} min read',
+    continueReading: 'Continue reading',
+    previousPost: 'Previous post',
+    nextPost: 'Next post',
+    relatedPosts: 'Related posts',
+    backToAllPosts: 'Back to the archive',
+  },
   login: {
     welcome: 'Welcome Back',
     subtitle: 'Sign in to continue',

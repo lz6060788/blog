@@ -2,6 +2,7 @@
 
 import { Clock, Tag } from '@phosphor-icons/react'
 import { formatDateLong } from '@/lib/date-format'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface ArticleHeaderProps {
   title: string
@@ -20,6 +21,9 @@ export function ArticleHeader({
   date,
   tags,
 }: ArticleHeaderProps) {
+  const locale = useLocale()
+  const t = useTranslations('article')
+
   return (
     <header className="mb-12">
       {/* Category */}
@@ -30,7 +34,7 @@ export function ArticleHeader({
         </span>
         <div className="flex items-center gap-1.5 text-theme-text-tertiary text-sm font-mono">
           <Clock size={14} />
-          {readTime} min read
+          {t('minutesRead', { count: readTime })}
         </div>
       </div>
 
@@ -46,7 +50,7 @@ export function ArticleHeader({
 
       {/* Meta */}
       <div className="flex flex-wrap items-center gap-4 text-sm font-mono text-theme-text-tertiary pt-6 border-t border-theme-border">
-        <span>{formatDateLong(date)}</span>
+        <span>{formatDateLong(date, locale)}</span>
         <span>·</span>
         <div className="flex gap-2">
           {tags.map((tag) => (

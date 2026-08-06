@@ -19,6 +19,15 @@ export interface HomeMessages {
   latestPosts: string
 }
 
+export interface ArticleMessages {
+  minutesRead: string
+  continueReading: string
+  previousPost: string
+  nextPost: string
+  relatedPosts: string
+  backToAllPosts: string
+}
+
 export interface LoginMessages {
   welcome: string
   subtitle: string
@@ -155,6 +164,7 @@ export interface Messages {
   common: CommonMessages
   nav: NavMessages
   home: HomeMessages
+  article: ArticleMessages
   login: LoginMessages
   ai: AIMessages
   admin: AdminMessages

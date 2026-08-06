@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Navigation } from '@/components/layout/header'
 import { ArticleWrapper } from '@/components/public/posts'
-import { getPost, getAllPublishedPostIds } from '@/server/db/queries/posts'
+import { getPost, getAllPublishedPostIds, getPublishedPosts } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
 import { getSettings } from '@/server/db/queries/settings'
 import { absoluteUrl, languageAlternates, localizedPath, localeToOpenGraph } from '@/lib/seo'
@@ -72,12 +72,33 @@ export default async function PostPage({
   params: { id: string; locale: string }
 }) {
   const { id } = params
-  const [post, settings] = await Promise.all([getPost(id), getSettings()])
+  const [post, settings, publishedPosts] = await Promise.all([
+    getPost(id),
+    getSettings(),
+    getPublishedPosts(),
+  ])
 
   // 文章不存在时返回 404
   if (!post) {
     notFound()
   }
+
+  const currentIndex = publishedPosts.findIndex((publishedPost) => publishedPost.id === post.id)
+  const previousPost = currentIndex > 0 ? publishedPosts[currentIndex - 1] : undefined
+  const nextPost = currentIndex >= 0 ? publishedPosts[currentIndex + 1] : undefined
+  const navigationIds = new Set([previousPost?.id, nextPost?.id].filter(Boolean))
+  const relatedPosts = publishedPosts
+    .filter((candidate) => candidate.id !== post.id && !navigationIds.has(candidate.id))
+    .map((candidate, index) => ({
+      candidate,
+      index,
+      score:
+        (candidate.categoryId && candidate.categoryId === post.categoryId ? 4 : 0) +
+        candidate.tags.filter((tag) => post.tags.includes(tag)).length * 2,
+    }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, 3)
+    .map(({ candidate }) => candidate)
 
   const articleUrl = absoluteUrl(localizedPath(params.locale, `/post/${id}`))
   const structuredData = {
@@ -119,6 +140,9 @@ export default async function PostPage({
         tags={post.tags}
         content={post.content}
         coverImageUrl={post.coverImageUrl}
+        previousPost={previousPost}
+        nextPost={nextPost}
+        relatedPosts={relatedPosts}
       />
     </>
   )

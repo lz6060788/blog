@@ -65,6 +65,18 @@ export interface Post {
  */
 export type PostSummary = Omit<Post, 'content'>
 
+export interface SearchResult {
+  id: string
+  title: string
+  excerpt: string
+  snippet: string
+  date: string
+  readTime: number
+  category: string
+  categorySlug?: string
+  tags: string[]
+}
+
 // Music Player Types
 export interface Song {
   id: string

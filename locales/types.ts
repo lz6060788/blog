@@ -10,6 +10,20 @@ export interface CommonMessages {
 export interface NavMessages {
   home: string
   archive: string
+  menu: string
+  settings: string
+}
+
+export interface SearchMessages {
+  label: string
+  shortcut: string
+  title: string
+  placeholder: string
+  hint: string
+  searching: string
+  noResults: string
+  resultCount: string
+  close: string
 }
 
 export interface HomeMessages {
@@ -26,6 +40,31 @@ export interface ArticleMessages {
   nextPost: string
   relatedPosts: string
   backToAllPosts: string
+}
+
+export interface CollectionMessages {
+  category: string
+  tag: string
+  categoryDescription: string
+  tagDescription: string
+  postCount: string
+  noPosts: string
+  browseArchive: string
+}
+
+export interface ArchiveMessages {
+  eyebrow: string
+  title: string
+  description: string
+  jumpToYear: string
+  categoryFilter: string
+  tagFilter: string
+  allCategories: string
+  allTags: string
+  clearFilters: string
+  postCount: string
+  monthCount: string
+  noResults: string
 }
 
 export interface LoginMessages {
@@ -163,8 +202,11 @@ export interface AdminMessages {
 export interface Messages {
   common: CommonMessages
   nav: NavMessages
+  search: SearchMessages
   home: HomeMessages
   article: ArticleMessages
+  collection: CollectionMessages
+  archive: ArchiveMessages
   login: LoginMessages
   ai: AIMessages
   admin: AdminMessages

@@ -1,7 +1,7 @@
 import { db } from '../index'
 import { posts, categories, tags, postTags, users, aiCallLogs } from '../schema'
 import { eq, desc, sql, and, inArray } from 'drizzle-orm'
-import type { Post, PostSummary, Tag } from '@/lib/types'
+import type { Post, PostSummary, SearchResult, Tag } from '@/lib/types'
 
 function parsePostDate(value?: string | null): number {
   if (!value) return 0
@@ -52,6 +52,7 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
 
   // 构建文章 ID 到标签的映射
   const postTagsMap = new Map<string, string[]>()
+  const postTagObjectsMap = new Map<string, Tag[]>()
   for (const relation of postTagRelations) {
     if (!postTagsMap.has(relation.postId)) {
       postTagsMap.set(relation.postId, [])
@@ -59,6 +60,10 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
     const tag = tagMap.get(relation.tagId)
     if (tag) {
       postTagsMap.get(relation.postId)!.push(tag.name)
+      if (!postTagObjectsMap.has(relation.postId)) {
+        postTagObjectsMap.set(relation.postId, [])
+      }
+      postTagObjectsMap.get(relation.postId)!.push(tag)
     }
   }
 
@@ -95,6 +100,7 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         categoryObj: category,
+        tagObjs: postTagObjectsMap.get(post.id) || [],
         coverImageUrl: post.coverImageUrl,
       }
     })
@@ -107,6 +113,119 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
 
       return a.id.localeCompare(b.id)
     })
+}
+
+function normalizeSearchText(value: string): string {
+  return value.toLocaleLowerCase().normalize('NFKC')
+}
+
+function stripMarkdown(value: string): string {
+  return value
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[>*_~|-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function createSearchSnippet(value: string, normalizedQuery: string): string {
+  const plainText = stripMarkdown(value)
+  if (!plainText) return ''
+
+  const normalizedText = normalizeSearchText(plainText)
+  const matchIndex = normalizedText.indexOf(normalizedQuery)
+  const start = matchIndex > 70 ? matchIndex - 55 : 0
+  const end = Math.min(plainText.length, start + 170)
+  return `${start > 0 ? '…' : ''}${plainText.slice(start, end).trim()}${end < plainText.length ? '…' : ''}`
+}
+
+/**
+ * 在已发布文章中搜索。当前内容规模较小，服务端统一评分能同时兼顾中英文，
+ * 也避免维护额外的静态搜索索引。
+ */
+export async function searchPublishedPosts(query: string, limit = 8): Promise<SearchResult[]> {
+  const normalizedQuery = normalizeSearchText(query.trim())
+  if (!normalizedQuery) return []
+
+  const [publishedRows, postTagRelations, allTags] = await Promise.all([
+    db
+      .select({
+        id: posts.id,
+        title: posts.title,
+        excerpt: posts.excerpt,
+        content: posts.content,
+        readTime: posts.readTime,
+        publishedDate: posts.publishedDate,
+        createdAt: posts.createdAt,
+        categoryName: categories.name,
+        categorySlug: categories.slug,
+      })
+      .from(posts)
+      .leftJoin(categories, eq(posts.categoryId, categories.id))
+      .where(eq(posts.published, true)),
+    db
+      .select({ postId: postTags.postId, tagId: postTags.tagId })
+      .from(postTags),
+    db.select().from(tags),
+  ])
+
+  const tagMap = new Map(allTags.map(tag => [tag.id, tag]))
+  const tagsByPost = new Map<string, Tag[]>()
+  for (const relation of postTagRelations) {
+    const tag = tagMap.get(relation.tagId)
+    if (!tag) continue
+    const currentTags = tagsByPost.get(relation.postId) || []
+    currentTags.push(tag)
+    tagsByPost.set(relation.postId, currentTags)
+  }
+
+  return publishedRows
+    .map(row => {
+      const rowTags = tagsByPost.get(row.id) || []
+      const title = normalizeSearchText(row.title)
+      const excerpt = normalizeSearchText(row.excerpt || '')
+      const content = normalizeSearchText(stripMarkdown(row.content))
+      const category = normalizeSearchText(row.categoryName || '')
+      const normalizedTags = rowTags.map(tag => normalizeSearchText(tag.name))
+
+      let score = 0
+      if (title.startsWith(normalizedQuery)) score += 120
+      else if (title.includes(normalizedQuery)) score += 100
+      if (category === normalizedQuery) score += 80
+      else if (category.includes(normalizedQuery)) score += 60
+      if (normalizedTags.some(tag => tag === normalizedQuery)) score += 70
+      else if (normalizedTags.some(tag => tag.includes(normalizedQuery))) score += 50
+      if (excerpt.includes(normalizedQuery)) score += 30
+      if (content.includes(normalizedQuery)) score += 10
+
+      const snippetSource = excerpt.includes(normalizedQuery)
+        ? row.excerpt || ''
+        : row.content
+
+      return {
+        score,
+        timestamp: parsePostDate(row.publishedDate || row.createdAt),
+        result: {
+          id: row.id,
+          title: row.title,
+          excerpt: row.excerpt || '',
+          snippet: createSearchSnippet(snippetSource, normalizedQuery),
+          date: row.publishedDate || row.createdAt,
+          readTime: row.readTime,
+          category: row.categoryName || 'Uncategorized',
+          categorySlug: row.categorySlug || undefined,
+          tags: rowTags.map(tag => tag.name),
+        } satisfies SearchResult,
+      }
+    })
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score || b.timestamp - a.timestamp)
+    .slice(0, Math.max(1, Math.min(limit, 20)))
+    .map(item => item.result)
 }
 
 /**

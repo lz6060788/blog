@@ -3,6 +3,10 @@ import { Navigation } from '@/components/layout/header'
 import { ArticleWrapper } from '@/components/public/posts'
 import { getPost, getAllPublishedPostIds } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
+import { getSettings } from '@/server/db/queries/settings'
+import { absoluteUrl, languageAlternates, localizedPath, localeToOpenGraph } from '@/lib/seo'
+
+export const revalidate = 300
 
 // 生成静态参数（用于 SSG）
 export async function generateStaticParams() {
@@ -25,30 +29,39 @@ export async function generateMetadata(
   { params }: { params: { id: string; locale: string } }
 ): Promise<Metadata> {
   const { id } = params
-  const post = await getPost(id)
+  const [post, settings] = await Promise.all([getPost(id), getSettings()])
 
   if (!post) {
     return {
-      title: '文章未找到 - Blog',
+      title: params.locale === 'zh' ? '文章未找到' : 'Post not found',
     }
   }
 
   return {
-    title: `${post.title} - Blog`,
+    title: post.title,
     description: post.excerpt,
+    alternates: {
+      canonical: absoluteUrl(localizedPath(params.locale, `/post/${id}`)),
+      languages: languageAlternates(`/post/${id}`),
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: 'article',
+      url: absoluteUrl(localizedPath(params.locale, `/post/${id}`)),
+      siteName: settings.blogName,
+      locale: localeToOpenGraph(params.locale),
       publishedTime: post.date,
+      modifiedTime: post.updatedAt,
+      section: post.category,
       tags: post.tags,
-      images: post.coverImageUrl ? [post.coverImageUrl] : undefined,
+      images: post.coverImageUrl ? [absoluteUrl(post.coverImageUrl)] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
-      images: post.coverImageUrl ? [post.coverImageUrl] : undefined,
+      images: post.coverImageUrl ? [absoluteUrl(post.coverImageUrl)] : undefined,
     },
   }
 }
@@ -59,15 +72,43 @@ export default async function PostPage({
   params: { id: string; locale: string }
 }) {
   const { id } = params
-  const post = await getPost(id)
+  const [post, settings] = await Promise.all([getPost(id), getSettings()])
 
   // 文章不存在时返回 404
   if (!post) {
     notFound()
   }
 
+  const articleUrl = absoluteUrl(localizedPath(params.locale, `/post/${id}`))
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    image: post.coverImageUrl ? [absoluteUrl(post.coverImageUrl)] : undefined,
+    datePublished: post.date,
+    dateModified: post.updatedAt || post.date,
+    mainEntityOfPage: articleUrl,
+    author: {
+      '@type': 'Person',
+      name: settings.authorName,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: settings.blogName,
+    },
+    articleSection: post.category,
+    keywords: post.tags.join(', '),
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
+        }}
+      />
       <Navigation />
       <ArticleWrapper
         title={post.title}

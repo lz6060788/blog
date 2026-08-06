@@ -4,6 +4,37 @@ import { TimelineList } from '@/components/public/archive'
 import { getAuthor } from '@/server/db/queries/settings'
 import { getPublishedPosts } from '@/server/db/queries/posts'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { absoluteUrl, languageAlternates, localizedPath, localeToOpenGraph } from '@/lib/seo'
+import { locales } from '@/locales'
+
+export const revalidate = 300
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string }
+}): Promise<Metadata> {
+  const messages = locales[params.locale as keyof typeof locales]?.common
+  const title = messages?.siteName || 'Irises Blog'
+  const description = messages?.siteDescription || 'A personal technical blog'
+  const url = absoluteUrl(localizedPath(params.locale, '/'))
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: {
+      canonical: url,
+      languages: languageAlternates('/'),
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      locale: localeToOpenGraph(params.locale),
+    },
+  }
+}
 
 export default async function HomePage({
   params,

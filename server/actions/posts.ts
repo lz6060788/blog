@@ -4,6 +4,18 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/server/auth'
 import { PostRepository } from '@/server/repositories/post.repository'
 import { PostService } from '@/server/services/post.service'
+import { locales } from '@/i18n.config'
+import { localizedPath } from '@/lib/seo'
+
+function revalidatePublicContent(postId?: string) {
+  for (const locale of locales) {
+    revalidatePath(localizedPath(locale, '/'))
+    revalidatePath(localizedPath(locale, '/archive'))
+    if (postId) revalidatePath(localizedPath(locale, `/post/${postId}`))
+  }
+  revalidatePath('/sitemap.xml')
+  revalidatePath('/rss.xml')
+}
 
 // 创建 Service 实例
 function createPostService() {
@@ -33,6 +45,7 @@ export async function createPost(data: {
   // 重新验证缓存
   revalidatePath('/admin/posts')
   revalidatePath('/admin/drafts')
+  if (data.published) revalidatePublicContent(result.id)
 
   return { success: true, postId: result.id }
 }
@@ -65,6 +78,7 @@ export async function updatePost(
   revalidatePath('/admin/posts')
   revalidatePath('/admin/drafts')
   revalidatePath(`/admin/posts/${id}/edit`)
+  revalidatePublicContent(id)
 
   return { success: true }
 }
@@ -82,6 +96,7 @@ export async function deletePost(id: string) {
   // 重新验证缓存
   revalidatePath('/admin/posts')
   revalidatePath('/admin/drafts')
+  revalidatePublicContent(id)
 
   return { success: true }
 }
@@ -99,6 +114,7 @@ export async function togglePostStatus(id: string) {
   // 重新验证缓存
   revalidatePath('/admin/posts')
   revalidatePath('/admin/drafts')
+  revalidatePublicContent(id)
 
   return { success: true, published: newStatus }
 }

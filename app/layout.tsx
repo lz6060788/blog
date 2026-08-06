@@ -5,8 +5,29 @@ import './styles/base.css'
 import './styles/themes.css'
 import './styles/components/index.css'
 import { ToastProvider } from '@/components/providers/toast-provider'
-import { MusicPlayerWrapper } from '@/components/music-player/MusicPlayerWrapper'
-import { SessionProvider } from '@/components/auth/SessionProvider'
+import { LazyMusicPlayer } from '@/components/music-player/LazyMusicPlayer'
+import type { Metadata } from 'next'
+import { absoluteUrl, getSiteUrl } from '@/lib/seo'
+import { siteConfig } from '@/config/site'
+
+export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+  applicationName: siteConfig.blog.name,
+  title: siteConfig.blog.name,
+  description: siteConfig.blog.description,
+  alternates: {
+    types: {
+      'application/rss+xml': absoluteUrl('/rss.xml'),
+    },
+  },
+  openGraph: {
+    type: 'website',
+    siteName: siteConfig.blog.name,
+    title: siteConfig.blog.name,
+    description: siteConfig.blog.description,
+    url: getSiteUrl(),
+  },
+}
 
 export default function RootLayout({
   children,
@@ -21,11 +42,9 @@ export default function RootLayout({
   return (
     <html lang={locale} className="theme-light" suppressHydrationWarning>
       <body className="bg-theme-canvas text-theme-text-canvas antialiased">
-        <SessionProvider>
-          <ToastProvider />
-          {children}
-          <MusicPlayerWrapper />
-        </SessionProvider>
+        <ToastProvider />
+        {children}
+        <LazyMusicPlayer />
       </body>
     </html>
   )

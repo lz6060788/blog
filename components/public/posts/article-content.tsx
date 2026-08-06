@@ -1,4 +1,4 @@
-import { MilkdownPreview } from '@/components/editor/milkdown'
+import { MilkdownPreview } from '@/components/editor/milkdown/milkdown-preview'
 
 interface ArticleContentProps {
   content: string

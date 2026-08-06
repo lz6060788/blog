@@ -1,7 +1,13 @@
 import { db } from '../index'
 import { posts, categories, tags, postTags, users, aiCallLogs } from '../schema'
-import { eq, desc, sql, and } from 'drizzle-orm'
-import type { Post, Tag } from '@/lib/types'
+import { eq, desc, sql, and, inArray } from 'drizzle-orm'
+import type { Post, PostSummary, Tag } from '@/lib/types'
+
+function parsePostDate(value?: string | null): number {
+  if (!value) return 0
+  const timestamp = Date.parse(value)
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
 
 /**
  * 获取所有已发布的文章列表
@@ -9,13 +15,12 @@ import type { Post, Tag } from '@/lib/types'
  * @param tagId 可选的标签 ID 筛选
  * @returns 已发布的文章列表
  */
-export async function getPublishedPosts(categoryId?: string, tagId?: string): Promise<Post[]> {
+export async function getPublishedPosts(categoryId?: string, tagId?: string): Promise<PostSummary[]> {
   let query = db
     .select({
       id: posts.id,
       title: posts.title,
       excerpt: posts.excerpt,
-      content: posts.content,
       date: posts.publishedDate,
       readTime: posts.readTime,
       categoryId: posts.categoryId,
@@ -31,19 +36,18 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
 
   const result = await query
 
-  // 获取所有分类
-  const allCategories = await db.select().from(categories)
+  // 并行获取列表页需要的关联信息
+  const [allCategories, postTagRelations, allTags] = await Promise.all([
+    db.select().from(categories),
+    db
+      .select({
+        postId: postTags.postId,
+        tagId: postTags.tagId,
+      })
+      .from(postTags),
+    db.select().from(tags),
+  ])
   const categoryMap = new Map(allCategories.map(c => [c.id, c]))
-
-  // 获取所有文章的标签
-  const postTagRelations = await db
-    .select({
-      postId: postTags.postId,
-      tagId: postTags.tagId,
-    })
-    .from(postTags)
-
-  const allTags = await db.select().from(tags)
   const tagMap = new Map(allTags.map(t => [t.id, t]))
 
   // 构建文章 ID 到标签的映射
@@ -58,7 +62,8 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
     }
   }
 
-  // 转换为 Post 类型
+  // 转换为公开列表类型。数据库字段是 text，最终再按真实时间值稳定排序，
+  // 避免不同 ISO 格式的字符串排序让新文章落到旧文章之后。
   return result
     .filter(post => {
       // 分类筛选
@@ -72,13 +77,12 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
       }
       return true
     })
-    .map(post => {
+    .map<PostSummary>(post => {
       const category = post.categoryId ? categoryMap.get(post.categoryId) : null
       return {
         id: post.id,
         title: post.title,
         excerpt: post.excerpt || '',
-        content: post.content,
         date: post.publishedDate || post.createdAt,
         readTime: post.readTime,
         category: category?.name || 'Uncategorized',
@@ -93,6 +97,15 @@ export async function getPublishedPosts(categoryId?: string, tagId?: string): Pr
         categoryObj: category,
         coverImageUrl: post.coverImageUrl,
       }
+    })
+    .sort((a, b) => {
+      const publishedDifference = parsePostDate(b.date) - parsePostDate(a.date)
+      if (publishedDifference !== 0) return publishedDifference
+
+      const createdDifference = parsePostDate(b.createdAt) - parsePostDate(a.createdAt)
+      if (createdDifference !== 0) return createdDifference
+
+      return a.id.localeCompare(b.id)
     })
 }
 
@@ -133,24 +146,16 @@ export async function getPost(id: string): Promise<Post | null> {
     .where(eq(postTags.postId, post.id))
 
   const tagIds = tagRelations.map(tr => tr.tagId)
-  const tagList = tagIds.length > 0
-    ? await db.select().from(tags).where(eq(tags.id, tagIds[0])) // 简化处理，实际需要 in 查询
+  const tagRows = tagIds.length > 0
+    ? await db.select().from(tags).where(inArray(tags.id, tagIds))
     : []
-
-  // 获取所有匹配的标签
-  const allTags: Tag[] = []
-  for (const tid of tagIds) {
-    const t = await db.select().from(tags).where(eq(tags.id, tid)).limit(1)
-    if (t.length > 0) {
-      allTags.push({
-        id: t[0].id,
-        name: t[0].name,
-        slug: t[0].slug,
-        createdAt: t[0].createdAt || '',
-        updatedAt: t[0].updatedAt || '',
-      })
-    }
-  }
+  const allTags: Tag[] = tagRows.map(tag => ({
+    id: tag.id,
+    name: tag.name,
+    slug: tag.slug,
+    createdAt: tag.createdAt || '',
+    updatedAt: tag.updatedAt || '',
+  }))
 
   return {
     id: post.id,

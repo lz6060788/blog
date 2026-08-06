@@ -1,13 +1,13 @@
 'use client'
 
-import { Post } from '@/lib/types'
+import { PostSummary } from '@/lib/types'
 import { motion } from 'framer-motion'
 import { Link } from '@/app/i18n/routing'
 import { Clock, Tag } from '@phosphor-icons/react'
 import { formatDateLong } from '@/lib/date-format'
 
 interface TimelineListProps {
-  posts: Post[]
+  posts: PostSummary[]
 }
 
 const container = {

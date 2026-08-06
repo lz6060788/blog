@@ -4,11 +4,28 @@ import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/app/i18n/routing'
 import { ThemeProvider } from '@/components/ThemeProvider'
-import { SessionProvider } from '@/components/auth/SessionProvider'
+import { getSettings } from '@/server/db/queries/settings'
+import { localeToOpenGraph } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Personal Blog',
-  description: 'A minimalist personal blog with asymmetric design',
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string }
+}): Promise<Metadata> {
+  const settings = await getSettings()
+
+  return {
+    title: {
+      default: settings.blogName,
+      template: `%s | ${settings.blogName}`,
+    },
+    description: settings.blogDescription,
+    openGraph: {
+      siteName: settings.blogName,
+      description: settings.blogDescription,
+      locale: localeToOpenGraph(params.locale),
+    },
+  }
 }
 
 export function generateStaticParams() {
@@ -41,11 +58,9 @@ export default async function LocaleLayout({
       value={{ light: "theme-light", dark: "theme-dark" }}
       disableTransitionOnChange={false}
     >
-      <SessionProvider>
-        <NextIntlClientProvider messages={messages} locale={locale}>
-          {children}
-        </NextIntlClientProvider>
-      </SessionProvider>
+      <NextIntlClientProvider messages={messages} locale={locale}>
+        {children}
+      </NextIntlClientProvider>
     </ThemeProvider>
   )
 }

@@ -1,11 +1,11 @@
 'use client'
 
-import { Post } from '@/lib/types'
+import { PostSummary } from '@/lib/types'
 import { motion } from 'framer-motion'
 import { ArticleCoverCard } from '@/components/article'
 
 interface ArticleGridProps {
-  posts: Post[]
+  posts: PostSummary[]
 }
 
 const container = {

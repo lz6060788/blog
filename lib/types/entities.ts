@@ -59,6 +59,12 @@ export interface Post {
   aiCoverPrompt?: string | null
 }
 
+/**
+ * Public listing payload. Article bodies stay on the detail page so archive
+ * and timeline client components do not receive every published Markdown file.
+ */
+export type PostSummary = Omit<Post, 'content'>
+
 // Music Player Types
 export interface Song {
   id: string

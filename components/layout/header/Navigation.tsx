@@ -5,10 +5,17 @@ import { motion } from 'framer-motion'
 import { Cursor, List, House } from '@phosphor-icons/react'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageSwitcher } from './LanguageSwitcher'
-import { UserMenu } from '@/components/auth/UserMenu'
-import { useSession } from 'next-auth/react'
 import { Link } from '@/app/i18n/routing'
 import { useTranslations } from 'next-intl'
+import dynamic from 'next/dynamic'
+
+const NavigationAuth = dynamic(
+  () => import('./NavigationAuth').then((module) => module.NavigationAuth),
+  {
+    ssr: false,
+    loading: () => <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />,
+  },
+)
 
 interface NavigationProps {
   blogName: string
@@ -17,7 +24,6 @@ interface NavigationProps {
 export default function Navigation({ blogName }: NavigationProps) {
   const pathname = usePathname()
   const t = useTranslations('nav')
-  const { data: session, status } = useSession()
 
   const navLinks = [
     { href: '/', label: t('home'), icon: House },
@@ -55,11 +61,7 @@ export default function Navigation({ blogName }: NavigationProps) {
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
           <ThemeToggle />
-          {status === "loading" ? (
-            <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
-          ) : session ? (
-            <UserMenu />
-          ) : null}
+          <NavigationAuth />
           <div className="flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon

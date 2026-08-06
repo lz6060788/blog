@@ -1,13 +1,13 @@
 'use client'
 
-import { Post } from '@/lib/types'
+import { PostSummary } from '@/lib/types'
 import { motion } from 'framer-motion'
 import { Clock, Tag } from '@phosphor-icons/react'
 import { Link } from '@/app/i18n/routing'
 import { formatDateShort } from '@/lib/date-format'
 
 interface ArchiveGridProps {
-  posts: Post[]
+  posts: PostSummary[]
 }
 
 const container = {
@@ -35,7 +35,7 @@ export default function ArchiveGrid({ posts }: ArchiveGridProps) {
     if (!acc[year]) acc[year] = []
     acc[year].push(post)
     return acc
-  }, {} as Record<number, Post[]>)
+  }, {} as Record<number, PostSummary[]>)
 
   return (
     <motion.div

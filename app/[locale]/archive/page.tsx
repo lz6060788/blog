@@ -1,5 +1,5 @@
 import { Navigation } from '@/components/layout/header'
-import { ArchiveGrid, ArchiveHeader } from '@/components/public/archive'
+import { ArchiveExplorer, ArchiveHeader } from '@/components/public/archive'
 import { getPublishedPosts } from '@/server/db/queries/posts'
 import type { Metadata } from 'next'
 import { absoluteUrl, languageAlternates, localizedPath, localeToOpenGraph } from '@/lib/seo'
@@ -43,12 +43,12 @@ export default async function ArchivePage() {
       <Navigation />
 
       <main className="min-h-screen pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Page Header */}
           <ArchiveHeader />
 
-          {/* Archive Grid */}
-          <ArchiveGrid posts={posts} />
+          {/* Year and month archive explorer */}
+          <ArchiveExplorer posts={posts} />
         </div>
       </main>
     </>

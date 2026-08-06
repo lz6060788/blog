@@ -16,6 +16,8 @@ export interface CreatePostInput {
   excerpt?: string
   published?: boolean
   categoryId?: string | null
+  seriesId?: string | null
+  seriesOrder?: number | null
   tags?: string[]
   readTime?: number
   publishedDate?: string
@@ -27,6 +29,8 @@ export interface UpdatePostInput {
   excerpt?: string
   published?: boolean
   categoryId?: string | null
+  seriesId?: string | null
+  seriesOrder?: number | null
   tags?: string[]
   readTime?: number
   publishedDate?: string
@@ -50,6 +54,8 @@ export interface PostWithRelations {
   published: boolean
   authorId: string
   categoryId?: string | null
+  seriesId?: string | null
+  seriesOrder?: number | null
   readTime: number
   publishedDate?: string | null
   createdAt: string
@@ -59,6 +65,12 @@ export interface PostWithRelations {
     name: string
     slug: string
   } | null
+  series?: {
+    id: string
+    name: string
+    slug: string
+  } | null
+  hasDraft?: boolean
   tags: Array<{
     id: string
     name: string

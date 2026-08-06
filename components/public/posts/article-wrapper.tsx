@@ -14,6 +14,7 @@ interface ArticleWrapperProps {
   tags: string[]
   categorySlug?: string
   tagObjs?: Tag[]
+  series?: { name: string; slug: string; position: number; total: number }
   content: string
   coverImageUrl?: string | null
   previousPost?: PostSummary
@@ -30,6 +31,7 @@ export function ArticleWrapper({
   tags,
   categorySlug,
   tagObjs,
+  series,
   content,
   coverImageUrl,
   previousPost,
@@ -62,6 +64,7 @@ export function ArticleWrapper({
           tags={tags}
           categorySlug={categorySlug}
           tagObjs={tagObjs}
+          series={series}
         />
 
         {/* Content */}

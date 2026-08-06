@@ -1,143 +1,95 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { FileX } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { FilePenLine, FileX, GitCompareArrows, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { getPosts, togglePostStatus } from '@/server/actions/posts'
 import { toast } from 'react-hot-toast'
 
-// Force dynamic rendering for admin pages
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { deleteDraft, getDrafts, publishDraft } from '@/server/actions/posts'
+
 export const dynamic = 'force-dynamic'
 
 export default function DraftsPage() {
   const [drafts, setDrafts] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
-  // 加载草稿数据
-  useEffect(() => {
-    async function loadDrafts() {
-      try {
-        const result = await getPosts({
-          draftsOnly: true,
-          pageSize: 50, // 草稿箱显示更多
-        })
-        setDrafts(result.data)
-      } catch (error) {
-        console.error('加载草稿失败:', error)
-        toast.error('加载草稿失败')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadDrafts()
-  }, [])
-
-  // 直接发布
-  const handlePublish = async (postId: string) => {
+  const load = async () => {
     try {
-      await togglePostStatus(postId)
-      // 从列表中移除已发布的草稿
-      setDrafts(drafts.filter(draft => draft.id !== postId))
-      toast.success('发布成功')
-    } catch (error: any) {
-      console.error('发布失败:', error)
-      toast.error(error.message || '发布失败')
+      const result = await getDrafts({ pageSize: 100 })
+      setDrafts(result.data)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '加载草稿失败')
+    } finally {
+      setLoading(false)
     }
   }
 
-  // 格式化日期
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+  useEffect(() => { void load() }, [])
+
+  const publish = async (id: string, revision: boolean) => {
+    try {
+      await publishDraft(id)
+      setDrafts((values) => values.filter((draft) => draft.id !== id))
+      toast.success(revision ? '文章更新已发布' : '文章已发布')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '发布失败')
+    }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-theme-accent-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
+  const remove = async (id: string) => {
+    if (!confirm('确定删除这份草稿吗？已发布文章不会受到影响。')) return
+    try {
+      await deleteDraft(id)
+      setDrafts((values) => values.filter((draft) => draft.id !== id))
+      toast.success('草稿已删除')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '删除失败')
+    }
   }
+
+  if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-theme-accent-primary border-t-transparent" /></div>
 
   return (
     <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      >
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-semibold text-theme-text-canvas">草稿箱</h1>
-        <p className="text-sm text-theme-text-secondary mt-1">
-          管理未发布的草稿文章
-        </p>
+        <p className="mt-1 text-sm text-theme-text-secondary">新文章草稿与已发布文章的修订草稿互相独立。</p>
       </motion.div>
 
-      {drafts.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.1 }}
-          className="bg-theme-surface border border-theme-border rounded-xl p-12 text-center"
-        >
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-theme-muted flex items-center justify-center">
-              <FileX className="w-6 h-6 text-theme-text-tertiary" strokeWidth={2} />
-            </div>
-            <div>
-              <h3 className="text-theme-text-canvas font-medium mb-1">还没有任何草稿</h3>
-              <p className="text-sm text-theme-text-secondary">
-                开始写你的第一篇文章吧
-              </p>
-            </div>
-            <Link href="/admin/posts/new">
-              <Button>新建文章</Button>
-            </Link>
-          </div>
-        </motion.div>
+      {!drafts.length ? (
+        <div className="rounded-xl border border-theme-border bg-theme-surface p-12 text-center">
+          <FileX className="mx-auto mb-4 h-8 w-8 text-theme-text-tertiary" />
+          <h3 className="font-medium text-theme-text-canvas">草稿箱为空</h3>
+          <p className="mt-1 text-sm text-theme-text-secondary">新建文章或编辑已发布文章后，草稿会出现在这里。</p>
+          <Button asChild className="mt-5"><Link href="/admin/posts/new">新建文章</Link></Button>
+        </div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.1 }}
-          className="space-y-3"
-        >
+        <div className="space-y-3">
           {drafts.map((draft) => (
-            <div
-              key={draft.id}
-              className="bg-theme-surface border border-theme-border rounded-xl p-4 hover:border-theme-accent-primary transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium text-theme-text-canvas">{draft.title}</h3>
-                  <p className="text-xs text-theme-text-tertiary mt-1">
-                    最后修改: {formatDate(draft.updatedAt)}
-                  </p>
+            <div key={draft.id} className="flex flex-col gap-4 rounded-xl border border-theme-border bg-theme-surface p-4 transition-colors hover:border-theme-accent-primary sm:flex-row sm:items-center">
+              <div className="flex min-w-0 flex-1 gap-3">
+                <div className="mt-0.5 rounded-lg bg-theme-muted p-2">
+                  {draft.postId ? <GitCompareArrows className="h-4 w-4 text-theme-accent-primary" /> : <FilePenLine className="h-4 w-4 text-theme-accent-primary" />}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Link href={`/admin/posts/${draft.id}/edit`}>
-                    <Button size="sm" variant="outline">
-                      编辑
-                    </Button>
-                  </Link>
-                  <Button
-                    size="sm"
-                    onClick={() => handlePublish(draft.id)}
-                  >
-                    发布
-                  </Button>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate font-medium text-theme-text-canvas">{draft.title}</h3>
+                    <Badge variant={draft.postId ? 'secondary' : 'outline'}>{draft.postId ? '文章修订' : '新文章'}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-theme-text-tertiary">最后修改：{new Date(draft.updatedAt).toLocaleString('zh-CN')}</p>
                 </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button asChild size="sm" variant="outline"><Link href={`/admin/posts/${draft.id}/edit`}>编辑</Link></Button>
+                <Button size="sm" onClick={() => void publish(draft.id, Boolean(draft.postId))}>{draft.postId ? '发布更新' : '发布'}</Button>
+                <Button size="icon" variant="ghost" onClick={() => void remove(draft.id)} aria-label="删除草稿"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </div>
           ))}
-        </motion.div>
+        </div>
       )}
     </div>
   )

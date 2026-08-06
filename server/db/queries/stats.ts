@@ -1,5 +1,5 @@
 import { db } from '../index'
-import { posts, aiCallLogs } from '../schema'
+import { posts, postDrafts, aiCallLogs } from '../schema'
 import { eq, gte, sql, and, desc } from 'drizzle-orm'
 
 /**
@@ -21,10 +21,11 @@ export interface DashboardStats {
  * @returns 文章总数
  */
 export async function getTotalPosts(): Promise<number> {
-  const result = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(posts)
-  return result[0]?.count || 0
+  const [published, drafts] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(posts),
+    db.select({ count: sql<number>`count(*)` }).from(postDrafts),
+  ])
+  return Number(published[0]?.count || 0) + Number(drafts[0]?.count || 0)
 }
 
 /**
@@ -46,8 +47,7 @@ export async function getPublishedPostsCount(): Promise<number> {
 export async function getDraftPostsCount(): Promise<number> {
   const result = await db
     .select({ count: sql<number>`count(*)` })
-    .from(posts)
-    .where(eq(posts.published, false))
+    .from(postDrafts)
   return result[0]?.count || 0
 }
 

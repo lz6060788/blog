@@ -13,6 +13,7 @@ import { Crepe } from "@milkdown/crepe";
 import { highlight, highlightPluginConfig } from "@milkdown/plugin-highlight";
 import { createParser } from "@milkdown/plugin-highlight/shiki";
 import { replaceAll } from "@milkdown/kit/utils";
+import { editorViewCtx, parserCtx } from "@milkdown/kit/core";
 import { getSingletonHighlighter } from "shiki";
 import { uploadFile as uploadAssetFile } from "@/lib/api/upload";
 
@@ -32,6 +33,7 @@ const uploadImageToCos = async (file: File) => {
 export interface MilkdownEditorRef {
   getContent: () => string;
   setContent: (content: string) => void;
+  insertMarkdown: (content: string) => void;
   getHeight: () => number;
 }
 
@@ -100,6 +102,21 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
           editorRef.current?.editor.action(replaceAll(content));
         } catch (error) {
           console.error("设置内容失败:", error);
+        }
+      },
+      insertMarkdown: (content: string) => {
+        try {
+          editorRef.current?.editor.action((ctx) => {
+            const view = ctx.get(editorViewCtx);
+            const parsed = ctx.get(parserCtx)(content);
+            const transaction = view.state.tr
+              .replaceSelection(parsed.slice(0))
+              .scrollIntoView();
+            view.dispatch(transaction);
+            view.focus();
+          });
+        } catch (error) {
+          console.error("插入 Markdown 失败:", error);
         }
       },
       getHeight: () => containerRef.current?.offsetHeight ?? 0,

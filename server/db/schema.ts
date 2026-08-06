@@ -81,6 +81,17 @@ export const tags = pgTable("tags", {
 // 文章表定义
 // ============================================================================
 
+// 专题/系列表
+export const series = pgTable("series", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  authorId: text("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
+});
+
 // 文章表
 export const posts = pgTable("posts", {
   id: text("id").primaryKey(),
@@ -90,6 +101,8 @@ export const posts = pgTable("posts", {
   published: boolean("published").notNull().default(false),
   authorId: text("authorId").notNull().references(() => users.id, { onDelete: "cascade" }),
   categoryId: text("categoryId").references(() => categories.id, { onDelete: "set null" }),
+  seriesId: text("series_id").references(() => series.id, { onDelete: "set null" }),
+  seriesOrder: integer("series_order"),
   readTime: integer("read_time").notNull().default(0),
   publishedDate: text("published_date"),
   // AI 封面相关字段
@@ -101,6 +114,28 @@ export const posts = pgTable("posts", {
   updatedAt: text("updatedAt").notNull().default(new Date().toISOString()),
 });
 
+// 草稿是独立于已发布文章的编辑实例。postId 为空时是新文章草稿，否则是文章修订草稿。
+export const postDrafts = pgTable("post_drafts", {
+  id: text("id").primaryKey(),
+  postId: text("post_id").references(() => posts.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  authorId: text("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  categoryId: text("category_id").references(() => categories.id, { onDelete: "set null" }),
+  seriesId: text("series_id").references(() => series.id, { onDelete: "set null" }),
+  seriesOrder: integer("series_order"),
+  readTime: integer("read_time").notNull().default(0),
+  coverImageUrl: text("cover_image_url"),
+  aiCoverStatus: text("ai_cover_status"),
+  aiCoverGeneratedAt: text("ai_cover_generated_at"),
+  aiCoverPrompt: text("ai_cover_prompt"),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
+}, (table) => ({
+  oneDraftPerPost: uniqueIndex("post_drafts_post_id_unique").on(table.postId),
+}));
+
 // 文章-标签关联表（多对多）
 export const postTags = pgTable("post_tags", {
   postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
@@ -108,6 +143,15 @@ export const postTags = pgTable("post_tags", {
 }, (table) => ({
   compoundKey: primaryKey({
     columns: [table.postId, table.tagId],
+  }),
+}));
+
+export const postDraftTags = pgTable("post_draft_tags", {
+  draftId: text("draft_id").notNull().references(() => postDrafts.id, { onDelete: "cascade" }),
+  tagId: text("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+}, (table) => ({
+  compoundKey: primaryKey({
+    columns: [table.draftId, table.tagId],
   }),
 }));
 
@@ -144,6 +188,7 @@ export const aiFunctionMappings = pgTable("ai_function_mappings", {
 export const aiCallLogs = pgTable("ai_call_logs", {
   id: text("id").primaryKey(),
   postId: text("post_id").references(() => posts.id, { onDelete: "set null" }),
+  draftId: text("draft_id").references(() => postDrafts.id, { onDelete: "set null" }),
   modelConfigId: text("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
   action: text("action").notNull(), // 'generate-summary' | 'generate-cover' etc.
   provider: text("provider"),
@@ -254,17 +299,53 @@ export const postRelations = relations(posts, ({ one, many }) => ({
     fields: [posts.categoryId],
     references: [categories.id],
   }),
+  series: one(series, {
+    fields: [posts.seriesId],
+    references: [series.id],
+  }),
+  draft: one(postDrafts),
   tags: many(postTags),
+}));
+
+export const postDraftRelations = relations(postDrafts, ({ one, many }) => ({
+  post: one(posts, {
+    fields: [postDrafts.postId],
+    references: [posts.id],
+  }),
+  author: one(users, {
+    fields: [postDrafts.authorId],
+    references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [postDrafts.categoryId],
+    references: [categories.id],
+  }),
+  series: one(series, {
+    fields: [postDrafts.seriesId],
+    references: [series.id],
+  }),
+  tags: many(postDraftTags),
+}));
+
+export const seriesRelations = relations(series, ({ one, many }) => ({
+  author: one(users, {
+    fields: [series.authorId],
+    references: [users.id],
+  }),
+  posts: many(posts),
+  drafts: many(postDrafts),
 }));
 
 // 分类关系定义
 export const categoryRelations = relations(categories, ({ many }) => ({
   posts: many(posts),
+  drafts: many(postDrafts),
 }));
 
 // 标签关系定义
 export const tagRelations = relations(tags, ({ many }) => ({
   postTags: many(postTags),
+  postDraftTags: many(postDraftTags),
 }));
 
 // 文章-标签关联关系定义
@@ -275,6 +356,17 @@ export const postTagRelations = relations(postTags, ({ one }) => ({
   }),
   tag: one(tags, {
     fields: [postTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const postDraftTagRelations = relations(postDraftTags, ({ one }) => ({
+  draft: one(postDrafts, {
+    fields: [postDraftTags.draftId],
+    references: [postDrafts.id],
+  }),
+  tag: one(tags, {
+    fields: [postDraftTags.tagId],
     references: [tags.id],
   }),
 }));
@@ -318,6 +410,8 @@ export const userRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   posts: many(posts),
+  drafts: many(postDrafts),
+  series: many(series),
   fileUploads: many(fileUploads),
 }));
 
@@ -340,10 +434,13 @@ export const schema = {
   sessions,
   accounts,
   posts,
+  postDrafts,
+  series,
   settings,
   categories,
   tags,
   postTags,
+  postDraftTags,
   aiModelConfigs,
   aiFunctionMappings,
   aiCallLogs,

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { locales } from '@/i18n.config'
-import { getPublishedPosts } from '@/server/db/queries/posts'
+import { getPublishedPosts, getPublishedSeries } from '@/server/db/queries/posts'
 import { absoluteUrl, localizedPath, safeDate } from '@/lib/seo'
 
 // 数据由数据库生成，并定期重新验证；不维护静态文章清单。
@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const posts = await getPublishedPosts()
+    const [posts, seriesValues] = await Promise.all([getPublishedPosts(), getPublishedSeries()])
     const postEntries = posts.flatMap((post) =>
       localizedEntries(`/post/${post.id}`, {
         lastModified: safeDate(post.updatedAt || post.date),
@@ -48,6 +48,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...Array.from(tagSlugs).flatMap(slug => localizedEntries(`/tag/${slug}`, {
         changeFrequency: 'weekly',
         priority: 0.6,
+      })),
+      ...seriesValues.flatMap(item => localizedEntries(`/series/${item.slug}`, {
+        lastModified: safeDate(item.updatedAt),
+        changeFrequency: 'weekly',
+        priority: 0.7,
       })),
     ]
 

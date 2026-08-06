@@ -1,11 +1,27 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { auth } from '@/server/auth'
-import { PostRepository } from '@/server/repositories/post.repository'
-import { PostService } from '@/server/services/post.service'
+
 import { locales } from '@/i18n.config'
 import { localizedPath } from '@/lib/seo'
+import { auth } from '@/server/auth'
+import { db } from '@/server/db'
+import { categories, tags } from '@/server/db/schema'
+import { DraftRepository, type DraftInput } from '@/server/repositories/draft.repository'
+import { PostRepository } from '@/server/repositories/post.repository'
+import { PostService } from '@/server/services/post.service'
+
+const draftRepository = new DraftRepository()
+
+function createPostService() {
+  return new PostService(new PostRepository())
+}
+
+async function currentUserId() {
+  const session = await auth()
+  if (!session?.user?.id) throw new Error('Unauthorized')
+  return session.user.id
+}
 
 function revalidatePublicContent(postId?: string) {
   revalidateTag('public-posts')
@@ -18,146 +34,156 @@ function revalidatePublicContent(postId?: string) {
   revalidatePath('/rss.xml')
 }
 
-// 创建 Service 实例
-function createPostService() {
-  const postRepository = new PostRepository()
-  return new PostService(postRepository)
-}
-
-// 创建文章
-export async function createPost(data: {
-  title: string
-  content: string
-  excerpt?: string
-  published?: boolean
-  categoryId?: string
-  tags?: string[]
-  readTime?: number
-  publishedDate?: string
-}) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
-  }
-
-  const postService = createPostService()
-  const result = await postService.createPost(session.user.id, data)
-
-  // 重新验证缓存
+function revalidateAdmin(documentId?: string) {
   revalidatePath('/admin/posts')
   revalidatePath('/admin/drafts')
-  if (data.published) revalidatePublicContent(result.id)
-
-  return { success: true, postId: result.id }
+  if (documentId) revalidatePath(`/admin/posts/${documentId}/edit`)
 }
 
-// 更新文章
+function validateDraft(input: Partial<DraftInput>) {
+  if (input.title !== undefined && !input.title.trim()) throw new Error('标题不能为空')
+  if (input.content !== undefined && !input.content.trim()) throw new Error('内容不能为空')
+  if (input.tags && input.tags.length > 3) throw new Error('每篇文章最多只能设置 3 个标签')
+}
+
+export async function createDraft(data: DraftInput) {
+  validateDraft(data)
+  const id = await draftRepository.create(await currentUserId(), data)
+  revalidateAdmin(id)
+  return { success: true, draftId: id }
+}
+
+/** Compatibility entrypoint: creation always passes through a draft instance. */
+export async function createPost(data: DraftInput & { published?: boolean; publishedDate?: string }) {
+  const userId = await currentUserId()
+  validateDraft(data)
+  const draftId = await draftRepository.create(userId, data)
+  if (!data.published) {
+    revalidateAdmin(draftId)
+    return { success: true, postId: draftId, draftId }
+  }
+
+  const postId = await draftRepository.publish(draftId, userId)
+  revalidateAdmin()
+  revalidatePublicContent(postId)
+  return { success: true, postId, draftId: null }
+}
+
+export async function getEditorDocument(id: string) {
+  const userId = await currentUserId()
+  const existingDraft = await draftRepository.findById(id, userId)
+  const draft = existingDraft || await draftRepository.getOrCreateForPost(userId, id)
+  return {
+    ...draft,
+    documentType: 'draft' as const,
+    isRevision: Boolean(draft.postId),
+  }
+}
+
+export async function saveDraft(id: string, data: Partial<DraftInput>) {
+  validateDraft(data)
+  await draftRepository.update(id, await currentUserId(), data)
+  revalidateAdmin(id)
+  return { success: true, draftId: id }
+}
+
+export async function publishDraft(id: string) {
+  const postId = await draftRepository.publish(id, await currentUserId())
+  revalidateAdmin()
+  revalidatePublicContent(postId)
+  return { success: true, postId }
+}
+
+export async function deleteDraft(id: string) {
+  await draftRepository.delete(id, await currentUserId())
+  revalidateAdmin()
+  return { success: true }
+}
+
+export async function getDrafts(options?: { search?: string; page?: number; pageSize?: number }) {
+  return draftRepository.listForAuthor(await currentUserId(), {
+    search: options?.search,
+    page: options?.page,
+    limit: options?.pageSize,
+  })
+}
+
+/**
+ * Compatibility update: a published article is never mutated while editing.
+ * Updating a post id creates/reuses its single revision draft; publishing then
+ * atomically applies and removes that draft.
+ */
 export async function updatePost(
   id: string,
-  data: {
-    title?: string
-    content?: string
-    excerpt?: string
-    published?: boolean
-    categoryId?: string
-    tags?: string[]
-    readTime?: number
-    publishedDate?: string
-    coverImageUrl?: string | null
-    aiCoverStatus?: 'pending' | 'generating' | 'done' | 'failed' | 'manual' | null
-  }
+  data: Partial<DraftInput> & { published?: boolean; publishedDate?: string },
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
+  const userId = await currentUserId()
+  validateDraft(data)
+  const directDraft = await draftRepository.findById(id, userId)
+  const draft = directDraft || await draftRepository.getOrCreateForPost(userId, id)
+  const { published, publishedDate: _publishedDate, ...draftData } = data
+  await draftRepository.update(draft.id, userId, draftData)
+
+  if (published) {
+    const postId = await draftRepository.publish(draft.id, userId)
+    revalidateAdmin()
+    revalidatePublicContent(postId)
+    return { success: true, postId }
   }
 
-  const postService = createPostService()
-  await postService.updatePost(id, session.user.id, data)
-
-  // 重新验证缓存
-  revalidatePath('/admin/posts')
-  revalidatePath('/admin/drafts')
-  revalidatePath(`/admin/posts/${id}/edit`)
-  revalidatePublicContent(id)
-
-  return { success: true }
+  revalidateAdmin(draft.id)
+  return { success: true, draftId: draft.id }
 }
 
-// 删除文章
 export async function deletePost(id: string) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
-  }
-
-  const postService = createPostService()
-  await postService.deletePost(id, session.user.id)
-
-  // 重新验证缓存
-  revalidatePath('/admin/posts')
-  revalidatePath('/admin/drafts')
+  await createPostService().deletePost(id, await currentUserId())
+  revalidateAdmin()
   revalidatePublicContent(id)
-
   return { success: true }
 }
 
-// 切换文章发布状态
 export async function togglePostStatus(id: string) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
-  }
-
-  const postService = createPostService()
-  const newStatus = await postService.togglePostStatus(id, session.user.id)
-
-  // 重新验证缓存
-  revalidatePath('/admin/posts')
-  revalidatePath('/admin/drafts')
-  revalidatePublicContent(id)
-
-  return { success: true, published: newStatus }
+  const userId = await currentUserId()
+  const draft = await draftRepository.findById(id, userId) || await draftRepository.findByPostId(id, userId)
+  if (!draft) throw new Error('没有可发布的草稿')
+  const postId = await draftRepository.publish(draft.id, userId)
+  revalidateAdmin()
+  revalidatePublicContent(postId)
+  return { success: true, published: true, postId }
 }
 
-// 获取单篇文章
 export async function getPost(id: string) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
-  }
-
-  const postService = createPostService()
-  return await postService.getPostById(id, session.user.id)
+  const userId = await currentUserId()
+  const draft = await draftRepository.findById(id, userId)
+  if (draft) return { ...draft, published: false }
+  return createPostService().getPostById(id, userId)
 }
 
-// 获取所有分类（用于表单选择）
 export async function getCategoriesForSelect() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
-  }
-
-  const { db } = await import('@/server/db')
-  const { categories } = await import('@/server/db/schema')
-
-  return await db.select().from(categories).orderBy(categories.name)
+  await currentUserId()
+  return db.select().from(categories).orderBy(categories.name)
 }
 
-// 获取所有标签（用于表单选择）
 export async function getTagsForSelect() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
-  }
-
-  const { db } = await import('@/server/db')
-  const { tags } = await import('@/server/db/schema')
-
-  return await db.select().from(tags).orderBy(tags.name)
+  await currentUserId()
+  return db.select().from(tags).orderBy(tags.name)
 }
 
-// 获取所有文章（支持分页、搜索、筛选）
+export async function getInternalPostOptions(search?: string) {
+  const result = await new PostRepository().listForAuthor(await currentUserId(), {
+    status: 'published',
+    search,
+    page: 1,
+    limit: 30,
+  })
+  return result.data.map((post) => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt || '',
+    category: post.category?.name || null,
+  }))
+}
+
 export async function getPosts(options?: {
   publishedOnly?: boolean
   draftsOnly?: boolean
@@ -165,11 +191,18 @@ export async function getPosts(options?: {
   page?: number
   pageSize?: number
 }) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized')
+  const userId = await currentUserId()
+  if (options?.draftsOnly) {
+    return draftRepository.listForAuthor(userId, {
+      search: options.search,
+      page: options.page,
+      limit: options.pageSize,
+    })
   }
-
-  const postService = createPostService()
-  return await postService.listPublishedPosts(options)
+  return new PostRepository().listForAuthor(userId, {
+    status: 'published',
+    search: options?.search,
+    page: options?.page,
+    limit: options?.pageSize,
+  })
 }

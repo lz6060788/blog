@@ -74,6 +74,11 @@ export async function getCallLogs(options?: {
         where: (table, { eq }) => eq(table.id, log.postId!),
       })
       ;(log as any).postTitle = post?.title || 'Unknown'
+    } else if (log.draftId) {
+      const draft = await db.query.postDrafts.findFirst({
+        where: (table, { eq }) => eq(table.id, log.draftId!),
+      })
+      ;(log as any).postTitle = draft?.title ? `${draft.title}（草稿）` : 'Unknown draft'
     }
   }
 

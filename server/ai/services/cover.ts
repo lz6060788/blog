@@ -8,7 +8,7 @@ import { AICoverRequest, AICoverResponse, AIFunction, ImageGenerationOptions } f
 import { createImageClient } from '../clients/image-client'
 import { generateCoverPrompt, validateCoverPrompt } from '../prompts/cover'
 import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
+import { posts, postDrafts } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { uploadFile } from '@/server/services/cos-service'
 
@@ -114,16 +114,17 @@ export class CoverGenerationService extends AIService {
     }
 
     // 更新文章的封面相关字段
-    await db
-      .update(posts)
-      .set({
+    const coverUpdate = {
         coverImageUrl: finalImageUrl,
         aiCoverStatus: 'done',
         aiCoverGeneratedAt: new Date().toISOString(),
         aiCoverPrompt: result.revisedPrompt || result.prompt,
         updatedAt: new Date().toISOString(),
-      })
-      .where(eq(posts.id, postId))
+      }
+    await Promise.all([
+      db.update(postDrafts).set(coverUpdate).where(eq(postDrafts.id, postId)),
+      db.update(posts).set(coverUpdate).where(eq(posts.id, postId)),
+    ])
 
     return {
       imageUrl: finalImageUrl,
@@ -143,16 +144,14 @@ export class CoverGenerationService extends AIService {
    * @param imageUrl 图片 URL
    */
   async setManualCover(postId: string, imageUrl: string): Promise<void> {
-    await db
-      .update(posts)
-      .set({
+    const update = {
         coverImageUrl: imageUrl,
         aiCoverStatus: 'manual',
         aiCoverGeneratedAt: null,
         aiCoverPrompt: null,
         updatedAt: new Date().toISOString(),
-      })
-      .where(eq(posts.id, postId))
+      }
+    await Promise.all([db.update(postDrafts).set(update).where(eq(postDrafts.id, postId)), db.update(posts).set(update).where(eq(posts.id, postId))])
   }
 
   /**
@@ -160,16 +159,14 @@ export class CoverGenerationService extends AIService {
    * @param postId 文章 ID
    */
   async removeCover(postId: string): Promise<void> {
-    await db
-      .update(posts)
-      .set({
+    const update = {
         coverImageUrl: null,
         aiCoverStatus: 'pending',
         aiCoverGeneratedAt: null,
         aiCoverPrompt: null,
         updatedAt: new Date().toISOString(),
-      })
-      .where(eq(posts.id, postId))
+      }
+    await Promise.all([db.update(postDrafts).set(update).where(eq(postDrafts.id, postId)), db.update(posts).set(update).where(eq(posts.id, postId))])
   }
 
   /**
@@ -182,7 +179,11 @@ export class CoverGenerationService extends AIService {
     coverImageUrl?: string | null
     aiCoverGeneratedAt?: string | null
   }> {
-    const post = await db.query.posts.findFirst({
+    const draft = await db.query.postDrafts.findFirst({
+      where: eq(postDrafts.id, postId),
+      columns: { aiCoverStatus: true, coverImageUrl: true, aiCoverGeneratedAt: true },
+    })
+    const post = draft || await db.query.posts.findFirst({
       where: eq(posts.id, postId),
       columns: {
         aiCoverStatus: true,
@@ -207,13 +208,11 @@ export class CoverGenerationService extends AIService {
    * @param postId 文章 ID
    */
   async setCoverGenerating(postId: string): Promise<void> {
-    await db
-      .update(posts)
-      .set({
+    const update = {
         aiCoverStatus: 'generating',
         updatedAt: new Date().toISOString(),
-      })
-      .where(eq(posts.id, postId))
+      }
+    await Promise.all([db.update(postDrafts).set(update).where(eq(postDrafts.id, postId)), db.update(posts).set(update).where(eq(posts.id, postId))])
   }
 
   /**
@@ -222,14 +221,12 @@ export class CoverGenerationService extends AIService {
    * @param errorMessage 错误信息
    */
   async setCoverFailed(postId: string, errorMessage: string): Promise<void> {
-    await db
-      .update(posts)
-      .set({
+    const update = {
         aiCoverStatus: 'failed',
         aiCoverPrompt: `Error: ${errorMessage}`,
         updatedAt: new Date().toISOString(),
-      })
-      .where(eq(posts.id, postId))
+      }
+    await Promise.all([db.update(postDrafts).set(update).where(eq(postDrafts.id, postId)), db.update(posts).set(update).where(eq(posts.id, postId))])
   }
 }
 

@@ -4,8 +4,8 @@ import { AIService, getModelConfigByFunction, decryptApiKey } from './base'
 import { getSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from '../prompts/summary'
 import { AIFunction, AICallStatus } from '../types'
 import { db } from '@/server/db'
-import { posts, aiCallLogs, aiModelConfigs } from '@/server/db/schema'
-import { eq, and, desc, sql } from 'drizzle-orm'
+import { posts, postDrafts, aiCallLogs, aiModelConfigs } from '@/server/db/schema'
+import { eq, and, desc, sql, or } from 'drizzle-orm'
 
 /**
  * 文章语言检测结果
@@ -135,9 +135,11 @@ export class SummaryService extends AIService {
     // 创建 "generating" 状态的日志条目
     const crypto = require('crypto')
     const generatingLogId = crypto.randomBytes(16).toString('hex')
+    const isDraft = Boolean((await db.select({ id: postDrafts.id }).from(postDrafts).where(eq(postDrafts.id, postId)).limit(1))[0])
     await db.insert(aiCallLogs).values({
       id: generatingLogId,
-      postId,
+      postId: isDraft ? null : postId,
+      draftId: isDraft ? postId : null,
       modelConfigId: modelConfig.id,
       action: 'generate-summary',
       provider: modelConfig.provider as any,
@@ -151,13 +153,9 @@ export class SummaryService extends AIService {
       const result = await this.generateSummary(postId, title, content)
 
       // 更新数据库 - 直接写入 excerpt 字段
-      await db
-        .update(posts)
-        .set({
-          excerpt: result.summary,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(posts.id, postId))
+      const update = { excerpt: result.summary, updatedAt: new Date().toISOString() }
+      if (isDraft) await db.update(postDrafts).set(update).where(eq(postDrafts.id, postId))
+      else await db.update(posts).set(update).where(eq(posts.id, postId))
 
       // 删除初始的 "retrying" 日志（因为 executeWithRetry 已经创建了新的日志）
       await db.delete(aiCallLogs).where(eq(aiCallLogs.id, generatingLogId))
@@ -199,7 +197,7 @@ export class SummaryService extends AIService {
       .from(aiCallLogs)
       .where(
         and(
-          eq(aiCallLogs.postId, postId),
+          or(eq(aiCallLogs.postId, postId), eq(aiCallLogs.draftId, postId)),
           eq(sql`ai_call_logs.action`, 'generate-summary')
         )
       )
@@ -207,12 +205,8 @@ export class SummaryService extends AIService {
       .limit(5)
 
     // 获取当前文章的 excerpt
-    const post = await db.query.posts.findFirst({
-      where: eq(posts.id, postId),
-      columns: {
-        excerpt: true,
-      },
-    })
+    const draft = await db.query.postDrafts.findFirst({ where: eq(postDrafts.id, postId), columns: { excerpt: true } })
+    const post = draft || await db.query.posts.findFirst({ where: eq(posts.id, postId), columns: { excerpt: true } })
 
     // 判断状态
     if (logs.length === 0) {

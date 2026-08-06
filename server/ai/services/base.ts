@@ -1,6 +1,6 @@
 import { AIProvider } from '../types'
 import { db } from '@/server/db'
-import { aiCallLogs, aiModelConfigs, aiFunctionMappings } from '@/server/db/schema'
+import { aiCallLogs, aiModelConfigs, aiFunctionMappings, postDrafts } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { AICallStatus } from '../types'
 
@@ -120,9 +120,13 @@ export abstract class AIService {
     const id = crypto.randomBytes(16).toString('hex')
 
     try {
+      const isDraft = params.postId
+        ? Boolean((await db.select({ id: postDrafts.id }).from(postDrafts).where(eq(postDrafts.id, params.postId)).limit(1))[0])
+        : false
       await db.insert(aiCallLogs).values({
         id,
-        postId: params.postId || null,
+        postId: isDraft ? null : params.postId || null,
+        draftId: isDraft ? params.postId : null,
         modelConfigId: params.modelConfigId,
         action: params.action,
         provider: params.provider,

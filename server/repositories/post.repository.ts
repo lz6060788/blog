@@ -9,7 +9,7 @@
  */
 
 import { db } from '@/server/db'
-import { posts, categories, tags, postTags } from '@/server/db/schema'
+import { posts, categories, tags, postTags, postDrafts, series } from '@/server/db/schema'
 import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import { PaginationHelper, DEFAULT_LIMIT } from '@/lib/types/pagination'
 
@@ -55,6 +55,8 @@ export class PostRepository {
           excerpt: posts.excerpt,
           published: posts.published,
           categoryId: posts.categoryId,
+          seriesId: posts.seriesId,
+          seriesOrder: posts.seriesOrder,
           readTime: posts.readTime,
           publishedDate: posts.publishedDate,
           createdAt: posts.createdAt,
@@ -62,9 +64,12 @@ export class PostRepository {
           coverImageUrl: posts.coverImageUrl,
           categoryName: categories.name,
           categorySlug: categories.slug,
+          seriesName: series.name,
+          seriesSlug: series.slug,
         })
         .from(posts)
         .leftJoin(categories, eq(posts.categoryId, categories.id))
+        .leftJoin(series, eq(posts.seriesId, series.id))
         .where(whereClause)
         .orderBy(desc(posts.updatedAt), desc(posts.createdAt))
         .limit(limit)
@@ -84,6 +89,9 @@ export class PostRepository {
           .innerJoin(tags, eq(postTags.tagId, tags.id))
           .where(inArray(postTags.postId, postIds))
       : []
+    const draftRows = postIds.length
+      ? await db.select({ postId: postDrafts.postId, id: postDrafts.id }).from(postDrafts).where(inArray(postDrafts.postId, postIds))
+      : []
 
     const total = Number(countResult[0]?.count || 0)
     return {
@@ -92,6 +100,10 @@ export class PostRepository {
         category: post.categoryName
           ? { id: post.categoryId!, name: post.categoryName, slug: post.categorySlug! }
           : null,
+        series: post.seriesName
+          ? { id: post.seriesId!, name: post.seriesName, slug: post.seriesSlug! }
+          : null,
+        hasDraft: draftRows.some((draft) => draft.postId === post.id),
         tags: tagRows
           .filter((tag) => tag.postId === post.id)
           .map(({ id, name, slug }) => ({ id, name, slug })),
@@ -110,6 +122,8 @@ export class PostRepository {
     published: boolean
     authorId: string
     categoryId?: string | null
+    seriesId?: string | null
+    seriesOrder?: number | null
     readTime: number
     publishedDate?: string | null
     tags?: string[]
@@ -125,6 +139,8 @@ export class PostRepository {
       published: input.published,
       authorId: input.authorId,
       categoryId: input.categoryId || null,
+      seriesId: input.seriesId || null,
+      seriesOrder: input.seriesOrder ?? null,
       readTime: input.readTime,
       publishedDate: input.publishedDate || null,
       createdAt: new Date().toISOString(),
@@ -151,6 +167,8 @@ export class PostRepository {
       excerpt?: string
       published?: boolean
       categoryId?: string | null
+      seriesId?: string | null
+      seriesOrder?: number | null
       tags?: string[]
       readTime?: number
       publishedDate?: string
@@ -178,6 +196,8 @@ export class PostRepository {
     if (input.published !== undefined) updateData.published = input.published
     // 处理 categoryId：空字符串转换为 null 以避免外键约束问题
     if (input.categoryId !== undefined) updateData.categoryId = input.categoryId || null
+    if (input.seriesId !== undefined) updateData.seriesId = input.seriesId || null
+    if (input.seriesOrder !== undefined) updateData.seriesOrder = input.seriesOrder
     if (input.readTime !== undefined) updateData.readTime = input.readTime
     if (input.publishedDate !== undefined) updateData.publishedDate = input.publishedDate
     if (input.coverImageUrl !== undefined) updateData.coverImageUrl = input.coverImageUrl
@@ -232,14 +252,18 @@ export class PostRepository {
     }
 
     // 获取关联数据
-    const [category, tags] = await Promise.all([
+    const [category, seriesValue, tags] = await Promise.all([
       this._getPostCategory(post.categoryId),
+      post.seriesId
+        ? db.select({ id: series.id, name: series.name, slug: series.slug }).from(series).where(eq(series.id, post.seriesId)).limit(1)
+        : Promise.resolve([]),
       this._getPostTags(postId),
     ])
 
     return {
       ...post,
       category,
+      series: seriesValue[0] || null,
       tags,
       wordCount: (post.content || '').length,
     }

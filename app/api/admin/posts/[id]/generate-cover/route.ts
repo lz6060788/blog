@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
-import { posts, tags, postTags } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { posts, postDrafts, tags, postTags, postDraftTags } from '@/server/db/schema'
+import { and, eq } from 'drizzle-orm'
 import { CoverStatus } from '@/server/ai/types'
 import { getCoverService } from '@/server/ai/services/cover'
 
@@ -23,8 +23,11 @@ export async function POST(
     const { id } = params
 
     // 查询文章
-    const post = await db.query.posts.findFirst({
-      where: eq(posts.id, id),
+    const draft = await db.query.postDrafts.findFirst({
+      where: and(eq(postDrafts.id, id), eq(postDrafts.authorId, session.user.id!)),
+    })
+    const post = draft || await db.query.posts.findFirst({
+      where: and(eq(posts.id, id), eq(posts.authorId, session.user.id!)),
     })
 
     if (!post) {
@@ -32,13 +35,17 @@ export async function POST(
     }
 
     // 查询标签（使用 SQL join）
-    const tagRecords = await db
-      .select({
-        name: tags.name,
-      })
-      .from(postTags)
-      .innerJoin(tags, eq(postTags.tagId, tags.id))
-      .where(eq(postTags.postId, id))
+    const tagRecords = draft
+      ? await db
+          .select({ name: tags.name })
+          .from(postDraftTags)
+          .innerJoin(tags, eq(postDraftTags.tagId, tags.id))
+          .where(eq(postDraftTags.draftId, id))
+      : await db
+          .select({ name: tags.name })
+          .from(postTags)
+          .innerJoin(tags, eq(postTags.tagId, tags.id))
+          .where(eq(postTags.postId, id))
 
     const tagNames = tagRecords.map((t) => t.name)
 

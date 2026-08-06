@@ -34,6 +34,15 @@ export interface Tag {
   updatedAt: string
 }
 
+export interface Series {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Post {
   id: string
   title: string
@@ -45,12 +54,15 @@ export interface Post {
   tags: string[]
   // Database fields (optional for backward compatibility)
   categoryId?: string | null
+  seriesId?: string | null
+  seriesOrder?: number | null
   publishedDate?: string | null
   published?: boolean
   authorId?: string
   createdAt?: string
   updatedAt?: string
   categoryObj?: Category | null
+  seriesObj?: Series | null
   tagObjs?: Tag[]
   // AI cover fields
   coverImageUrl?: string | null

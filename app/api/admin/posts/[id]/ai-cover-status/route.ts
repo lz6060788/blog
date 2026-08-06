@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { posts, postDrafts } from '@/server/db/schema'
+import { and, eq } from 'drizzle-orm'
 
 // 强制动态渲染（API 路由使用 auth() 需要 headers）
 export const dynamic = 'force-dynamic'
@@ -21,8 +21,17 @@ export async function GET(
     const { id } = params
 
     // 查询文章的封面状态
-    const post = await db.query.posts.findFirst({
-      where: eq(posts.id, id),
+    const draft = await db.query.postDrafts.findFirst({
+      where: and(eq(postDrafts.id, id), eq(postDrafts.authorId, session.user.id!)),
+      columns: {
+        coverImageUrl: true,
+        aiCoverStatus: true,
+        aiCoverGeneratedAt: true,
+        aiCoverPrompt: true,
+      },
+    })
+    const post = draft || await db.query.posts.findFirst({
+      where: and(eq(posts.id, id), eq(posts.authorId, session.user.id!)),
       columns: {
         coverImageUrl: true,
         aiCoverStatus: true,

@@ -83,9 +83,14 @@ export default async function PostPage({
     notFound()
   }
 
-  const currentIndex = publishedPosts.findIndex((publishedPost) => publishedPost.id === post.id)
-  const previousPost = currentIndex > 0 ? publishedPosts[currentIndex - 1] : undefined
-  const nextPost = currentIndex >= 0 ? publishedPosts[currentIndex + 1] : undefined
+  const navigationPosts = post.seriesId
+    ? publishedPosts
+        .filter((publishedPost) => publishedPost.seriesId === post.seriesId)
+        .sort((a, b) => (a.seriesOrder ?? Number.MAX_SAFE_INTEGER) - (b.seriesOrder ?? Number.MAX_SAFE_INTEGER))
+    : publishedPosts
+  const currentIndex = navigationPosts.findIndex((publishedPost) => publishedPost.id === post.id)
+  const previousPost = currentIndex > 0 ? navigationPosts[currentIndex - 1] : undefined
+  const nextPost = currentIndex >= 0 ? navigationPosts[currentIndex + 1] : undefined
   const navigationIds = new Set([previousPost?.id, nextPost?.id].filter(Boolean))
   const relatedPosts = publishedPosts
     .filter((candidate) => candidate.id !== post.id && !navigationIds.has(candidate.id))
@@ -140,6 +145,12 @@ export default async function PostPage({
         tags={post.tags}
         categorySlug={post.categoryObj?.slug}
         tagObjs={post.tagObjs}
+        series={post.seriesObj ? {
+          name: post.seriesObj.name,
+          slug: post.seriesObj.slug,
+          position: currentIndex + 1,
+          total: navigationPosts.length,
+        } : undefined}
         content={post.content}
         coverImageUrl={post.coverImageUrl}
         previousPost={previousPost}

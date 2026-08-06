@@ -11,6 +11,7 @@ import {
   Tag,
   Brain,
   Music,
+  Layers3,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/admin/posts', label: '文章管理', icon: FileText },
   { href: '/admin/drafts', label: '草稿箱', icon: FileX },
   { href: '/admin/categories', label: '分类管理', icon: FolderOpen },
+  { href: '/admin/series', label: '专题管理', icon: Layers3 },
   { href: '/admin/tags', label: '标签管理', icon: Tag },
   { href: '/admin/music', label: '音乐管理', icon: Music },
   { href: '/admin/ai/logs', label: 'AI 日志', icon: Brain, adminOnly: true },

@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, Tag } from '@phosphor-icons/react'
+import { Clock, Stack, Tag } from '@phosphor-icons/react'
 import { formatDateLong } from '@/lib/date-format'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/app/i18n/routing'
@@ -15,6 +15,7 @@ interface ArticleHeaderProps {
   tags: string[]
   categorySlug?: string
   tagObjs?: TagEntity[]
+  series?: { name: string; slug: string; position: number; total: number }
 }
 
 export function ArticleHeader({
@@ -26,6 +27,7 @@ export function ArticleHeader({
   tags,
   categorySlug,
   tagObjs,
+  series,
 }: ArticleHeaderProps) {
   const locale = useLocale()
   const t = useTranslations('article')
@@ -49,6 +51,12 @@ export function ArticleHeader({
           <Clock size={14} />
           {t('minutesRead', { count: readTime })}
         </div>
+        {series && (
+          <Link href={`/series/${series.slug}`} className="inline-flex items-center gap-1.5 text-sm text-theme-text-secondary transition-colors hover:text-theme-accent-primary">
+            <Stack size={14} />
+            {series.name} · {series.position}/{series.total}
+          </Link>
+        )}
       </div>
 
       {/* Title */}

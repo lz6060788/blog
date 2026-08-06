@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
-import { posts } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { posts, postDrafts } from '@/server/db/schema'
+import { and, eq } from 'drizzle-orm'
 import { getCoverService } from '@/server/ai/services/cover'
 
 // 强制动态渲染
@@ -22,8 +22,11 @@ export async function DELETE(
     const { id } = params
 
     // 查询文章
-    const post = await db.query.posts.findFirst({
-      where: eq(posts.id, id),
+    const draft = await db.query.postDrafts.findFirst({
+      where: and(eq(postDrafts.id, id), eq(postDrafts.authorId, session.user.id!)),
+    })
+    const post = draft || await db.query.posts.findFirst({
+      where: and(eq(posts.id, id), eq(posts.authorId, session.user.id!)),
     })
 
     if (!post) {

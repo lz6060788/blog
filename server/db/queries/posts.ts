@@ -1,6 +1,6 @@
 import { db } from '../index'
-import { posts, categories, tags, postTags, users, aiCallLogs } from '../schema'
-import { eq, desc, sql, and, inArray } from 'drizzle-orm'
+import { posts, categories, tags, postTags, users, aiCallLogs, series } from '../schema'
+import { eq, desc, sql, and, inArray, or } from 'drizzle-orm'
 import type { Post, PostSummary, SearchResult, Tag } from '@/lib/types'
 import { unstable_cache } from 'next/cache'
 
@@ -25,6 +25,8 @@ async function loadPublishedPosts(): Promise<PostSummary[]> {
       date: posts.publishedDate,
       readTime: posts.readTime,
       categoryId: posts.categoryId,
+      seriesId: posts.seriesId,
+      seriesOrder: posts.seriesOrder,
       authorId: posts.authorId,
       publishedDate: posts.publishedDate,
       createdAt: posts.createdAt,
@@ -38,8 +40,9 @@ async function loadPublishedPosts(): Promise<PostSummary[]> {
   const result = await query
 
   // 并行获取列表页需要的关联信息
-  const [allCategories, postTagRelations, allTags] = await Promise.all([
+  const [allCategories, allSeries, postTagRelations, allTags] = await Promise.all([
     db.select().from(categories),
+    db.select().from(series),
     db
       .select({
         postId: postTags.postId,
@@ -49,6 +52,7 @@ async function loadPublishedPosts(): Promise<PostSummary[]> {
     db.select().from(tags),
   ])
   const categoryMap = new Map(allCategories.map(c => [c.id, c]))
+  const seriesMap = new Map(allSeries.map(item => [item.id, item]))
   const tagMap = new Map(allTags.map(t => [t.id, t]))
 
   // 构建文章 ID 到标签的映射
@@ -73,6 +77,7 @@ async function loadPublishedPosts(): Promise<PostSummary[]> {
   return result
     .map<PostSummary>(post => {
       const category = post.categoryId ? categoryMap.get(post.categoryId) : null
+      const seriesValue = post.seriesId ? seriesMap.get(post.seriesId) : null
       return {
         id: post.id,
         title: post.title,
@@ -83,12 +88,15 @@ async function loadPublishedPosts(): Promise<PostSummary[]> {
         tags: postTagsMap.get(post.id) || [],
         // Database fields
         categoryId: post.categoryId,
+        seriesId: post.seriesId,
+        seriesOrder: post.seriesOrder,
         publishedDate: post.publishedDate,
         published: true,
         authorId: post.authorId,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         categoryObj: category,
+        seriesObj: seriesValue,
         tagObjs: postTagObjectsMap.get(post.id) || [],
         coverImageUrl: post.coverImageUrl,
       }
@@ -210,6 +218,9 @@ export async function getPost(id: string): Promise<Post | null> {
   const category = post.categoryId
     ? await db.select().from(categories).where(eq(categories.id, post.categoryId)).limit(1)
     : null
+  const seriesValue = post.seriesId
+    ? await db.select().from(series).where(eq(series.id, post.seriesId)).limit(1)
+    : null
 
   // 获取标签
   const tagRelations = await db
@@ -242,16 +253,46 @@ export async function getPost(id: string): Promise<Post | null> {
     tags: allTags.map(t => t.name),
     // Database fields
     categoryId: post.categoryId,
+    seriesId: post.seriesId,
+    seriesOrder: post.seriesOrder,
     publishedDate: post.publishedDate,
     published: post.published,
     authorId: post.authorId,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     categoryObj: category?.[0] || null,
+    seriesObj: seriesValue?.[0] || null,
     tagObjs: allTags,
     // Cover image
     coverImageUrl: post.coverImageUrl,
   }
+}
+
+export async function getPublishedSeries() {
+  return db
+    .select({
+      id: series.id,
+      name: series.name,
+      slug: series.slug,
+      description: series.description,
+      createdAt: series.createdAt,
+      updatedAt: series.updatedAt,
+      postCount: sql<number>`count(${posts.id})`,
+    })
+    .from(series)
+    .innerJoin(posts, and(eq(posts.seriesId, series.id), eq(posts.published, true)))
+    .groupBy(series.id)
+    .orderBy(series.name)
+}
+
+export async function getPublishedSeriesBySlug(slug: string) {
+  const [value] = await db.select().from(series).where(eq(series.slug, slug)).limit(1)
+  if (!value) return null
+  const publishedPosts = await getPublishedPosts()
+  const seriesPosts = publishedPosts
+    .filter((post) => post.seriesId === value.id)
+    .sort((a, b) => (a.seriesOrder ?? Number.MAX_SAFE_INTEGER) - (b.seriesOrder ?? Number.MAX_SAFE_INTEGER))
+  return seriesPosts.length ? { ...value, posts: seriesPosts } : null
 }
 
 /**
@@ -307,7 +348,7 @@ export async function canEditPost(postId: string): Promise<boolean> {
     .from(aiCallLogs)
     .where(
       and(
-        eq(aiCallLogs.postId, postId),
+        or(eq(aiCallLogs.postId, postId), eq(aiCallLogs.draftId, postId)),
         eq(aiCallLogs.action, 'generate-summary')
       )
     )

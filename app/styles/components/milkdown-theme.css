@@ -297,6 +297,27 @@
   text-decoration-color: currentColor;
 }
 
+.markdown-article :where(a[data-internal-post-id]) {
+  display: inline;
+  padding: 0.08em 0.28em;
+  border-radius: 0.35em;
+  background: color-mix(in srgb, var(--article-accent), transparent 90%);
+  text-decoration: none;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.markdown-article :where(a[data-internal-post-id]:hover, a[data-internal-post-id]:focus-visible) {
+  background: color-mix(in srgb, var(--article-accent), transparent 82%);
+  outline: none;
+}
+
+.markdown-article :where(a[data-internal-post-missing='true']) {
+  color: var(--article-text-muted);
+  text-decoration-style: dashed;
+  cursor: not-allowed;
+}
+
 .markdown-article :where(blockquote) {
   margin: 1.6em 0;
   padding: 0.8em 1.15em;

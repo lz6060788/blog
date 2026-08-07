@@ -19,6 +19,7 @@ function revalidateSeries(slug?: string) {
   revalidateTag('public-posts')
   revalidatePath('/admin/series')
   revalidatePath('/sitemap.xml')
+  for (const locale of locales) revalidatePath(localizedPath(locale, '/series'))
   if (slug) {
     for (const locale of locales) revalidatePath(localizedPath(locale, `/series/${slug}`))
   }
@@ -26,6 +27,10 @@ function revalidateSeries(slug?: string) {
 
 export async function getSeriesForSelect() {
   return repository.list(await userId())
+}
+
+export async function getSeriesManagementData() {
+  return repository.getManagementData(await userId())
 }
 
 export async function createSeries(input: { name: string; slug?: string; description?: string }) {
@@ -49,5 +54,19 @@ export async function updateSeries(id: string, input: { name: string; slug?: str
 export async function deleteSeries(id: string) {
   await repository.delete(await userId(), id)
   revalidateSeries()
+  return { success: true }
+}
+
+export async function replaceSeriesPosts(seriesId: string, orderedPostIds: string[]) {
+  if (!Array.isArray(orderedPostIds) || orderedPostIds.length > 500 || orderedPostIds.some((id) => typeof id !== 'string')) {
+    throw new Error('收录文章参数无效')
+  }
+
+  const result = await repository.replacePosts(await userId(), seriesId, orderedPostIds)
+  revalidateSeries()
+  for (const slug of result.seriesSlugs) revalidateSeries(slug)
+  for (const postId of result.postIds) {
+    for (const locale of locales) revalidatePath(localizedPath(locale, `/post/${postId}`))
+  }
   return { success: true }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FolderOpen, Layers3, Tag as TagIcon, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -246,15 +247,6 @@ export function PostEditorForm({ sourceId }: PostEditorFormProps) {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Layers3 className="h-4 w-4 text-theme-text-secondary" />
-          <Select value={seriesId || 'none'} onValueChange={(value) => setSeriesId(value === 'none' ? '' : value)}>
-            <SelectTrigger className="h-9 w-[190px]"><SelectValue placeholder="选择专题" /></SelectTrigger>
-            <SelectContent><SelectItem value="none">不属于专题</SelectItem>{seriesOptions.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
-          </Select>
-          {seriesId && <Input type="number" min="1" value={seriesOrder} onChange={(event) => setSeriesOrder(event.target.value)} placeholder="顺序" className="h-9 w-24" />}
-        </div>
-
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <TagIcon className="h-4 w-4 shrink-0 text-theme-text-secondary" />
           <div className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-theme-border bg-theme-surface px-3">
@@ -271,6 +263,26 @@ export function PostEditorForm({ sourceId }: PostEditorFormProps) {
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_440px]">
         <MilkdownEditor ref={editorRef} initialValue={content} onChange={setContent} theme={resolvedTheme === 'dark' ? 'dark' : 'light'} className="min-h-[640px]" />
         <aside className="min-w-0 space-y-5">
+          <section className="overflow-hidden rounded-2xl border-2 border-theme-text-canvas bg-theme-surface shadow-[4px_4px_0_0_hsl(var(--theme-primary)/0.18)]">
+            <div className="flex items-center justify-between bg-theme-text-canvas px-4 py-3 text-theme-surface">
+              <div className="flex items-center gap-2"><Layers3 className="h-4 w-4" /><span className="text-sm font-semibold">专题快捷设置</span></div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-55">Optional</span>
+            </div>
+            <div className="space-y-4 p-4">
+              <p className="text-xs leading-5 text-theme-text-secondary">适合写作时临时指定专题；批量收录与可视化排序请前往专题编排台。</p>
+              <Select value={seriesId || 'none'} onValueChange={(value) => setSeriesId(value === 'none' ? '' : value)}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="选择专题" /></SelectTrigger>
+                <SelectContent><SelectItem value="none">不属于专题</SelectItem>{seriesOptions.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
+              </Select>
+              {seriesId && (
+                <div>
+                  <label htmlFor="series-order" className="mb-1.5 block text-xs font-medium text-theme-text-secondary">阅读顺序</label>
+                  <Input id="series-order" type="number" min="1" value={seriesOrder} onChange={(event) => setSeriesOrder(event.target.value)} placeholder="例如：1" />
+                </div>
+              )}
+              <Button asChild variant="outline" size="sm" className="w-full"><Link href="/admin/series">前往专题编排台</Link></Button>
+            </div>
+          </section>
           <CoverPreview postId={draftId} initialCoverUrl={coverImageUrl} initialStatus={aiCoverStatus} onCoverChange={setCoverImageUrl} onStatusChange={setAiCoverStatus} title={title} content={content} />
           <AISummaryEditor postId={draftId} initialSummary={excerpt} initialStatus={aiSummaryStatus} onSummaryChange={setExcerpt} onStatusChange={setAiSummaryStatus} title={title} content={content} />
           {!draftId && <p className="rounded-xl border border-theme-border bg-theme-muted p-3 text-xs text-theme-text-secondary">先保存草稿后可使用 AI 摘要与封面能力。</p>}

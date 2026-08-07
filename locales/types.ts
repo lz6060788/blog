@@ -9,6 +9,7 @@ export interface CommonMessages {
 
 export interface NavMessages {
   home: string
+  series: string
   archive: string
   menu: string
   settings: string
@@ -65,6 +66,17 @@ export interface ArchiveMessages {
   postCount: string
   monthCount: string
   noResults: string
+}
+
+export interface SeriesMessages {
+  eyebrow: string
+  title: string
+  description: string
+  postCount: string
+  readSeries: string
+  empty: string
+  browseArchive: string
+  sequence: string
 }
 
 export interface LoginMessages {
@@ -207,6 +219,7 @@ export interface Messages {
   article: ArticleMessages
   collection: CollectionMessages
   archive: ArchiveMessages
+  series: SeriesMessages
   login: LoginMessages
   ai: AIMessages
   admin: AdminMessages

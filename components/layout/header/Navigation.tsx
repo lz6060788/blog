@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Cursor, List, House } from '@phosphor-icons/react'
+import { Books, Cursor, List, House } from '@phosphor-icons/react'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Link } from '@/app/i18n/routing'
@@ -36,6 +36,7 @@ export default function Navigation({ blogName }: NavigationProps) {
 
   const navLinks = [
     { href: '/', label: t('home'), icon: House },
+    { href: '/series', label: t('series'), icon: Books },
     { href: '/archive', label: t('archive'), icon: List },
   ]
 

@@ -7,6 +7,7 @@ export const en: Messages = {
   },
   nav: {
     home: 'Home',
+    series: 'Series',
     archive: 'Archive',
     menu: 'Open navigation menu',
     settings: 'Display & account',
@@ -59,6 +60,16 @@ export const en: Messages = {
     postCount: '{count} articles',
     monthCount: '{count} posts',
     noResults: 'No articles match the current filters.',
+  },
+  series: {
+    eyebrow: 'Series library',
+    title: 'Article Series',
+    description: 'Related ideas arranged into deliberate, contextual reading paths. Each series is a digital volume that continues to grow.',
+    postCount: '{count} articles',
+    readSeries: 'Open series',
+    empty: 'No series contain published articles yet.',
+    browseArchive: 'Browse the archive',
+    sequence: 'Read in order',
   },
   login: {
     welcome: 'Welcome Back',

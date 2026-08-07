@@ -7,6 +7,7 @@ export const zh: Messages = {
   },
   nav: {
     home: '首页',
+    series: '专题',
     archive: '归档',
     menu: '打开导航菜单',
     settings: '显示与账户',
@@ -58,6 +59,16 @@ export const zh: Messages = {
     postCount: '{count} 篇文章',
     monthCount: '{count} 篇',
     noResults: '没有符合当前筛选条件的文章。',
+  },
+  series: {
+    eyebrow: '专题书架',
+    title: '系列文章',
+    description: '将相关主题组织成有顺序、有上下文的深度阅读路径。每一个专题，都是一册持续生长的数字专著。',
+    postCount: '{count} 篇文章',
+    readSeries: '进入专题',
+    empty: '暂时还没有包含已发布文章的专题。',
+    browseArchive: '浏览文章归档',
+    sequence: '按顺序阅读',
   },
   login: {
     welcome: '欢迎回来',

@@ -5,6 +5,8 @@ const withNextIntl = createNextIntlPlugin('./app/i18n/request.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 隔离开发服务与生产构建产物，避免并行运行时相互覆盖 vendor chunks。
+  distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   // Docker 独立部署模式
   images: {
     dangerouslyAllowSVG: true,

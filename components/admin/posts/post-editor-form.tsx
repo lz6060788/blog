@@ -8,7 +8,6 @@ import { useTheme } from 'next-themes'
 import { toast } from 'react-hot-toast'
 
 import { AISummaryEditor, CoverPreview } from '@/components/admin/ai'
-import { InternalPostPicker } from '@/components/admin/posts/internal-post-picker'
 import { MilkdownEditor, type MilkdownEditorRef } from '@/components/editor/milkdown/milkdown-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -257,8 +256,6 @@ export function PostEditorForm({ sourceId }: PostEditorFormProps) {
       </div>
 
       {existingTags.length > 0 && <div className="flex flex-wrap items-center gap-2 pl-6"><span className="text-xs text-theme-text-tertiary">快速选择：</span>{existingTags.map((tag) => <button type="button" key={tag.id} onClick={() => tags.includes(tag.name) ? setTags((value) => value.filter((item) => item !== tag.name)) : addTag(tag.name)} className={`rounded px-2 py-1 text-xs ${tags.includes(tag.name) ? 'bg-theme-accent-primary text-white' : 'bg-theme-muted text-theme-text-secondary'}`}>{tag.name}</button>)}</div>}
-
-      <div className="flex justify-end"><InternalPostPicker onInsert={(markdown) => editorRef.current?.insertMarkdown(markdown)} /></div>
 
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_440px]">
         <MilkdownEditor ref={editorRef} initialValue={content} onChange={setContent} theme={resolvedTheme === 'dark' ? 'dark' : 'light'} className="min-h-[640px]" />

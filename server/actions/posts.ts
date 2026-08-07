@@ -174,7 +174,7 @@ export async function getInternalPostOptions(search?: string) {
     status: 'published',
     search,
     page: 1,
-    limit: 30,
+    limit: 100,
   })
   return result.data.map((post) => ({
     id: post.id,

@@ -168,7 +168,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
         if (internalPostPreviewHoverRef.current) return;
         internalPostLinkPreviewRef.current = null;
         setInternalPostLinkPreview(null);
-      }, 360);
+      }, 180);
     }, [cancelInternalPostPreviewClose]);
 
     const holdInternalPostLinkPreview = useCallback(() => {

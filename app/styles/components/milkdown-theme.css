@@ -29,6 +29,12 @@
   box-shadow: 0 1px 0 hsl(var(--theme-border));
 }
 
+/* Internal post links use the richer React preview in MilkdownEditor. Keep
+ * Crepe's generic URL tooltip available for ordinary external links. */
+.milkdown-editor-root .milkdown-link-preview:has(.link-display[href^='post:']) {
+  display: none !important;
+}
+
 /* Adapt Crepe's light palette to the admin design tokens. Structural styles
  * continue to come from the official Classic theme. */
 .theme-light .milkdown {

@@ -9,13 +9,21 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { CornerDownLeft, FileText, Search } from "lucide-react";
+import {
+  BookOpenText,
+  CornerDownLeft,
+  FileText,
+  Pencil,
+  Search,
+  Trash2,
+} from "lucide-react";
 import type { Ctx } from "@milkdown/kit/ctx";
 import { Crepe } from "@milkdown/crepe";
 import { highlight, highlightPluginConfig } from "@milkdown/plugin-highlight";
 import { createParser } from "@milkdown/plugin-highlight/shiki";
 import { replaceAll } from "@milkdown/kit/utils";
 import { editorViewCtx, parserCtx } from "@milkdown/kit/core";
+import { linkSchema } from "@milkdown/kit/preset/commonmark";
 import { getSingletonHighlighter } from "shiki";
 import { uploadFile as uploadAssetFile } from "@/lib/api/upload";
 import { getInternalPostOptions } from "@/server/actions/posts";
@@ -56,10 +64,20 @@ interface InternalPostOption {
 }
 
 interface InternalPostTrigger {
+  mode: "insert" | "replace";
   from: number;
   to: number;
   query: string;
   alias: string;
+  left: number;
+  top: number;
+}
+
+interface InternalPostLinkPreview {
+  id: string;
+  from: number;
+  to: number;
+  label: string;
   left: number;
   top: number;
 }
@@ -92,10 +110,17 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
     >(null);
     const [internalPostLoading, setInternalPostLoading] = useState(false);
     const [internalPostActiveIndex, setInternalPostActiveIndex] = useState(0);
+    const [internalPostLinkPreview, setInternalPostLinkPreview] =
+      useState<InternalPostLinkPreview | null>(null);
     const internalPostTriggerRef = useRef<InternalPostTrigger | null>(null);
     const internalPostOptionsRef = useRef<InternalPostOption[]>([]);
     const internalPostActiveIndexRef = useRef(0);
     const dismissedInternalPostFromRef = useRef<number | null>(null);
+    const internalPostLinkPreviewRef =
+      useRef<InternalPostLinkPreview | null>(null);
+    const internalPostPreviewCloseTimerRef = useRef<number | null>(null);
+    const internalPostPreviewHoverRef = useRef(false);
+    const detectInternalPostTriggerRef = useRef<(() => void) | null>(null);
 
     const handleImageUpload = useCallback(async (file: File) => {
       setUploadError(null);
@@ -123,6 +148,39 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
       setInternalPostLoading(false);
     }, []);
 
+    const cancelInternalPostPreviewClose = useCallback(() => {
+      if (internalPostPreviewCloseTimerRef.current === null) return;
+      window.clearTimeout(internalPostPreviewCloseTimerRef.current);
+      internalPostPreviewCloseTimerRef.current = null;
+    }, []);
+
+    const closeInternalPostLinkPreview = useCallback(() => {
+      cancelInternalPostPreviewClose();
+      internalPostPreviewHoverRef.current = false;
+      internalPostLinkPreviewRef.current = null;
+      setInternalPostLinkPreview(null);
+    }, [cancelInternalPostPreviewClose]);
+
+    const scheduleInternalPostPreviewClose = useCallback(() => {
+      cancelInternalPostPreviewClose();
+      internalPostPreviewCloseTimerRef.current = window.setTimeout(() => {
+        internalPostPreviewCloseTimerRef.current = null;
+        if (internalPostPreviewHoverRef.current) return;
+        internalPostLinkPreviewRef.current = null;
+        setInternalPostLinkPreview(null);
+      }, 360);
+    }, [cancelInternalPostPreviewClose]);
+
+    const holdInternalPostLinkPreview = useCallback(() => {
+      internalPostPreviewHoverRef.current = true;
+      cancelInternalPostPreviewClose();
+    }, [cancelInternalPostPreviewClose]);
+
+    const releaseInternalPostLinkPreview = useCallback(() => {
+      internalPostPreviewHoverRef.current = false;
+      scheduleInternalPostPreviewClose();
+    }, [scheduleInternalPostPreviewClose]);
+
     const setActiveInternalPostIndex = useCallback((index: number) => {
       internalPostActiveIndexRef.current = index;
       setInternalPostActiveIndex(index);
@@ -133,17 +191,22 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
         const trigger = internalPostTriggerRef.current;
         if (!trigger || !editorRef.current) return;
 
-        const label = (trigger.alias || post.title)
-          .replaceAll("[", "\\[")
-          .replaceAll("]", "\\]");
-        const markdown = `[${label}](post:${post.id})`;
+        const label = trigger.alias || post.title;
 
         try {
           editorRef.current.editor.action((ctx) => {
             const view = ctx.get(editorViewCtx);
-            const parsed = ctx.get(parserCtx)(markdown);
+            const linkMark = linkSchema
+              .type(ctx)
+              .create({ href: `post:${post.id}` });
+            const linkText = view.state.schema.text(label, [linkMark]);
+            const replacement =
+              trigger.mode === "insert"
+                ? [linkText, view.state.schema.text(" ")]
+                : linkText;
             const transaction = view.state.tr
-              .replace(trigger.from, trigger.to, parsed.slice(0))
+              .replaceWith(trigger.from, trigger.to, replacement)
+              .setStoredMarks([])
               .scrollIntoView();
             view.dispatch(transaction);
             requestAnimationFrame(() => view.focus());
@@ -153,10 +216,67 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
         }
 
         dismissedInternalPostFromRef.current = null;
+        closeInternalPostLinkPreview();
         closeInternalPostSuggestions();
       },
-      [closeInternalPostSuggestions]
+      [closeInternalPostLinkPreview, closeInternalPostSuggestions]
     );
+
+    const replaceInternalPostLink = useCallback(() => {
+      const preview = internalPostLinkPreviewRef.current;
+      if (!preview) return;
+
+      const currentPost = internalPostCatalog?.find(
+        (post) => post.id === preview.id
+      );
+      const popupWidth = Math.min(368, window.innerWidth - 24);
+      const nextTrigger: InternalPostTrigger = {
+        mode: "replace",
+        from: preview.from,
+        to: preview.to,
+        query: "",
+        alias:
+          currentPost && preview.label !== currentPost.title
+            ? preview.label
+            : "",
+        left: Math.max(
+          12,
+          Math.min(preview.left, window.innerWidth - popupWidth - 12)
+        ),
+        top: preview.top,
+      };
+
+      closeInternalPostLinkPreview();
+      internalPostTriggerRef.current = nextTrigger;
+      setInternalPostTrigger(nextTrigger);
+    }, [closeInternalPostLinkPreview, internalPostCatalog]);
+
+    const removeInternalPostLink = useCallback(() => {
+      const preview = internalPostLinkPreviewRef.current;
+      if (!preview || !editorRef.current) return;
+
+      try {
+        editorRef.current.editor.action((ctx) => {
+          const view = ctx.get(editorViewCtx);
+          if (
+            preview.from < 0 ||
+            preview.to <= preview.from ||
+            preview.to > view.state.doc.content.size
+          ) {
+            return;
+          }
+
+          view.dispatch(
+            view.state.tr.delete(preview.from, preview.to).scrollIntoView()
+          );
+          requestAnimationFrame(() => view.focus());
+        });
+      } catch (error) {
+        console.error("删除站内文章引用失败:", error);
+      }
+
+      closeInternalPostLinkPreview();
+    }, [closeInternalPostLinkPreview]);
 
     useEffect(() => {
       let active = true;
@@ -433,11 +553,99 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
             listener.markdownUpdated((_ctx, markdown) => {
               currentContentRef.current = markdown;
               onChangeRef.current?.(markdown);
+              requestAnimationFrame(() => {
+                detectInternalPostTriggerRef.current?.();
+              });
             });
           });
 
           editor.editor.action((ctx) => {
             const view = ctx.get(editorViewCtx);
+            let internalPostDetectionTimer: number | null = null;
+
+            const getInternalPostLinkAtPointer = (event: MouseEvent) => {
+              const target =
+                event.target instanceof Element ? event.target : null;
+              const anchor = target?.closest<HTMLAnchorElement>(
+                'a[href^="post:"]'
+              );
+              if (!anchor || !view.dom.contains(anchor)) return null;
+
+              const id = anchor.getAttribute("href")?.match(
+                /^post:([0-9a-f-]{36})$/i
+              )?.[1];
+              const position = view.posAtCoords({
+                left: event.clientX,
+                top: event.clientY,
+              });
+              if (!id || !position) return null;
+
+              const $position = view.state.doc.resolve(position.pos);
+              if (!$position.parent.isTextblock) return null;
+
+              const parentStart = $position.start();
+              const segments: Array<{ from: number; to: number }> = [];
+              $position.parent.forEach((node, offset) => {
+                const hasInternalLink = node.marks.some(
+                  (mark) => mark.attrs.href === `post:${id}`
+                );
+                if (!hasInternalLink) return;
+
+                const from = parentStart + offset;
+                const to = from + node.nodeSize;
+                const previous = segments.at(-1);
+                if (previous?.to === from) previous.to = to;
+                else segments.push({ from, to });
+              });
+
+              const range = segments.find(
+                ({ from, to }) =>
+                  position.pos >= from && position.pos <= to
+              );
+              if (!range) return null;
+
+              const rect = anchor.getBoundingClientRect();
+              const popupWidth = Math.min(420, window.innerWidth - 24);
+              const popupHeight = 210;
+              return {
+                id,
+                from: range.from,
+                to: range.to,
+                label: view.state.doc.textBetween(range.from, range.to),
+                left: Math.max(
+                  12,
+                  Math.min(rect.left, window.innerWidth - popupWidth - 12)
+                ),
+                top:
+                  rect.bottom + popupHeight + 12 <= window.innerHeight
+                    ? rect.bottom + 4
+                    : Math.max(12, rect.top - popupHeight - 4),
+              } satisfies InternalPostLinkPreview;
+            };
+
+            const showInternalPostLinkPreview = (event: MouseEvent) => {
+              const preview = getInternalPostLinkAtPointer(event);
+              if (!preview) return false;
+
+              cancelInternalPostPreviewClose();
+              internalPostPreviewHoverRef.current = false;
+              closeInternalPostSuggestions();
+              internalPostLinkPreviewRef.current = preview;
+              setInternalPostLinkPreview((current) => {
+                if (
+                  current &&
+                  current.id === preview.id &&
+                  current.from === preview.from &&
+                  current.to === preview.to &&
+                  current.left === preview.left &&
+                  current.top === preview.top
+                ) {
+                  return current;
+                }
+                return preview;
+              });
+              return true;
+            };
 
             const detectInternalPostTrigger = () => {
               const { selection } = view.state;
@@ -501,6 +709,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                   ? caret.bottom + 8
                   : Math.max(12, caret.top - popupHeight - 8);
               const nextTrigger = {
+                mode: "insert" as const,
                 from,
                 to: selection.from,
                 query,
@@ -513,6 +722,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
               setInternalPostTrigger((current) => {
                 if (
                   current &&
+                  current.mode === nextTrigger.mode &&
                   current.from === nextTrigger.from &&
                   current.to === nextTrigger.to &&
                   current.query === nextTrigger.query &&
@@ -525,9 +735,34 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 return nextTrigger;
               });
             };
+            detectInternalPostTriggerRef.current =
+              detectInternalPostTrigger;
 
             const scheduleDetection = () => {
               requestAnimationFrame(detectInternalPostTrigger);
+              if (internalPostDetectionTimer !== null) {
+                window.clearTimeout(internalPostDetectionTimer);
+              }
+              internalPostDetectionTimer = window.setTimeout(() => {
+                internalPostDetectionTimer = null;
+                detectInternalPostTrigger();
+              }, 24);
+            };
+
+            const handleEditorInput = () => {
+              closeInternalPostLinkPreview();
+              scheduleDetection();
+            };
+
+            const handleInternalLinkMouseMove = (event: MouseEvent) => {
+              if (!showInternalPostLinkPreview(event)) {
+                scheduleInternalPostPreviewClose();
+              }
+            };
+
+            const handleInternalLinkClick = (event: MouseEvent) => {
+              if (!showInternalPostLinkPreview(event)) return;
+              event.preventDefault();
             };
 
             const handleKeyDown = (event: KeyboardEvent) => {
@@ -578,24 +813,67 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
               }, 0);
             };
 
-            view.dom.addEventListener("input", scheduleDetection);
+            view.dom.addEventListener("input", handleEditorInput);
             view.dom.addEventListener("keyup", scheduleDetection);
             view.dom.addEventListener("click", scheduleDetection);
+            view.dom.addEventListener("click", handleInternalLinkClick);
             view.dom.addEventListener("focus", scheduleDetection);
             view.dom.addEventListener("blur", handleBlur);
+            view.dom.addEventListener(
+              "mousemove",
+              handleInternalLinkMouseMove
+            );
+            view.dom.addEventListener(
+              "mouseleave",
+              scheduleInternalPostPreviewClose
+            );
             view.dom.addEventListener("keydown", handleKeyDown, true);
             window.addEventListener("resize", closeInternalPostSuggestions);
+            window.addEventListener("resize", closeInternalPostLinkPreview);
+            window.addEventListener(
+              "scroll",
+              closeInternalPostLinkPreview,
+              true
+            );
 
             cleanupInternalPostListeners = () => {
-              view.dom.removeEventListener("input", scheduleDetection);
+              if (
+                detectInternalPostTriggerRef.current ===
+                detectInternalPostTrigger
+              ) {
+                detectInternalPostTriggerRef.current = null;
+              }
+              if (internalPostDetectionTimer !== null) {
+                window.clearTimeout(internalPostDetectionTimer);
+                internalPostDetectionTimer = null;
+              }
+              view.dom.removeEventListener("input", handleEditorInput);
               view.dom.removeEventListener("keyup", scheduleDetection);
               view.dom.removeEventListener("click", scheduleDetection);
+              view.dom.removeEventListener("click", handleInternalLinkClick);
               view.dom.removeEventListener("focus", scheduleDetection);
               view.dom.removeEventListener("blur", handleBlur);
+              view.dom.removeEventListener(
+                "mousemove",
+                handleInternalLinkMouseMove
+              );
+              view.dom.removeEventListener(
+                "mouseleave",
+                scheduleInternalPostPreviewClose
+              );
               view.dom.removeEventListener("keydown", handleKeyDown, true);
               window.removeEventListener(
                 "resize",
                 closeInternalPostSuggestions
+              );
+              window.removeEventListener(
+                "resize",
+                closeInternalPostLinkPreview
+              );
+              window.removeEventListener(
+                "scroll",
+                closeInternalPostLinkPreview,
+                true
               );
             };
           });
@@ -613,6 +891,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
         mounted = false;
         setIsReady(false);
         cleanupInternalPostListeners?.();
+        closeInternalPostLinkPreview();
         closeInternalPostSuggestions();
 
         const activeEditor = editorRef.current ?? editor;
@@ -625,8 +904,11 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
       };
     }, [
       closeInternalPostSuggestions,
+      closeInternalPostLinkPreview,
+      cancelInternalPostPreviewClose,
       handleImageUpload,
       insertInternalPost,
+      scheduleInternalPostPreviewClose,
       setActiveInternalPostIndex,
       theme,
     ]);
@@ -638,6 +920,12 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
       currentContentRef.current = initialValue;
       editorRef.current.editor.action(replaceAll(initialValue));
     }, [initialValue, isReady]);
+
+    const previewPost = internalPostLinkPreview
+      ? internalPostCatalog?.find(
+          (post) => post.id === internalPostLinkPreview.id
+        )
+      : null;
 
     return (
       <>
@@ -679,6 +967,75 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
           </div>
         </div>
 
+        {internalPostLinkPreview &&
+          !internalPostTrigger &&
+          createPortal(
+            <div
+              data-internal-post-link-preview
+              role="dialog"
+              aria-label="站内文章引用预览"
+              className={`${theme === "dark" ? "theme-dark" : "theme-light"} fixed z-[2147483000] w-[min(26.25rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-theme-border bg-theme-surface shadow-2xl`}
+              style={{
+                left: internalPostLinkPreview.left,
+                top: internalPostLinkPreview.top,
+              }}
+              onMouseDown={(event) => event.preventDefault()}
+              onPointerEnter={holdInternalPostLinkPreview}
+              onPointerLeave={releaseInternalPostLinkPreview}
+            >
+              <div className="flex items-center gap-2 border-b border-theme-border bg-theme-surface-alt px-4 py-2.5 text-xs font-medium text-theme-text-secondary">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-theme-accent-bg text-theme-accent-primary">
+                  <BookOpenText className="h-4 w-4" />
+                </span>
+                <span>站内文章</span>
+                {previewPost?.category && (
+                  <span className="ml-auto max-w-40 truncate rounded-full border border-theme-border bg-theme-surface px-2.5 py-1 text-[10px] text-theme-text-tertiary">
+                    {previewPost.category}
+                  </span>
+                )}
+              </div>
+
+              <div className="px-4 py-4">
+                <p className="text-sm font-semibold leading-6 text-theme-text-canvas">
+                  {previewPost?.title || internalPostLinkPreview.label}
+                </p>
+                <p className="mt-1.5 line-clamp-3 text-xs leading-5 text-theme-text-secondary">
+                  {previewPost
+                    ? previewPost.excerpt || "这篇文章暂未填写摘要。"
+                    : internalPostCatalog
+                      ? "该文章已不存在，或当前账号无权读取文章信息。"
+                      : "正在加载文章摘要…"}
+                </p>
+                {previewPost &&
+                  internalPostLinkPreview.label !== previewPost.title && (
+                    <p className="mt-2 truncate font-mono text-[10px] text-theme-text-tertiary">
+                      显示文字：{internalPostLinkPreview.label}
+                    </p>
+                  )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-theme-border bg-theme-surface-alt px-3 py-2.5">
+                <button
+                  type="button"
+                  onClick={replaceInternalPostLink}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-theme-text-secondary transition-colors hover:bg-theme-surface hover:text-theme-text-canvas"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  更换文章
+                </button>
+                <button
+                  type="button"
+                  onClick={removeInternalPostLink}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-theme-error-primary transition-colors hover:bg-theme-error-bg"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  删除引用
+                </button>
+              </div>
+            </div>,
+            document.body
+          )}
+
         {internalPostTrigger &&
           createPortal(
             <div
@@ -696,7 +1053,11 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 <div className="flex min-w-0 items-center gap-2">
                   <Search className="h-4 w-4 shrink-0 opacity-65" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold">引用站内文章</p>
+                    <p className="text-sm font-semibold">
+                      {internalPostTrigger.mode === "replace"
+                        ? "更换引用文章"
+                        : "引用站内文章"}
+                    </p>
                     <p className="truncate font-mono text-[10px] text-theme-surface/55">
                       {internalPostTrigger.query
                         ? `搜索：${internalPostTrigger.query}`
@@ -705,7 +1066,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                   </div>
                 </div>
                 <span className="shrink-0 rounded-md border border-theme-surface/20 px-2 py-1 font-mono text-[10px] text-theme-surface/55">
-                  [[
+                  {internalPostTrigger.mode === "replace" ? "更换" : "[["}
                 </span>
               </div>
 
@@ -782,7 +1143,9 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 <span>↑↓ 选择</span>
                 <span>Enter 插入</span>
                 <span>Esc 关闭</span>
-                <span className="ml-auto">| 自定义文字</span>
+                {internalPostTrigger.mode === "insert" && (
+                  <span className="ml-auto">| 自定义文字</span>
+                )}
               </div>
             </div>,
             document.body

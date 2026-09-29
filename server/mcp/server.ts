@@ -142,7 +142,7 @@ function errorResult(error: unknown) {
 export function createBlogMcpServer(userId: string): McpServer {
   const server = new McpServer({
     name: 'personal-blog-authoring',
-    version: '0.5.0',
+    version: '0.6.0',
   })
 
   server.registerTool(
@@ -153,9 +153,10 @@ export function createBlogMcpServer(userId: string): McpServer {
       outputSchema: {
         language: z.string(),
         contentFormat: z.string(),
+        embeds: z.object({ video: z.string(), html: z.string(), webpage: z.string(), audio: z.string() }),
         maxTags: z.number(),
         internalLinks: z.object({ authoringStyle: z.string(), storedSyntax: z.string(), note: z.string() }),
-        draftWorkflow: z.object({ newArticle: z.string(), revision: z.string() }),
+        draftWorkflow: z.object({ newArticle: z.string(), revision: z.string(), withdrawal: z.string() }),
         categories: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
         tags: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
         series: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string(), description: z.string().nullable(), postCount: z.number() })),
@@ -643,6 +644,23 @@ export function createBlogMcpServer(userId: string): McpServer {
         return errorResult(error)
       }
     }
+  )
+
+  server.registerTool(
+    'unpublish_post',
+    {
+      title: 'Withdraw published blog post',
+      description: 'Make an article private and pending publication. Preserves its ID, first publication date, and existing revision draft. Republishing the returned draft restores the original URL.',
+      inputSchema: { postId: z.string().uuid(), confirm: z.literal(true) },
+      outputSchema: previewOutputSchema,
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false, idempotentHint: true },
+    },
+    async ({ postId }) => {
+      try {
+        const result = previewResult(await authoringService.unpublish(userId, postId))
+        return successResult(`《${result.title}》已撤回为待发布，草稿已保留。`, result)
+      } catch (error) { return errorResult(error) }
+    },
   )
 
   return server

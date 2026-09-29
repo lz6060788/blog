@@ -8,6 +8,8 @@
  * - 处理业务规则验证
  */
 
+import { DraftRepository } from '@/server/repositories/draft.repository'
+
 import type { PostRepository } from '@/server/repositories/post.repository'
 
 export interface CreatePostInput {
@@ -185,28 +187,14 @@ export class PostService {
    * 发布文章
    */
   async publishPost(postId: string, userId: string): Promise<void> {
-    // 检查文章是否存在
-    const post = await this.postRepository.findById(postId, userId)
-    if (!post) {
-      throw new Error('文章不存在')
-    }
-
-    await this.postRepository.update(postId, userId, { published: true })
+    const drafts = new DraftRepository()
+    const draft = await drafts.findByPostId(postId, userId)
+    if (!draft) throw new Error('没有可发布的草稿')
+    await drafts.publish(draft.id, userId, draft.updatedAt)
   }
 
-  /**
-   * 切换文章发布状态
-   */
-  async togglePostStatus(postId: string, userId: string): Promise<boolean> {
-    const post = await this.postRepository.findById(postId, userId)
-    if (!post) {
-      throw new Error('文章不存在')
-    }
-
-    const newStatus = !post.published
-    await this.postRepository.update(postId, userId, { published: newStatus })
-
-    return newStatus
+  async unpublishPost(postId: string, userId: string): Promise<string> {
+    return new DraftRepository().unpublish(postId, userId)
   }
 
   /**

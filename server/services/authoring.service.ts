@@ -7,6 +7,7 @@ import { DraftRepository, type DraftInput } from '@/server/repositories/draft.re
 import { PostRepository } from '@/server/repositories/post.repository'
 import { SeriesRepository } from '@/server/repositories/series.repository'
 import { PostService } from '@/server/services/post.service'
+import { revalidatePublicContent } from '@/server/cache/public-content'
 
 export interface CreateDraftInput extends DraftInput {}
 export interface UpdateDraftInput extends Partial<DraftInput> {}
@@ -35,6 +36,7 @@ export class AuthoringService {
     return {
       language: 'zh-CN',
       contentFormat: 'markdown',
+      embeds: { video: '```video\nHTTPS_VIDEO_URL\n```', html: '```html-preview\nHTML_SOURCE\n```', webpage: '```embed\nHTTPS_PAGE_URL\n```', audio: '```audio\nHTTPS_AUDIO_URL\n```' },
       maxTags: 3,
       internalLinks: {
         authoringStyle: 'Obsidian-style title selection with an optional display alias',
@@ -44,6 +46,7 @@ export class AuthoringService {
       draftWorkflow: {
         newArticle: 'create_post_draft -> publish_post',
         revision: 'update_post creates/reuses one bound draft -> publish_post',
+        withdrawal: 'unpublish_post preserves the article ID and any existing revision; publish_post restores the original URL',
       },
       categories: categoryRows.map(({ id, name, slug }) => ({ id, name, slug })),
       tags: tagRows.map(({ id, name, slug }) => ({ id, name, slug })),
@@ -175,8 +178,15 @@ export class AuthoringService {
     const directDraft = await this.draftRepository.findById(documentId, userId)
     const draft = directDraft || await this.draftRepository.findByPostId(documentId, userId)
     if (!draft) throw new Error('没有可发布的草稿；请先创建或更新草稿')
-    const postId = await this.draftRepository.publish(draft.id, userId)
+    const postId = await this.draftRepository.publish(draft.id, userId, draft.updatedAt)
+    revalidatePublicContent(postId)
     return this.getPost(userId, postId)
+  }
+
+  async unpublish(userId: string, postId: string) {
+    const draftId = await this.draftRepository.unpublish(postId, userId)
+    revalidatePublicContent(postId)
+    return this.getDraft(userId, draftId)
   }
 
   async searchInternalPosts(userId: string, search?: string, limit = 20) {
@@ -190,7 +200,7 @@ export class AuthoringService {
     return {
       post: { ...draft, published: false, documentType: 'draft', isRevision: Boolean(draft.postId) },
       editorUrl: `${baseUrl}/admin/posts/${draft.id}/edit`,
-      publicUrl: draft.postId ? `${baseUrl}/zh/post/${draft.postId}` : null,
+      publicUrl: draft.postId && draft.postPublished ? `${baseUrl}/zh/post/${draft.postId}` : null,
     }
   }
 }

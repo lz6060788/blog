@@ -1,15 +1,13 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
-
-import { locales } from '@/i18n.config'
-import { localizedPath } from '@/lib/seo'
+import { revalidatePath } from 'next/cache'
 import { auth } from '@/server/auth'
 import { db } from '@/server/db'
 import { categories, tags } from '@/server/db/schema'
 import { DraftRepository, type DraftInput } from '@/server/repositories/draft.repository'
 import { PostRepository } from '@/server/repositories/post.repository'
 import { PostService } from '@/server/services/post.service'
+import { revalidatePublicContent } from '@/server/cache/public-content'
 
 const draftRepository = new DraftRepository()
 
@@ -21,17 +19,6 @@ async function currentUserId() {
   const session = await auth()
   if (!session?.user?.id) throw new Error('Unauthorized')
   return session.user.id
-}
-
-function revalidatePublicContent(postId?: string) {
-  revalidateTag('public-posts')
-  for (const locale of locales) {
-    revalidatePath(localizedPath(locale, '/'))
-    revalidatePath(localizedPath(locale, '/archive'))
-    if (postId) revalidatePath(localizedPath(locale, `/post/${postId}`))
-  }
-  revalidatePath('/sitemap.xml')
-  revalidatePath('/rss.xml')
 }
 
 function revalidateAdmin(documentId?: string) {
@@ -50,7 +37,12 @@ export async function createDraft(data: DraftInput) {
   validateDraft(data)
   const id = await draftRepository.create(await currentUserId(), data)
   revalidateAdmin(id)
-  return { success: true, draftId: id }
+  const draft = await draftRepository.findById(id, await currentUserId())
+  return { success: true, draftId: id, updatedAt: draft?.updatedAt }
+}
+
+export async function getDraftSnapshot(id: string) {
+  return draftRepository.findById(id, await currentUserId())
 }
 
 /** Compatibility entrypoint: creation always passes through a draft instance. */
@@ -80,22 +72,22 @@ export async function getEditorDocument(id: string) {
   }
 }
 
-export async function saveDraft(id: string, data: Partial<DraftInput>) {
+export async function saveDraft(id: string, data: Partial<DraftInput>, expectedUpdatedAt?: string) {
   validateDraft(data)
-  await draftRepository.update(id, await currentUserId(), data)
+  const updatedAt = await draftRepository.update(id, await currentUserId(), data, expectedUpdatedAt)
   revalidateAdmin(id)
-  return { success: true, draftId: id }
+  return { success: true, draftId: id, updatedAt }
 }
 
-export async function publishDraft(id: string) {
-  const postId = await draftRepository.publish(id, await currentUserId())
+export async function publishDraft(id: string, expectedUpdatedAt?: string) {
+  const postId = await draftRepository.publish(id, await currentUserId(), expectedUpdatedAt)
   revalidateAdmin()
   revalidatePublicContent(postId)
   return { success: true, postId }
 }
 
-export async function deleteDraft(id: string) {
-  await draftRepository.delete(id, await currentUserId())
+export async function deleteDraft(id: string, expectedUpdatedAt?: string) {
+  await draftRepository.delete(id, await currentUserId(), expectedUpdatedAt)
   revalidateAdmin()
   return { success: true }
 }
@@ -106,6 +98,13 @@ export async function getDrafts(options?: { search?: string; page?: number; page
     page: options?.page,
     limit: options?.pageSize,
   })
+}
+
+export async function deletePendingArticle(draftId: string, expectedUpdatedAt: string) {
+  const postId = await draftRepository.deletePendingArticle(draftId, await currentUserId(), expectedUpdatedAt)
+  revalidateAdmin()
+  revalidatePublicContent(postId)
+  return { success: true }
 }
 
 /**
@@ -122,10 +121,10 @@ export async function updatePost(
   const directDraft = await draftRepository.findById(id, userId)
   const draft = directDraft || await draftRepository.getOrCreateForPost(userId, id)
   const { published, publishedDate: _publishedDate, ...draftData } = data
-  await draftRepository.update(draft.id, userId, draftData)
+  const updatedAt = await draftRepository.update(draft.id, userId, draftData, draft.updatedAt)
 
   if (published) {
-    const postId = await draftRepository.publish(draft.id, userId)
+    const postId = await draftRepository.publish(draft.id, userId, updatedAt)
     revalidateAdmin()
     revalidatePublicContent(postId)
     return { success: true, postId }
@@ -142,14 +141,11 @@ export async function deletePost(id: string) {
   return { success: true }
 }
 
-export async function togglePostStatus(id: string) {
-  const userId = await currentUserId()
-  const draft = await draftRepository.findById(id, userId) || await draftRepository.findByPostId(id, userId)
-  if (!draft) throw new Error('没有可发布的草稿')
-  const postId = await draftRepository.publish(draft.id, userId)
-  revalidateAdmin()
-  revalidatePublicContent(postId)
-  return { success: true, published: true, postId }
+export async function unpublishPost(id: string) {
+  const draftId = await draftRepository.unpublish(id, await currentUserId())
+  revalidateAdmin(draftId)
+  revalidatePublicContent(id)
+  return { success: true, postId: id, draftId }
 }
 
 export async function getPost(id: string) {

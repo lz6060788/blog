@@ -10,6 +10,7 @@ import { getLocale } from "next-intl/server";
 
 import { localizedPath } from "@/lib/seo";
 import { getPublishedPosts } from "@/server/db/queries/posts";
+import { remarkArticleEmbeds } from '@/lib/article-embeds';
 
 export interface MilkdownPreviewProps {
   content: string;
@@ -101,7 +102,7 @@ const rehypeArticleEnhancements = (
   visit(tree);
 };
 
-const renderMarkdownToHtml = async (content: string) => {
+export const renderMarkdownToHtml = async (content: string) => {
   const ids = Array.from(content.matchAll(/\]\(post:([0-9a-f-]{36})\)/gi)).map((match) => match[1]);
   const [locale, publishedPosts] = await Promise.all([
     getLocale(),
@@ -122,6 +123,7 @@ const renderMarkdownToHtml = async (content: string) => {
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkMath)
+    .use(remarkArticleEmbeds)
     .use(remarkRehype)
     .use(rehypeKatex)
     .use(rehypePrism, { ignoreMissing: true })

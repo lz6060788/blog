@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { deleteDraft, getDrafts, publishDraft } from '@/server/actions/posts'
+import { deleteDraft, deletePendingArticle, getDrafts, publishDraft } from '@/server/actions/posts'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,9 +29,9 @@ export default function DraftsPage() {
 
   useEffect(() => { void load() }, [])
 
-  const publish = async (id: string, revision: boolean) => {
+  const publish = async (id: string, revision: boolean, updatedAt: string) => {
     try {
-      await publishDraft(id)
+      await publishDraft(id, updatedAt)
       setDrafts((values) => values.filter((draft) => draft.id !== id))
       toast.success(revision ? '文章更新已发布' : '文章已发布')
     } catch (error) {
@@ -39,10 +39,13 @@ export default function DraftsPage() {
     }
   }
 
-  const remove = async (id: string) => {
-    if (!confirm('确定删除这份草稿吗？已发布文章不会受到影响。')) return
+  const remove = async (draft: any) => {
+    const id = draft.id
+    const pending = draft.postId && !draft.postPublished
+    if (!confirm(pending ? '确定删除整篇待发布文章吗？原文章记录和草稿都将删除。' : '确定删除这份草稿吗？已发布文章不会受到影响。')) return
     try {
-      await deleteDraft(id)
+      if (pending) await deletePendingArticle(id, draft.updatedAt)
+      else await deleteDraft(id, draft.updatedAt)
       setDrafts((values) => values.filter((draft) => draft.id !== id))
       toast.success('草稿已删除')
     } catch (error) {
@@ -56,7 +59,7 @@ export default function DraftsPage() {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-semibold text-theme-text-canvas">草稿箱</h1>
-        <p className="mt-1 text-sm text-theme-text-secondary">新文章草稿与已发布文章的修订草稿互相独立。</p>
+        <p className="mt-1 text-sm text-theme-text-secondary">待发布文章尚未公开；修订草稿只有发布后才会更新线上内容。</p>
       </motion.div>
 
       {!drafts.length ? (
@@ -77,15 +80,15 @@ export default function DraftsPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="truncate font-medium text-theme-text-canvas">{draft.title}</h3>
-                    <Badge variant={draft.postId ? 'secondary' : 'outline'}>{draft.postId ? '文章修订' : '新文章'}</Badge>
+                    <Badge variant={draft.postId ? 'secondary' : 'outline'}>{draft.postPublished ? '文章修订 · 原文已发布' : draft.postId ? '待发布 · 已撤回' : '新文章 · 待发布'}</Badge>
                   </div>
                   <p className="mt-1 text-xs text-theme-text-tertiary">最后修改：{new Date(draft.updatedAt).toLocaleString('zh-CN')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button asChild size="sm" variant="outline"><Link href={`/admin/posts/${draft.id}/edit`}>编辑</Link></Button>
-                <Button size="sm" onClick={() => void publish(draft.id, Boolean(draft.postId))}>{draft.postId ? '发布更新' : '发布'}</Button>
-                <Button size="icon" variant="ghost" onClick={() => void remove(draft.id)} aria-label="删除草稿"><Trash2 className="h-4 w-4" /></Button>
+                <Button size="sm" onClick={() => void publish(draft.id, draft.postPublished, draft.updatedAt)}>{draft.postPublished ? '发布更新' : draft.postId ? '重新发布' : '发布'}</Button>
+                <Button size="icon" variant="ghost" onClick={() => void remove(draft)} aria-label="删除草稿"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </div>
           ))}

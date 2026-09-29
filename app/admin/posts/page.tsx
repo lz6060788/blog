@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { deletePost, getPosts } from '@/server/actions/posts'
+import { deletePost, getPosts, unpublishPost } from '@/server/actions/posts'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +19,7 @@ export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [busy, setBusy] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -34,6 +35,18 @@ export default function PostsPage() {
     }, search ? 220 : 0)
     return () => clearTimeout(timer)
   }, [search])
+
+  const withdraw = async (id: string) => {
+    if (busy) return
+    setBusy(id)
+    try {
+      await unpublishPost(id)
+      setPosts((values) => values.filter((post) => post.id !== id))
+      toast.success('已撤回为待发布，可在草稿箱继续编辑；已有修订内容已保留')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '撤回失败')
+    } finally { setBusy(null) }
+  }
 
   const remove = async (id: string) => {
     if (!confirm('确定删除这篇已发布文章吗？关联的修订草稿也会删除。')) return
@@ -79,7 +92,7 @@ export default function PostsPage() {
                 <TableCell><div className="space-y-1 text-sm"><p>{post.category?.name || '未分类'}</p>{post.series && <p className="text-theme-text-secondary">专题：{post.series.name}{post.seriesOrder ? ` · ${post.seriesOrder}` : ''}</p>}</div></TableCell>
                 <TableCell className="text-sm text-theme-text-secondary">{post.publishedDate ? new Date(post.publishedDate).toLocaleDateString('zh-CN') : '—'}</TableCell>
                 <TableCell>
-                  <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem asChild><Link href={`/admin/posts/${post.id}/edit`}><Edit className="mr-2 h-4 w-4" />编辑</Link></DropdownMenuItem><DropdownMenuItem onClick={() => void remove(post.id)} className="text-theme-error-primary"><Trash2 className="mr-2 h-4 w-4" />删除</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+                  <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem asChild><Link href={`/admin/posts/${post.id}/edit`}><Edit className="mr-2 h-4 w-4" />编辑</Link></DropdownMenuItem><DropdownMenuItem disabled={Boolean(busy)} onClick={() => void withdraw(post.id)}>撤回为待发布</DropdownMenuItem><DropdownMenuItem disabled={Boolean(busy)} onClick={() => void remove(post.id)} className="text-theme-error-primary"><Trash2 className="mr-2 h-4 w-4" />删除</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

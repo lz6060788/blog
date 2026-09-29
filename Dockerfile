@@ -10,12 +10,15 @@ ENV TZ=Asia/Shanghai
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package.json package-lock.json ./
-RUN npm i
+RUN npm ci
 
 ENV NODE_ENV=production
 
 COPY . .
 
+# Windows checkouts may use CRLF; the container entrypoint must be POSIX text.
+RUN sed -i 's/\r$//' docker/entrypoint.sh
+
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx drizzle-kit migrate && npm run build && npm run start"]
+CMD ["sh", "docker/entrypoint.sh"]

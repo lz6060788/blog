@@ -2,16 +2,16 @@
 
 本文适用于服务器上已经运行本博客，并通过 Docker Compose 和 Traefik 对外提供服务的场景。首次安装、数据库初始化、Traefik 网络创建和 OAuth 应用配置不在本文范围内。
 
-## 1. 本次更新说明
+## 1. 当前启动方式
 
-- 目标分支：`main`
-- 目标提交：`179ccc8 refactor: simplify MCP uploads and remove asset table`
-- 本次更新不新增数据库表，也没有新的数据库迁移文件。
-- `post_assets` 表方案已移除；封面仍写入 `posts.cover_image_url`，通用文件上传到 COS 后仅返回 URL。
-- MCP 新增和完善了文章查询、编辑及通用文件上传能力。
-- 开发环境和生产环境共用数据库时，本次更新不需要手工执行 `db:generate`，也不要在服务器生成迁移文件。
+- 目标分支：`main`；部署前用 `git log -1 --oneline` 核对目标提交。
+- 当前修复针对 4GB 主机、Compose 中 2GB 容器上限下，构建阶段出现 `Killed` 并反复重启的问题，不增加内存额度，也不跳过类型检查。
+- 启动仍先执行已提交的 Drizzle 迁移，再构建并启动 Next.js；无需生成新迁移。
+- Webpack 编译放入独立 worker，编译完成释放进程。ESLint 先单独执行，随后构建并进行 TypeScript 检查；静态页面生成限制为单 worker。
+- 生产检查使用 `tsconfig.build.json`，排除测试和本地输出。开发用 `tsconfig.json` 仍检查测试代码。
+- 首次启动成功构建后写入 `.next/.startup-build-complete`。同一个容器重启时可复用产物；重建或替换容器会重新构建。不要把宿主机旧 `.next` 挂载到容器中。
 
-当前容器启动命令会自动执行 `npx drizzle-kit migrate`。由于本次代码仅保留原有两份基线迁移，已完成基线迁移的数据库不会发生结构变化。
+运行时数据库变量仍由 Compose 的 `.env.production` 提供。数据库迁移必须使用已提交的迁移文件，不要在服务器执行 `db:generate` 或 `db:push`。
 
 ## 2. 更新前检查
 
@@ -95,11 +95,7 @@ git pull --ff-only origin main
 git log -1 --oneline
 ```
 
-本次更新后，最后一条提交应为：
-
-```text
-179ccc8 refactor: simplify MCP uploads and remove asset table
-```
+最后一条提交应与准备部署的 `origin/main` 一致；不要仅凭容器名称判断版本。
 
 再次确认生产环境文件仍然存在：
 
@@ -118,10 +114,10 @@ docker compose up -d --build blog
 该命令会构建新镜像并重建 `blog` 容器。新容器启动后会依次执行：
 
 ```text
-drizzle-kit migrate → next build → next start
+drizzle-kit migrate → 检查成功构建标记 → [next lint → next build --no-lint] → next start
 ```
 
-因此容器刚启动时应用不会立刻可访问。查看日志并等待构建完成：
+首次启动时需要等待构建。`--no-lint` 只避免在构建内重复并行执行 ESLint；前一步 `next lint` 失败会立即阻止构建，TypeScript 检查仍由 Next.js 执行。后续同容器重启看到 `Reusing completed application build.` 时会直接启动。查看日志：
 
 ```bash
 docker compose logs --tail=200 -f blog
@@ -210,7 +206,31 @@ docker compose ps
 docker compose logs --tail=300 blog
 ```
 
-重点检查 `.env.production`、`DATABASE_URL`、数据库网络连通性、依赖安装和 Next.js 构建错误。
+若日志停在编译或类型检查后只出现 `Killed`，这是进程被强制终止的迹象；仅凭这一行还不能最终确认 OOM。先检查实际限制与退出状态：
+
+```bash
+docker inspect blog --format 'OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}} Memory={{.HostConfig.Memory}} RestartCount={{.RestartCount}}'
+docker stats --no-stream blog
+free -h
+sudo dmesg -T | grep -Ei 'out of memory|oom-kill|killed process' | tail -30
+```
+
+Compose 的 `memory: 2G` 是容器总内存上限；服务器有 4GB 并不代表容器可以使用全部 4GB。`ExitCode=137` 表示 SIGKILL，OOM 需结合 `OOMKilled`、内核日志或云平台事件确认。仅子进程被杀或容器已重启时，当前的 `OOMKilled` 字段可能不足以保留证据。
+
+当前启动脚本只在构建期间设置 `--max-old-space-size=1024`；这是 V8 老生代堆上限，不是整个容器的内存预算。Next.js 部分内部 worker 会重设此参数，因此仍需观察容器总用量；原生内存、年轻代堆及其他进程也占用内存。可通过 Compose `environment` 配置 `BLOG_BUILD_HEAP_MB` 调整，但不要把这个值直接设置成容器全部内存。其默认值不影响运行中的 Next.js 服务。
+
+若旧容器在循环构建，可先停止以释放主机内存，再更新并重建：
+
+```bash
+docker compose stop blog
+git pull --ff-only origin main
+docker compose up -d --build blog
+docker compose logs --tail=200 -f blog
+```
+
+如果平台额外覆盖了容器启动命令，需要移除旧的 `npx drizzle-kit migrate && npm run build && npm run start` 覆盖项，使用镜像默认的 `sh docker/entrypoint.sh`。如果仍然被杀，记录对应时刻的内存和内核日志，并检查同机其他容器；不要关闭 OOM killer 或跳过类型检查。
+
+迁移失败则检查 `.env.production`、`DATABASE_URL` 与数据库网络。ESLint/TypeScript 有具体错误时按错误修复，不能将其归为内存问题。
 
 ### MCP 返回 401
 
@@ -258,7 +278,7 @@ git pull --ff-only origin main
 docker compose up -d --build blog
 ```
 
-注意：代码回滚不会自动回滚数据库迁移。若未来某次更新包含数据库迁移，应单独评估迁移的向后兼容性和数据库恢复方案。本次 `179ccc8` 更新不包含新迁移，因此不存在新增表结构的回滚问题。
+注意：代码回滚不会自动回滚数据库迁移。若未来某次更新包含数据库迁移，应单独评估迁移的向后兼容性和数据库恢复方案。本次启动内存优化不包含新迁移；其他提交是否有迁移，应以实际部署范围为准。
 
 ## 9. 本次更新命令速查
 

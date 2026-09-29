@@ -5,7 +5,7 @@
   "scripts": {
     "test": "tsx --test tests/*.test.ts",
     "dev": "next dev",
-    "build": "next build",
+    "build": "next lint && next build --no-lint",
     "start": "next start",
     "lint": "next lint",
     "mcp:check": "tsx scripts/check-blog-mcp-http.ts",

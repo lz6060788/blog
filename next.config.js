@@ -7,6 +7,10 @@ const withNextIntl = createNextIntlPlugin('./app/i18n/request.ts')
 const nextConfig = {
   // 隔离开发服务与生产构建产物，避免并行运行时相互覆盖 vendor chunks。
   distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
+  typescript: {
+    // Keep tests and local work artifacts out of the production type-check worker.
+    tsconfigPath: 'tsconfig.build.json',
+  },
   // Docker 独立部署模式
   images: {
     dangerouslyAllowSVG: true,
@@ -28,6 +32,12 @@ const nextConfig = {
   },
   // 排除 Cherry Markdown 在服务端的打包
   experimental: {
+    // A custom webpack() disables this memory optimization by default in Next 14.
+    // Release each compiler process before starting the type-check worker.
+    webpackBuildWorker: true,
+    cpus: 1,
+    parallelServerCompiles: false,
+    parallelServerBuildTraces: false,
     serverComponentsExternalPackages: ['cherry-markdown', 'echarts'],
   },
   // 确保 transpilePackages 正确配置

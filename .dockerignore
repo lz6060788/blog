@@ -8,6 +8,7 @@ yarn.lock
 
 # Next.js
 .next
+.next-dev
 out
 dist
 
@@ -44,6 +45,10 @@ LICENSE
 
 # Claude
 .claude
+.codex
+.agents
+.trae
+.backups
 
 # 其他
 *.log
@@ -54,8 +59,13 @@ openspec
 docs
 scripts
 tsconfig.tsbuildinfo
+*.tsbuildinfo
+output
+skill-work
+blog-drafts
 
 # 测试文件
+tests
 **/*.test.*
 **/*.spec.*
 coverage

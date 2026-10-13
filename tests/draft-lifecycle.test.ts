@@ -28,6 +28,17 @@ async function post(id: string) {
   return value
 }
 
+test('saving and publishing an interactive article preserve embeds without counting their source as reading time', async () => {
+  const body = '书'.repeat(801) + '\n\n```html-preview\n<script>' + 'x'.repeat(20000) + '</script>\n```\n\n后文'
+  const id = await repo.create(author, { title: 'Interactive article', content: body })
+  const draft = (await repo.findById(id, author))!
+  assert.equal(draft.content, body)
+  assert.equal(draft.readTime, 3)
+  await repo.publish(id, author, draft.updatedAt)
+  assert.equal((await post(id)).content, body)
+  assert.equal((await post(id)).readTime, 3)
+})
+
 test('withdrawal preserves an existing revision and republishes the same URL and first publication date', async () => {
   const id = await repo.create(author, { title: 'Original', content: 'Published body', tags: ['original'], coverImageUrl: 'https://example.com/cover.png' })
   assert.equal(await repo.publish(id, author), id)

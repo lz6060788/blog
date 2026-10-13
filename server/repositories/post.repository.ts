@@ -12,6 +12,7 @@ import { db } from '@/server/db'
 import { posts, categories, tags, postTags, postDrafts, series } from '@/server/db/schema'
 import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import { PaginationHelper, DEFAULT_LIMIT } from '@/lib/types/pagination'
+import { articleReadingLength } from '@/lib/article-reading'
 
 export type { CreatePostInput, UpdatePostInput, ListPostsOptions, PostWithRelations, PaginatedPostsResult } from '@/server/services/post.service'
 
@@ -265,7 +266,7 @@ export class PostRepository {
       category,
       series: seriesValue[0] || null,
       tags,
-      wordCount: (post.content || '').length,
+      wordCount: articleReadingLength(post.content || ''),
     }
   }
 
@@ -298,7 +299,7 @@ export class PostRepository {
     const { page, limit, offset } = PaginationHelper.normalizeParams(options)
 
     // 构建 WHERE 条件
-    let whereConditions: any[] = []
+    const whereConditions: any[] = []
 
     if (options?.publishedOnly) {
       whereConditions.push(sql`${posts.published} = 1`)
@@ -377,7 +378,7 @@ export class PostRepository {
           }
         : null,
       tags: allTags.filter((t) => t.postId === post.id).map((t) => ({ id: t.tagId, name: t.tagName, slug: t.tagSlug })),
-      wordCount: (post.content || '').length,
+      wordCount: articleReadingLength(post.content || ''),
     }))
 
     // 计算分页元数据

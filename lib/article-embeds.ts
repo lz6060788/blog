@@ -14,6 +14,15 @@ export function htmlDocument(source: string) {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="${policy}"><style>body{margin:16px;font-family:system-ui,sans-serif;overflow-wrap:anywhere}img,video,svg{max-width:100%}</style></head><body>${source}</body></html>`
 }
 
+/** rehype permits literal angle brackets inside quoted attributes. Next's HTML
+ * stream moves document closing tags even there; encode them without changing
+ * the srcdoc value the browser receives (including full HTML and JS strings).
+ * Run after rehype-stringify, which emits double-quoted attributes by default. */
+export function escapeSrcdocAttributes(html: string): string {
+  return html.replace(/\bsrcdoc="([^"]*)"/g, (_, value: string) =>
+    `srcdoc="${value.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"`)
+}
+
 export function embedFence(kind: 'video' | 'audio' | 'html-preview' | 'embed', source: string) {
   const longest = Math.max(2, ...Array.from(source.matchAll(/`+/g), (match) => match[0].length))
   const fence = '`'.repeat(longest + 1)

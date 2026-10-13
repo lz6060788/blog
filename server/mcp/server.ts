@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import { authoringService } from '@/server/services/authoring.service'
 import { mcpUploadService } from '@/server/services/mcp-upload.service'
+import { articleReadingLength } from '@/lib/article-reading'
 
 const previewOutputSchema = {
   postId: z.string(),
@@ -114,7 +115,7 @@ function postDetailResult(preview: any) {
     seriesOrder: post.seriesOrder ?? null,
     tags: post.tags || [],
     readTime: post.readTime || 0,
-    wordCount: post.wordCount || (post.content || '').length,
+    wordCount: post.wordCount ?? articleReadingLength(post.content || ''),
     coverImageUrl: post.coverImageUrl || null,
     publishedDate: post.publishedDate || null,
     createdAt: post.createdAt,

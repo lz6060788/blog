@@ -4,10 +4,11 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
-import { embedFence, remarkArticleEmbeds, safeMediaUrl } from '../lib/article-embeds'
+import { embedFence, escapeSrcdocAttributes, remarkArticleEmbeds, safeMediaUrl } from '../lib/article-embeds'
+import { continueFizzStream, streamFromString, streamToString } from 'next/dist/server/stream-utils/node-web-streams-helper'
 
 async function render(source: string) {
-  return String(await unified().use(remarkParse).use(remarkArticleEmbeds).use(remarkRehype).use(rehypeStringify).process(source))
+  return escapeSrcdocAttributes(String(await unified().use(remarkParse).use(remarkArticleEmbeds).use(remarkRehype).use(rehypeStringify).process(source)))
 }
 
 test('media controls and caption survive Markdown rendering', async () => {
@@ -44,4 +45,19 @@ test('embedded backticks round-trip as one block', async () => {
   const tree = unified().use(remarkParse).parse(embedFence('html-preview', source))
   assert.equal(tree.children.length, 1)
   assert.equal((tree.children[0] as any).value, source)
+})
+
+test('full HTML embeds survive the real Next HTML streaming transform unchanged', async () => {
+  const source = '<!doctype html><html><head><title>Example</title></head><body><script>const closing = "</body></html>"</script><button>Go</button></body></html>'
+  const article = await render('Before\n\n' + embedFence('html-preview', source) + '\n\nAfter')
+  assert.doesNotMatch(article.match(/srcdoc="([^"]*)"/)![1], /[<>]/)
+  assert.equal(escapeSrcdocAttributes(article), article)
+  const document = '<html><head></head><body>' + article + '</body></html>'
+  const stream = await continueFizzStream(streamFromString(document), {
+    isStaticGeneration: false,
+    inlinedDataStream: undefined,
+    getServerInsertedHTML: undefined,
+    serverInsertedHTMLToHead: false,
+  })
+  assert.equal(await streamToString(stream), document)
 })

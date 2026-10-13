@@ -10,7 +10,7 @@ import { getLocale } from "next-intl/server";
 
 import { localizedPath } from "@/lib/seo";
 import { getPublishedPosts } from "@/server/db/queries/posts";
-import { remarkArticleEmbeds } from '@/lib/article-embeds';
+import { escapeSrcdocAttributes, remarkArticleEmbeds } from '@/lib/article-embeds';
 
 export interface MilkdownPreviewProps {
   content: string;
@@ -131,7 +131,7 @@ export const renderMarkdownToHtml = async (content: string) => {
     .use(rehypeStringify)
     .process(content);
 
-  return String(file);
+  return escapeSrcdocAttributes(String(file));
 };
 
 export async function MilkdownPreview({

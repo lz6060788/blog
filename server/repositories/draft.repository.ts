@@ -1,6 +1,7 @@
 import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 
 import { generateSlug } from '@/lib/utils/slug'
+import { calculateArticleReadTime } from '@/lib/article-reading'
 import { db } from '@/server/db'
 import {
   categories,
@@ -46,10 +47,6 @@ export interface DraftDocument {
   category: { id: string; name: string; slug: string } | null
   series: { id: string; name: string; slug: string } | null
   tags: Array<{ id: string; name: string; slug: string }>
-}
-
-function calculateReadTime(content: string) {
-  return Math.max(1, Math.ceil(content.length / 400))
 }
 
 async function ensureTagIds(tx: any, tagNames: string[]) {
@@ -131,7 +128,7 @@ export class DraftRepository {
         categoryId: input.categoryId || null,
         seriesId: input.seriesId || null,
         seriesOrder: input.seriesOrder ?? null,
-        readTime: input.readTime ?? calculateReadTime(input.content),
+        readTime: input.readTime ?? calculateArticleReadTime(input.content),
         coverImageUrl: input.coverImageUrl || null,
         aiCoverStatus: input.aiCoverStatus || null,
         createdAt: now,
@@ -206,7 +203,7 @@ export class DraftRepository {
     if (input.title !== undefined) values.title = input.title
     if (input.content !== undefined) {
       values.content = input.content
-      values.readTime = input.readTime ?? calculateReadTime(input.content)
+      values.readTime = input.readTime ?? calculateArticleReadTime(input.content)
     } else if (input.readTime !== undefined) values.readTime = input.readTime
     if (input.excerpt !== undefined) values.excerpt = input.excerpt || null
     if (input.categoryId !== undefined) values.categoryId = input.categoryId || null

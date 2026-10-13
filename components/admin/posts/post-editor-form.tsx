@@ -25,6 +25,7 @@ import {
 } from '@/server/actions/posts'
 import { getSeriesForSelect } from '@/server/actions/series'
 import { canAdoptDraftVersion } from '@/lib/draft-version'
+import { calculateArticleReadTime } from '@/lib/article-reading'
 
 interface PostEditorFormProps {
   sourceId?: string
@@ -155,7 +156,7 @@ export function PostEditorForm({ sourceId }: PostEditorFormProps) {
     seriesId: seriesId || null,
     seriesOrder: seriesId && seriesOrder ? Number(seriesOrder) : null,
     tags,
-    readTime: Math.max(1, Math.ceil(content.length / 400)),
+    readTime: calculateArticleReadTime(content),
     coverImageUrl,
     aiCoverStatus,
   }), [aiCoverStatus, categoryId, content, coverImageUrl, excerpt, seriesId, seriesOrder, tags, title])

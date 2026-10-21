@@ -67,6 +67,9 @@ const MAX_FILE_SIZE = {
   video: 100 * 1024 * 1024, // 100MB
 };
 
+const MAX_HTML_EMBED_SIZE = MAX_FILE_SIZE.default;
+const HTML_EMBED_KEY_PATTERN = /^\d{4}\/\d{2}\/\d{10,}-[a-z0-9]{1,6}\.html?$/i;
+
 /**
  * 文件魔数（file signature）用于验证真实文件类型
  */
@@ -211,6 +214,32 @@ export function getMimeType(filename: string): string {
 export function getPublicUrl(key: string): string {
   const domain = `${cosConfig.Bucket}.cos.${cosConfig.Region}.myqcloud.com`;
   return `https://${domain}/${key}`;
+}
+
+/**
+ * Read one HTML object for same-origin iframe delivery. COS default domains
+ * force browser downloads, so the blog serves the bytes with inline headers.
+ */
+export async function getHtmlEmbedObject(key: string): Promise<Buffer> {
+  if (!HTML_EMBED_KEY_PATTERN.test(key)) {
+    throw new Error('HTML 对象键无效');
+  }
+
+  const result = await cos.getObject({
+    Bucket: cosConfig.Bucket,
+    Region: cosConfig.Region,
+    Key: key,
+    ResponseContentType: 'text/html; charset=utf-8',
+    ResponseContentDisposition: 'inline',
+  });
+
+  if (!Buffer.isBuffer(result.Body) || result.Body.length === 0) {
+    throw new Error('HTML 对象内容无效');
+  }
+  if (result.Body.length > MAX_HTML_EMBED_SIZE) {
+    throw new Error('HTML 对象超过 10MB 限制');
+  }
+  return result.Body;
 }
 
 // ============================================================================

@@ -29,6 +29,21 @@ export function embedFence(kind: 'video' | 'audio' | 'html-preview' | 'html-url'
   return `${fence}${kind}\n${source.trim()}\n${fence}`
 }
 
+function htmlEmbedSourceUrl(value: string): string | null {
+  const url = safeMediaUrl(value)
+  if (!url) return null
+  if (url.startsWith('/')) return url
+  try {
+    const parsed = new URL(url)
+    if (!/\.cos\.[a-z0-9-]+\.myqcloud\.com$/i.test(parsed.hostname)) return url
+    const key = decodeURIComponent(parsed.pathname.replace(/^\//, ''))
+    if (!/^\d{4}\/\d{2}\/\d{10,}-[a-z0-9]{1,6}\.html?$/i.test(key)) return url
+    return `/api/embeds/html?key=${encodeURIComponent(key)}`
+  } catch {
+    return null
+  }
+}
+
 /** Build HAST via remark data, never insert unsanitized HTML in the parent page. */
 export function remarkArticleEmbeds() {
   return (tree: any) => {
@@ -45,7 +60,9 @@ export function remarkArticleEmbeds() {
         if (kind === 'html-preview') {
           properties = { srcDoc: htmlDocument(node.value), sandbox: 'allow-scripts', title, loading: 'lazy', referrerPolicy: 'no-referrer', className: ['article-html-embed'], style: 'width:100%;height:520px;border:1px solid #8884;border-radius:12px;background:white' }
         } else {
-          const src = safeMediaUrl(node.value)
+          const src = kind === 'html-url'
+            ? htmlEmbedSourceUrl(node.value)
+            : safeMediaUrl(node.value)
           if (!src) return { type: 'paragraph', children: [{ type: 'text', value: `无法展示${title}：请使用 HTTPS 或站内绝对路径。` }] }
           properties = kind === 'embed' || kind === 'html-url'
             ? { src, sandbox: 'allow-scripts', title, loading: 'lazy', referrerPolicy: 'no-referrer', style: 'width:100%;height:520px;border:1px solid #8884;border-radius:12px;background:white' }

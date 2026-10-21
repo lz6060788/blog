@@ -110,7 +110,17 @@ npm run mcp:check
 
 封面上传时将顶层 `file` 攺为 `cover`，并同时传入 `postId`。Base64 会经过格式、MIME、大小与文件魔数校验；不接受 Base64URL 字符集或包含空白的编码内容。
 
-`upload_file` 是通用文件上传工具，支持常用图片、音频、视频（MP4、MOV、WebM）和文档。工具只返回 COS 公开 URL，不判断 URL 应用于 Markdown、视频、附件还是其他场景；具体用法由 MCP 调用方决定。视频上限为 100MB，音频为 50MB，图片和文档为 10MB。
+`upload_file` 是通用文件上传工具，支持常用图片、音频、视频（MP4、MOV、WebM）、文档和 HTML（`.html` / `.htm`）。HTML 文件会以 `text/html; charset=utf-8` 上传至 COS，大小上限为 10MB；视频上限为 100MB，音频为 50MB，图片和其他文档为 10MB。工具只返回 COS 公开 URL，不判断 URL 应用于 Markdown、视频、附件还是其他场景；具体用法由 MCP 调用方决定。
+
+交互式 HTML 应先通过 `upload_file` 上传，再使用 `html-url` 嵌入语法引用返回的 HTTPS 地址：
+
+````markdown
+```html-url
+https://cdn.example.com/interactive-demo.html
+```
+````
+
+不要把整段 HTML 源码内联到文章正文；`html-preview` 仅用于确实需要直接维护源码的文章内容。
 
 Base64 编码会增加约三分之一的请求体积并占用更多内存，因此大体积音视频仍建议使用临时 HTTPS 文件引用。
 

@@ -31,6 +31,7 @@ const FILE_EXTENSION_BY_MIME = new Map([
   ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx'],
   ['text/plain', 'txt'],
   ['text/markdown', 'md'],
+  ['text/html', 'html'],
 ])
 
 const COVER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -39,6 +40,10 @@ const DOWNLOAD_TIMEOUT_MS = 120_000
 const TEN_MB = 10 * 1024 * 1024
 const FIFTY_MB = 50 * 1024 * 1024
 const ONE_HUNDRED_MB = 100 * 1024 * 1024
+
+export function mcpUploadExtensionForMimeType(mimeType: string): string | undefined {
+  return FILE_EXTENSION_BY_MIME.get(normalizeMimeType(mimeType) || '')
+}
 
 export interface RemoteFileInput {
   download_url: string
@@ -154,7 +159,7 @@ async function readLimitedBody(response: Response, maxBytes: number): Promise<Bu
 }
 
 function safeFilename(input: { file_name?: string }, mimeType: string, prefix: string): string {
-  const extension = FILE_EXTENSION_BY_MIME.get(mimeType)
+  const extension = mcpUploadExtensionForMimeType(mimeType)
   if (!extension) throw new Error(`不支持的文件类型：${mimeType}`)
   const baseName = (input.file_name || `${prefix}-${Date.now()}`)
     .replace(/[^a-zA-Z0-9._-]/g, '-')

@@ -568,7 +568,7 @@ export function createBlogMcpServer(userId: string): McpServer {
     'upload_file',
     {
       title: 'Upload file to COS',
-      description: 'Upload a client-provided file to COS and return only its public URL. Supports common images, audio, video including MP4, and documents. The caller decides how to use the URL.',
+      description: 'Upload a client-provided file to COS and return only its public URL. Supports common images, audio, video including MP4, documents, and HTML/HTM files (up to 10 MB) for sandboxed html-url embeds. The caller decides how to use the URL.',
       inputSchema: {
         file: mcpFileSchema.describe('Client file reference or Base64 data to upload to COS.'),
       },

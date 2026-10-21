@@ -203,7 +203,7 @@ npm run mcp:check
 | `create_post_draft` | 创建私有草稿 | 是 | 标题最多 200 字，正文最多 300,000 字符，摘要最多 500 字 |
 | `update_post_draft` | 更新未发布草稿 | 是 | 不能修改已发布文章 |
 | `upload_post_cover` | 上传临时图片引用或 Base64，并绑定封面 | 是 | PNG/JPEG/WebP；最大 10MB |
-| `upload_file` | 上传临时文件引用或 Base64 到 COS，仅返回 URL | 是 | 支持图片、音频、视频和常用文档，URL 用法由调用方决定 |
+| `upload_file` | 上传临时文件引用或 Base64 到 COS，仅返回 URL | 是 | 支持图片、音频、视频、常用文档及 HTML/HTM；HTML 最大 10MB |
 | `get_post_preview` | 回读已保存的文章与预览链接 | 否 | 需要文章 UUID |
 | `publish_post` | 发布已审核草稿 | 是 | 必须传入 `confirm: true`，且用户需在当前对话明确确认 |
 
@@ -310,7 +310,13 @@ npm run mcp:check
 }
 ```
 
-工具支持常用图片、音频、视频（MP4、MOV、WebM）和文档。视频上限为 100MB，音频为 50MB，图片和文档为 10MB。返回 URL 如何写入 Markdown、作为视频地址或附件链接，完全由 MCP 调用方处理，不建立额外数据库关联表。
+工具支持常用图片、音频、视频（MP4、MOV、WebM）、文档及 HTML/HTM。视频上限为 100MB，音频为 50MB，图片、文档和 HTML 为 10MB。返回 URL 如何写入 Markdown、作为视频地址或附件链接，由 MCP 调用方处理，不建立额外数据库关联表。交互 HTML 推荐上传后用 `html-url` 引用：
+
+````markdown
+```html-url
+https://cdn.example.com/interactive-demo.html
+```
+````
 
 两个上传工具也接受原始 Base64 或 Data URL。通用文件示例：
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { mcpUploadExtensionForMimeType } from '../server/services/mcp-upload.service'
+import { mcpUploadExtensionForMimeType } from '../server/services/mcp-upload-types'
 
 test('MCP uploads recognize HTML MIME parameters and retain an HTML extension', () => {
   assert.equal(mcpUploadExtensionForMimeType('text/html'), 'html')

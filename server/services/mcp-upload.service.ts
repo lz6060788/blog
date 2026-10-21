@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/server/db'
 import { posts, postDrafts } from '@/server/db/schema'
 import { isPrivateUrl } from '@/server/ai/security'
+import { FILE_EXTENSION_BY_MIME, mcpUploadExtensionForMimeType } from '@/server/services/mcp-upload-types'
 import {
   deleteFile,
   getMimeType,
@@ -11,39 +12,12 @@ import {
   validateFileMagicNumber,
 } from '@/server/services/cos-service'
 
-const FILE_EXTENSION_BY_MIME = new Map([
-  ['image/jpeg', 'jpg'],
-  ['image/png', 'png'],
-  ['image/gif', 'gif'],
-  ['image/webp', 'webp'],
-  ['audio/mpeg', 'mp3'],
-  ['audio/ogg', 'ogg'],
-  ['audio/wav', 'wav'],
-  ['audio/x-wav', 'wav'],
-  ['audio/flac', 'flac'],
-  ['audio/mp4', 'm4a'],
-  ['audio/aac', 'aac'],
-  ['video/mp4', 'mp4'],
-  ['video/quicktime', 'mov'],
-  ['video/webm', 'webm'],
-  ['application/pdf', 'pdf'],
-  ['application/msword', 'doc'],
-  ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx'],
-  ['text/plain', 'txt'],
-  ['text/markdown', 'md'],
-  ['text/html', 'html'],
-])
-
 const COVER_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const MAX_REDIRECTS = 3
 const DOWNLOAD_TIMEOUT_MS = 120_000
 const TEN_MB = 10 * 1024 * 1024
 const FIFTY_MB = 50 * 1024 * 1024
 const ONE_HUNDRED_MB = 100 * 1024 * 1024
-
-export function mcpUploadExtensionForMimeType(mimeType: string): string | undefined {
-  return FILE_EXTENSION_BY_MIME.get(normalizeMimeType(mimeType) || '')
-}
 
 export interface RemoteFileInput {
   download_url: string

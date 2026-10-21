@@ -27,6 +27,7 @@ import { clearTextInCurrentBlockCommand, linkSchema } from "@milkdown/kit/preset
 import { getSingletonHighlighter } from "shiki";
 import { uploadFile as uploadAssetFile } from "@/lib/api/upload";
 import { getInternalPostOptions } from "@/server/actions/posts";
+import { getEditorHighlightLanguage } from "@/lib/editor-highlight-language";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
@@ -588,32 +589,8 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
             .config((ctx: Ctx) => {
               ctx.set(highlightPluginConfig.key, {
                 parser: highlightParser,
-                languageExtractor: (node) => {
-                  const language =
-                    typeof node.attrs?.language === "string"
-                      ? node.attrs.language
-                      : undefined;
-                  if (!language) return undefined;
-
-                  const key = language.trim().toLowerCase();
-                  if (!key) return undefined;
-
-                  const aliases: Record<string, string> = {
-                    js: "javascript",
-                    ts: "typescript",
-                    yml: "yaml",
-                    shell: "bash",
-                    zsh: "bash",
-                    docker: "dockerfile",
-                    cxx: "cpp",
-                    "c++": "cpp",
-                    cs: "csharp",
-                    md: "markdown",
-                    ps1: "powershell",
-                  };
-
-                  return aliases[key] ?? key;
-                },
+                languageExtractor: (node) =>
+                  getEditorHighlightLanguage(node.attrs?.language),
               });
             })
             .use(highlight);

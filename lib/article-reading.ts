@@ -2,7 +2,7 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 
 const parser = unified().use(remarkParse)
-const embeds = new Set(['html-preview', 'embed', 'video', 'audio'])
+const embeds = new Set(['html-preview', 'html-url', 'embed', 'video', 'audio'])
 
 /** Count readable prose/code, not executable embed source or media addresses. */
 export function articleReadingLength(content: string): number {

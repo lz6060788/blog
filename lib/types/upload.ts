@@ -16,6 +16,8 @@ export interface UploadRequest {
   onProgress?: (progress: number) => void;
   /** 取消信号 */
   signal?: AbortSignal;
+  /** Optional per-call validation for purpose-specific uploads. */
+  validation?: FileValidationConfig;
 }
 
 // ============================================================================

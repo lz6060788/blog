@@ -92,7 +92,7 @@ export async function POST(request: Request) {
           error: ERROR_CODES.INVALID_FILE_TYPE,
           message: "不支持的文件类型",
           details: {
-            allowedTypes: ["jpg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "txt", "md", "mp3", "ogg", "wav", "flac", "m4a", "aac", "mp4", "mov", "webm"],
+            allowedTypes: ["jpg", "png", "gif", "webp", "svg", "pdf", "doc", "docx", "txt", "md", "html", "htm", "mp3", "ogg", "wav", "flac", "m4a", "aac", "mp4", "mov", "webm"],
           },
         },
         { status: 400 }

@@ -23,7 +23,7 @@ export function escapeSrcdocAttributes(html: string): string {
     `srcdoc="${value.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"`)
 }
 
-export function embedFence(kind: 'video' | 'audio' | 'html-preview' | 'embed', source: string) {
+export function embedFence(kind: 'video' | 'audio' | 'html-preview' | 'html-url' | 'embed', source: string) {
   const longest = Math.max(2, ...Array.from(source.matchAll(/`+/g), (match) => match[0].length))
   const fence = '`'.repeat(longest + 1)
   return `${fence}${kind}\n${source.trim()}\n${fence}`
@@ -36,18 +36,18 @@ export function remarkArticleEmbeds() {
       if (!Array.isArray(parent.children)) return
       parent.children = parent.children.map((node: any) => {
         const kind = node.type === 'code' ? node.lang : node.type === 'html' && parent.type === 'root' ? 'html-preview' : null
-        if (!['video', 'audio', 'html-preview', 'embed'].includes(kind)) {
+        if (!['video', 'audio', 'html-preview', 'html-url', 'embed'].includes(kind)) {
           visit(node)
           return node
         }
-        const title = node.meta?.trim() || (kind === 'html-preview' || kind === 'embed' ? 'HTML 内容' : kind === 'video' ? '视频' : '音频')
+        const title = node.meta?.trim() || (kind === 'html-preview' || kind === 'html-url' || kind === 'embed' ? 'HTML 内容' : kind === 'video' ? '视频' : '音频')
         let properties: Record<string, unknown>
         if (kind === 'html-preview') {
           properties = { srcDoc: htmlDocument(node.value), sandbox: 'allow-scripts', title, loading: 'lazy', referrerPolicy: 'no-referrer', className: ['article-html-embed'], style: 'width:100%;height:520px;border:1px solid #8884;border-radius:12px;background:white' }
         } else {
           const src = safeMediaUrl(node.value)
           if (!src) return { type: 'paragraph', children: [{ type: 'text', value: `无法展示${title}：请使用 HTTPS 或站内绝对路径。` }] }
-          properties = kind === 'embed'
+          properties = kind === 'embed' || kind === 'html-url'
             ? { src, sandbox: 'allow-scripts', title, loading: 'lazy', referrerPolicy: 'no-referrer', style: 'width:100%;height:520px;border:1px solid #8884;border-radius:12px;background:white' }
             : { src, controls: true, preload: 'metadata', playsInline: true, ariaLabel: title, style: 'display:block;width:100%;max-height:75vh;border-radius:12px' }
         }

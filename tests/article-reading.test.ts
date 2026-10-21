@@ -14,7 +14,7 @@ test('interactive sources do not inflate reading time; surrounding prose remains
 test('ordinary code examples remain readable while media URLs and raw HTML do not', () => {
   assert.equal(articleReadingLength('```html\n<div>code</div>\n```'), 15)
   assert.equal(articleReadingLength('前文\n\n<div>embedded</div>\n\n后文'), 4)
-  for (const kind of ['video', 'audio', 'embed'] as const) {
+  for (const kind of ['video', 'audio', 'embed', 'html-url'] as const) {
     assert.equal(articleReadingLength(embedFence(kind, 'https://example.com/long-url')), 0)
   }
   assert.equal(calculateArticleReadTime(''), 1)

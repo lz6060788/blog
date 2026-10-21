@@ -39,6 +39,7 @@ const cos = new COS({
 const ALLOWED_FILE_TYPES = {
   image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
   document: ['pdf', 'doc', 'docx', 'txt', 'md'],
+  web: ['html', 'htm'],
   audio: ['mp3', 'ogg', 'wav', 'flac', 'm4a', 'aac'],
   video: ['mp4', 'mov', 'webm'],
 };
@@ -49,6 +50,7 @@ const ALLOWED_FILE_TYPES = {
 const ALLOWED_EXTENSIONS = [
   ...ALLOWED_FILE_TYPES.image,
   ...ALLOWED_FILE_TYPES.document,
+  ...ALLOWED_FILE_TYPES.web,
   ...ALLOWED_FILE_TYPES.audio,
   ...ALLOWED_FILE_TYPES.video,
 ];
@@ -182,6 +184,8 @@ export function getMimeType(filename: string): string {
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     txt: 'text/plain',
     md: 'text/markdown',
+    html: 'text/html; charset=utf-8',
+    htm: 'text/html; charset=utf-8',
     // 音频
     mp3: 'audio/mpeg',
     ogg: 'audio/ogg',
@@ -237,6 +241,7 @@ export async function uploadFile(
         Region: cosConfig.Region,
         Key: key,
         Body: buffer,
+        ContentType: getMimeType(filename),
       },
       (err, data) => {
         if (err) {

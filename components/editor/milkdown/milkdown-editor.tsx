@@ -22,8 +22,8 @@ import { Crepe } from "@milkdown/crepe";
 import { highlight, highlightPluginConfig } from "@milkdown/plugin-highlight";
 import { createParser } from "@milkdown/plugin-highlight/shiki";
 import { replaceAll } from "@milkdown/kit/utils";
-import { editorViewCtx, parserCtx } from "@milkdown/kit/core";
-import { linkSchema } from "@milkdown/kit/preset/commonmark";
+import { commandsCtx, editorViewCtx, parserCtx } from "@milkdown/kit/core";
+import { clearTextInCurrentBlockCommand, linkSchema } from "@milkdown/kit/preset/commonmark";
 import { getSingletonHighlighter } from "shiki";
 import { uploadFile as uploadAssetFile } from "@/lib/api/upload";
 import { getInternalPostOptions } from "@/server/actions/posts";
@@ -45,7 +45,16 @@ export interface MilkdownEditorRef {
   getContent: () => string;
   setContent: (content: string) => void;
   insertMarkdown: (content: string) => void;
+  replaceMarkdownRange: (range: { from: number; to: number }, content: string) => void;
   getHeight: () => number;
+}
+
+export type EmbedDialogKind = "video" | "audio" | "html" | "webpage";
+
+export interface EmbedDialogRequest {
+  kind: EmbedDialogKind;
+  source?: string;
+  range?: { from: number; to: number };
 }
 
 export interface MilkdownEditorProps {
@@ -54,6 +63,7 @@ export interface MilkdownEditorProps {
   height?: string;
   className?: string;
   theme?: "light" | "dark";
+  onOpenEmbedDialog?: (request: EmbedDialogRequest) => void;
 }
 
 interface InternalPostOption {
@@ -90,14 +100,24 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
       height,
       className = "",
       theme = "light",
+      onOpenEmbedDialog,
     },
     ref
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<Crepe | null>(null);
     const onChangeRef = useRef(onChange);
+    const onOpenEmbedDialogRef = useRef(onOpenEmbedDialog);
     const currentContentRef = useRef(initialValue);
+    const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
     const [isReady, setIsReady] = useState(false);
+    const [selectedEmbedBlock, setSelectedEmbedBlock] = useState<{
+      kind: EmbedDialogKind;
+      source: string;
+      range: { from: number; to: number };
+      left: number;
+      top: number;
+    } | null>(null);
     const [uploadingImageCount, setUploadingImageCount] = useState(0);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [internalPostTrigger, setInternalPostTrigger] =
@@ -138,9 +158,33 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
       }
     }, []);
 
+    const replaceMarkdownRange = useCallback((range: { from: number; to: number }, content: string) => {
+      try {
+        editorRef.current?.editor.action((ctx) => {
+          const view = ctx.get(editorViewCtx);
+          const from = Math.max(0, Math.min(range.from, view.state.doc.content.size));
+          const to = Math.max(from, Math.min(range.to, view.state.doc.content.size));
+          if (content) {
+            const parsed = ctx.get(parserCtx)(content);
+            view.dispatch(view.state.tr.replace(from, to, parsed.slice(0)).scrollIntoView());
+          } else {
+            view.dispatch(view.state.tr.delete(from, to).scrollIntoView());
+          }
+          savedSelectionRef.current = null;
+          requestAnimationFrame(() => view.focus());
+        });
+      } catch (error) {
+        console.error("更新嵌入内容失败:", error);
+      }
+    }, []);
+
     useEffect(() => {
       onChangeRef.current = onChange;
     }, [onChange]);
+
+    useEffect(() => {
+      onOpenEmbedDialogRef.current = onOpenEmbedDialog;
+    }, [onOpenEmbedDialog]);
 
     const closeInternalPostSuggestions = useCallback(() => {
       internalPostTriggerRef.current = null;
@@ -371,16 +415,23 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
           editorRef.current?.editor.action((ctx) => {
             const view = ctx.get(editorViewCtx);
             const parsed = ctx.get(parserCtx)(content);
+            const savedSelection = savedSelectionRef.current;
+            const range = savedSelection ?? {
+              from: view.state.selection.from,
+              to: view.state.selection.to,
+            };
             const transaction = view.state.tr
-              .replaceSelection(parsed.slice(0))
+              .replace(range.from, range.to, parsed.slice(0))
               .scrollIntoView();
             view.dispatch(transaction);
             view.focus();
+            savedSelectionRef.current = null;
           });
         } catch (error) {
           console.error("插入 Markdown 失败:", error);
         }
       },
+      replaceMarkdownRange,
       getHeight: () => containerRef.current?.offsetHeight ?? 0,
     }));
 
@@ -479,6 +530,31 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 blockUploadPlaceholderText: "粘贴图片地址或上传图片",
               },
               [Crepe.Feature.BlockEdit]: {
+                buildMenu: (builder) => {
+                  const group = builder.addGroup("article-embeds", "媒体与网页");
+                  const items: Array<{ key: string; label: string; kind: EmbedDialogKind; icon: string }> = [
+                    { key: "insert-video", label: "插入视频", kind: "video", icon: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"5\" width=\"13\" height=\"14\" rx=\"2\"/><path d=\"m16 10 5-3v10l-5-3z\"/></svg>" },
+                    { key: "insert-audio", label: "插入音频", kind: "audio", icon: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M9 18V5l12-2v13\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><circle cx=\"18\" cy=\"16\" r=\"3\"/></svg>" },
+                    { key: "insert-html", label: "插入 HTML", kind: "html", icon: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m8 8-4 4 4 4M16 8l4 4-4 4M14 4l-4 16\"/></svg>" },
+                    { key: "embed-webpage", label: "嵌入网页", kind: "webpage", icon: "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20\"/></svg>" },
+                  ];
+                  for (const item of items) {
+                    group.addItem(item.key, {
+                      label: item.label,
+                      icon: item.icon,
+                      onRun: (ctx) => {
+                        ctx.get(commandsCtx).call(clearTextInCurrentBlockCommand.key);
+                        const view = ctx.get(editorViewCtx);
+                        savedSelectionRef.current = {
+                          from: view.state.selection.from,
+                          to: view.state.selection.to,
+                        };
+                        setSelectedEmbedBlock(null);
+                        onOpenEmbedDialogRef.current?.({ kind: item.kind });
+                      },
+                    });
+                  }
+                },
                 textGroup: {
                   label: "文本",
                   text: { label: "正文" },
@@ -735,17 +811,59 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 return nextTrigger;
               });
             };
-            detectInternalPostTriggerRef.current =
-              detectInternalPostTrigger;
+            const detectSelectedEmbedBlock = () => {
+              const { selection } = view.state;
+              const $from = selection.$from;
+              const block = $from.parent.type.name === "code_block"
+                ? $from.parent
+                : null;
+              const language = typeof block?.attrs.language === "string"
+                ? block.attrs.language.toLowerCase()
+                : "";
+              const kind: EmbedDialogKind | null =
+                language === "video" ? "video"
+                  : language === "audio" ? "audio"
+                    : language === "embed" ? "webpage"
+                      : language === "html-url" ? "html"
+                      : language === "html-preview" ? "html"
+                        : null;
+
+              if (!block || !kind) {
+                setSelectedEmbedBlock(null);
+                return;
+              }
+
+              const from = $from.before();
+              const dom = view.nodeDOM(from);
+              if (!(dom instanceof HTMLElement)) {
+                setSelectedEmbedBlock(null);
+                return;
+              }
+              const rect = dom.getBoundingClientRect();
+              const range = { from, to: from + block.nodeSize };
+              setSelectedEmbedBlock({
+                kind,
+                source: block.textContent,
+                range,
+                left: Math.max(12, Math.min(rect.left, window.innerWidth - 220)),
+                top: Math.max(8, rect.top - 42),
+              });
+            };
+
+            const detectInternalPostAndEmbed = () => {
+              detectInternalPostTrigger();
+              detectSelectedEmbedBlock();
+            };
+            detectInternalPostTriggerRef.current = detectInternalPostAndEmbed;
 
             const scheduleDetection = () => {
-              requestAnimationFrame(detectInternalPostTrigger);
+              requestAnimationFrame(detectInternalPostAndEmbed);
               if (internalPostDetectionTimer !== null) {
                 window.clearTimeout(internalPostDetectionTimer);
               }
               internalPostDetectionTimer = window.setTimeout(() => {
                 internalPostDetectionTimer = null;
-                detectInternalPostTrigger();
+                detectInternalPostAndEmbed();
               }, 24);
             };
 
@@ -815,6 +933,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
 
             view.dom.addEventListener("input", handleEditorInput);
             view.dom.addEventListener("keyup", scheduleDetection);
+            view.dom.addEventListener("mouseup", scheduleDetection);
             view.dom.addEventListener("click", scheduleDetection);
             view.dom.addEventListener("click", handleInternalLinkClick);
             view.dom.addEventListener("focus", scheduleDetection);
@@ -829,6 +948,8 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
             );
             view.dom.addEventListener("keydown", handleKeyDown, true);
             window.addEventListener("resize", closeInternalPostSuggestions);
+            window.addEventListener("resize", scheduleDetection);
+            window.addEventListener("scroll", scheduleDetection, true);
             window.addEventListener("resize", closeInternalPostLinkPreview);
             window.addEventListener(
               "scroll",
@@ -849,6 +970,7 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
               }
               view.dom.removeEventListener("input", handleEditorInput);
               view.dom.removeEventListener("keyup", scheduleDetection);
+              view.dom.removeEventListener("mouseup", scheduleDetection);
               view.dom.removeEventListener("click", scheduleDetection);
               view.dom.removeEventListener("click", handleInternalLinkClick);
               view.dom.removeEventListener("focus", scheduleDetection);
@@ -866,6 +988,8 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
                 "resize",
                 closeInternalPostSuggestions
               );
+              window.removeEventListener("resize", scheduleDetection);
+              window.removeEventListener("scroll", scheduleDetection, true);
               window.removeEventListener(
                 "resize",
                 closeInternalPostLinkPreview
@@ -966,6 +1090,45 @@ export const MilkdownEditor = forwardRef<MilkdownEditorRef, MilkdownEditorProps>
             )}
           </div>
         </div>
+
+        {selectedEmbedBlock &&
+          createPortal(
+            <div
+              className={`${theme === "dark" ? "theme-dark" : "theme-light"} fixed z-[2147483000] flex items-center gap-1 rounded-xl border border-theme-border bg-theme-surface p-1 shadow-xl`}
+              style={{ left: selectedEmbedBlock.left, top: selectedEmbedBlock.top }}
+              aria-label="嵌入内容操作"
+              onMouseDown={(event) => event.preventDefault()}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  savedSelectionRef.current = selectedEmbedBlock.range;
+                  onOpenEmbedDialogRef.current?.({
+                    kind: selectedEmbedBlock.kind,
+                    source: selectedEmbedBlock.source,
+                    range: selectedEmbedBlock.range,
+                  });
+                  setSelectedEmbedBlock(null);
+                }}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-theme-text-secondary transition-colors hover:bg-theme-muted hover:text-theme-text-canvas"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                编辑{selectedEmbedBlock.kind === "video" ? "视频" : selectedEmbedBlock.kind === "audio" ? "音频" : selectedEmbedBlock.kind === "html" ? " HTML" : "网页"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  replaceMarkdownRange(selectedEmbedBlock.range, "");
+                  setSelectedEmbedBlock(null);
+                }}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-theme-error-primary transition-colors hover:bg-theme-error-bg"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                删除
+              </button>
+            </div>,
+            document.body
+          )}
 
         {internalPostLinkPreview &&
           !internalPostTrigger &&

@@ -89,12 +89,12 @@ export function formatFileSize(bytes: number): string {
  * @throws UploadError
  */
 export async function uploadFile(request: UploadRequest): Promise<UploadResponse> {
-  const { file, onProgress, signal } = request;
+  const { file, onProgress, signal, validation } = request;
 
   // 1. 客户端验证
-  const validation = validateFile(file);
-  if (!validation.valid) {
-    throw new Error(validation.error);
+  const validationResult = validateFile(file, validation);
+  if (!validationResult.valid) {
+    throw new Error(validationResult.error);
   }
 
   // 2. 创建 FormData

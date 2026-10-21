@@ -31,6 +31,14 @@ test('HTML renders only inside an opaque-origin sandbox; ordinary html examples 
   assert.match(await render('<div>legacy HTML</div>'), /<iframe/)
 })
 
+test('uploaded HTML links render as sandboxed iframe URLs', async () => {
+  const url = 'https://storage.example.com/articles/demo.html'
+  const html = await render(embedFence('html-url', url))
+  assert.match(html, new RegExp(`<iframe src="${url}"`))
+  assert.match(html, /sandbox="allow-scripts"/)
+  assert.doesNotMatch(html, /srcdoc=/)
+})
+
 test('hostile media URLs are rejected and embed quotes stay escaped', async () => {
   for (const url of ['javascript:alert(1)', 'data:text/html,test', '//evil.test', '/\\evil.test', 'https://user:pass@evil.test', 'http://example.com/x', 'https:\n//evil.test']) {
     assert.equal(safeMediaUrl(url), null, url)

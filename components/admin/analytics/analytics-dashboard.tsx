@@ -57,7 +57,7 @@ export function AnalyticsDashboard({ report }: { report: AnalyticsReport }) {
         <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="每日浏览与匿名访客趋势；左右方向键查看日期" tabIndex={0} className="mt-4 w-full rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-theme-accent-primary"
           onMouseMove={(event) => { const bounds = event.currentTarget.getBoundingClientRect(); setSelected(Math.max(0, Math.min(report.daily.length - 1, Math.round(((event.clientX - bounds.left) / bounds.width * width - padding) / (width - padding * 2) * (report.daily.length - 1))))) }}
           onKeyDown={(event) => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); setSelected((index) => Math.max(0, Math.min(report.daily.length - 1, index + (event.key === 'ArrowLeft' ? -1 : 1)))) } }}>
-          <title>近 {report.days} 天：{report.total.pageviews} 次浏览，{report.total.visitors} 个匿名会话</title>
+          <title>{`近 ${report.days} 天：${report.total.pageviews} 次浏览，${report.total.visitors} 个匿名会话`}</title>
           {[0, .5, 1].map((fraction) => <line key={fraction} x1={padding} x2={width - padding} y1={y(max * fraction)} y2={y(max * fraction)} stroke="currentColor" className="text-theme-border" strokeDasharray="3 6" />)}
           <polygon points={`${padding},${height - padding} ${points} ${width - padding},${height - padding}`} fill="#8b5cf6" opacity=".06" />
           <polyline points={points} fill="none" stroke="#8b5cf6" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />

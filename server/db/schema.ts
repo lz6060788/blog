@@ -276,6 +276,9 @@ export const settings = pgTable("settings", {
   blogName: text("blog_name").notNull().default('My Blog'),
   blogDescription: text("blog_description").notNull().default('A personal blog'),
   postsPerPage: integer("posts_per_page").notNull().default(10),
+  icpRegistration: text("icp_registration").notNull().default(""),
+  publicSecurityRegistration: text("public_security_registration").notNull().default(""),
+  publicSecurityRegistrationUrl: text("public_security_registration_url").notNull().default(""),
   // 作者信息字段
   authorName: text("author_name").notNull().default('Alex Chen'),
   authorAvatar: text("author_avatar").notNull().default('https://api.dicebear.com/7.x/notionists/svg?seed=Alex&backgroundColor=c0aede'),

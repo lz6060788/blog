@@ -15,6 +15,13 @@ export interface NavMessages {
   settings: string
 }
 
+export interface FooterMessages {
+  label: string
+  note: string
+  registration: string
+  opensInNewTab: string
+}
+
 export interface SearchMessages {
   label: string
   shortcut: string
@@ -213,6 +220,7 @@ export interface AdminMessages {
 
 export interface Messages {
   common: CommonMessages
+  footer: FooterMessages
   nav: NavMessages
   search: SearchMessages
   home: HomeMessages

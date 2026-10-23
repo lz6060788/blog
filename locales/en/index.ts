@@ -5,6 +5,12 @@ export const en: Messages = {
     siteName: 'Personal Blog',
     siteDescription: 'A minimalist personal blog with asymmetric design',
   },
+  footer: {
+    label: 'Site footer',
+    note: 'Writing, exploring, always growing.',
+    registration: 'Website registration',
+    opensInNewTab: ' (opens in a new tab)',
+  },
   nav: {
     home: 'Home',
     series: 'Series',

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { getSettings, updateSettings } from '@/server/actions/settings'
 import { toast } from 'react-hot-toast'
 import { AIConfigCard } from '@/components/admin/ai'
+import { ICP_REGISTRATION_URL, normalizePublicSecurityRegistrationUrl } from '@/lib/registration'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,9 @@ export default function SettingsPage() {
   const [blogName, setBlogName] = useState('')
   const [blogDescription, setBlogDescription] = useState('')
   const [postsPerPage, setPostsPerPage] = useState(10)
+  const [icpRegistration, setIcpRegistration] = useState('')
+  const [publicSecurityRegistration, setPublicSecurityRegistration] = useState('')
+  const [publicSecurityRegistrationUrl, setPublicSecurityRegistrationUrl] = useState('')
   const [authorName, setAuthorName] = useState('')
   const [authorAvatar, setAuthorAvatar] = useState('')
   const [authorBio, setAuthorBio] = useState('')
@@ -34,6 +38,9 @@ export default function SettingsPage() {
         setBlogName(data.blogName || '')
         setBlogDescription(data.blogDescription || '')
         setPostsPerPage(data.postsPerPage || 10)
+        setIcpRegistration(data.icpRegistration || '')
+        setPublicSecurityRegistration(data.publicSecurityRegistration || '')
+        setPublicSecurityRegistrationUrl(data.publicSecurityRegistrationUrl || '')
         setAuthorName(data.authorName || '')
         setAuthorAvatar(data.authorAvatar || '')
         setAuthorBio(data.authorBio || '')
@@ -67,12 +74,20 @@ export default function SettingsPage() {
       return
     }
 
+    if (normalizePublicSecurityRegistrationUrl(publicSecurityRegistrationUrl) === null) {
+      toast.error('公安备案链接须使用 beian.mps.gov.cn 或 beian.gov.cn 的 HTTPS 官方地址')
+      return
+    }
+
     setIsSaving(true)
     try {
       await updateSettings({
         blogName,
         blogDescription,
         postsPerPage,
+        icpRegistration,
+        publicSecurityRegistration,
+        publicSecurityRegistrationUrl,
         authorName,
         authorAvatar,
         authorBio,
@@ -295,6 +310,74 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+
+        {/* 网站备案 */}
+        <section className="bg-theme-surface border border-theme-border rounded-xl p-6 space-y-4" aria-labelledby="registration-heading">
+          <div>
+            <h2 id="registration-heading" className="text-lg font-medium text-theme-text-canvas">网站备案</h2>
+            <p className="text-sm text-theme-text-secondary mt-1">
+              在公共页脚展示真实备案信息。未填写的项目会自动隐藏。
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="icp-registration" className="block text-sm font-medium text-theme-text-secondary mb-2">
+              ICP 备案号
+            </label>
+            <input
+              id="icp-registration"
+              type="text"
+              value={icpRegistration}
+              onChange={(e) => setIcpRegistration(e.target.value)}
+              maxLength={80}
+              placeholder="填写已获批的完整备案号"
+              aria-describedby="icp-registration-help"
+              className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+            />
+            <p id="icp-registration-help" className="text-xs text-theme-text-tertiary mt-1">
+              自动链接至{' '}
+              <a href={ICP_REGISTRATION_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-theme-accent-primary">
+                工信部 ICP 备案查询
+              </a>
+              。
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="public-security-registration" className="block text-sm font-medium text-theme-text-secondary mb-2">
+                公安备案号
+              </label>
+              <input
+                id="public-security-registration"
+                type="text"
+                value={publicSecurityRegistration}
+                onChange={(e) => setPublicSecurityRegistration(e.target.value)}
+                maxLength={80}
+                placeholder="填写已获批的完整公安备案号"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label htmlFor="public-security-registration-url" className="block text-sm font-medium text-theme-text-secondary mb-2">
+                公安备案查询链接
+              </label>
+              <input
+                id="public-security-registration-url"
+                type="url"
+                value={publicSecurityRegistrationUrl}
+                onChange={(e) => setPublicSecurityRegistrationUrl(e.target.value)}
+                maxLength={2048}
+                placeholder="https://beian.mps.gov.cn/…"
+                aria-describedby="public-security-registration-help"
+                className="w-full px-4 py-2 bg-theme-canvas border border-theme-border rounded-xl text-theme-text-canvas placeholder:text-theme-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-accent-primary focus:border-transparent"
+              />
+            </div>
+          </div>
+          <p id="public-security-registration-help" className="text-xs text-theme-text-tertiary">
+            使用公安备案平台提供的 HTTPS 查询链接（beian.mps.gov.cn 或 beian.gov.cn）；留空时链接至全国互联网安全管理服务平台。
+          </p>
+        </section>
 
         {/* AI 配置 */}
         <div className="space-y-6">

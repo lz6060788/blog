@@ -6,6 +6,7 @@ import { routing } from '@/app/i18n/routing'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { getSettings } from '@/server/db/queries/settings'
 import { localeToOpenGraph } from '@/lib/seo'
+import { SiteFooter } from '@/components/public/site-footer'
 
 export async function generateMetadata({
   params,
@@ -60,6 +61,7 @@ export default async function LocaleLayout({
     >
       <NextIntlClientProvider messages={messages} locale={locale}>
         {children}
+        <SiteFooter locale={locale} />
       </NextIntlClientProvider>
     </ThemeProvider>
   )

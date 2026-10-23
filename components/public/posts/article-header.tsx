@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, Stack, Tag } from '@phosphor-icons/react'
+import { Clock, Stack } from '@phosphor-icons/react'
 import { formatDateLong } from '@/lib/date-format'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/app/i18n/routing'
@@ -33,17 +33,15 @@ export function ArticleHeader({
   const t = useTranslations('article')
 
   return (
-    <header className="mb-12">
+    <header className="mb-14 border-b border-theme-border pb-9 sm:mb-16 sm:pb-11">
       {/* Category */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
         {categorySlug ? (
-          <Link href={`/category/${categorySlug}`} className="inline-flex items-center gap-1.5 rounded-full bg-theme-accent-bg px-3 py-1 text-sm font-medium text-theme-accent-primary transition-transform hover:-translate-y-0.5">
-            <Tag size={14} weight="fill" />
+          <Link href={`/category/${categorySlug}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-theme-accent-primary transition-colors hover:text-theme-text-canvas">
             {category}
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-theme-accent-bg px-3 py-1 text-sm font-medium text-theme-accent-primary">
-            <Tag size={14} weight="fill" />
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-theme-accent-primary">
             {category}
           </span>
         )}
@@ -60,20 +58,20 @@ export function ArticleHeader({
       </div>
 
       {/* Title */}
-      <h1 className="text-4xl md:text-6xl tracking-tighter leading-none text-theme-text-canvas mb-6">
+      <h1 className="mb-6 text-balance text-3xl font-semibold leading-[1.25] tracking-tight text-theme-text-canvas sm:text-5xl sm:leading-[1.2]">
         {title}
       </h1>
 
       {/* Excerpt */}
-      <p className="text-xl text-theme-text-secondary leading-relaxed mb-6">
+      {excerpt && <p className="mb-8 max-w-[60ch] text-lg leading-relaxed text-theme-text-secondary sm:text-xl">
         {excerpt}
-      </p>
+      </p>}
 
       {/* Meta */}
-      <div className="flex flex-wrap items-center gap-4 text-sm font-mono text-theme-text-tertiary pt-6 border-t border-theme-border">
-        <span>{formatDateLong(date, locale)}</span>
-        <span>·</span>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-theme-text-tertiary sm:text-sm">
+        <time dateTime={date}>{formatDateLong(date, locale)}</time>
+        {tags.length > 0 && <span aria-hidden="true">/</span>}
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
           {tags.map((tag) => {
             const tagObject = tagObjs?.find(item => item.name === tag)
             return tagObject ? (

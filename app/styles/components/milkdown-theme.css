@@ -133,6 +133,108 @@
  */
 .markdown-article-wrapper {
   width: 100%;
+  min-width: 0;
+}
+
+.article-reading-column {
+  width: min(47.5rem, calc(100% - 3rem));
+  margin-inline: auto;
+}
+
+.article-reading-progress {
+  position: fixed;
+  inset: 4rem 0 auto;
+  z-index: 45;
+  height: 2px;
+  pointer-events: none;
+}
+
+.article-reading-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left;
+  background: hsl(var(--theme-primary) / 0.65);
+}
+
+.article-outline-desktop {
+  display: none;
+}
+
+.article-outline-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  margin-bottom: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  color: hsl(var(--theme-text-secondary));
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.article-outline-link {
+  display: block;
+  padding: 0.36rem 0.5rem 0.36rem 0.75rem;
+  border-left: 1px solid hsl(var(--theme-border));
+  color: hsl(var(--theme-text-tertiary));
+  font-size: 0.8rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.article-outline-link:hover,
+.article-outline-link:focus-visible {
+  color: hsl(var(--theme-foreground));
+}
+
+.article-outline-link[aria-current='location'] {
+  border-left-color: hsl(var(--theme-primary));
+  color: hsl(var(--theme-primary));
+}
+
+.article-outline-heading:focus-visible,
+.article-outline-link:focus-visible,
+.article-reader-button:focus-visible {
+  outline: 2px solid hsl(var(--theme-primary));
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.article-reader-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid hsl(var(--theme-border));
+  border-radius: 50%;
+  background: hsl(var(--theme-background) / 0.94);
+  color: hsl(var(--theme-text-secondary));
+  backdrop-filter: blur(8px);
+}
+
+.article-reader-button:hover {
+  color: hsl(var(--theme-primary));
+  border-color: hsl(var(--theme-primary) / 0.4);
+}
+
+@media (min-width: 1280px) {
+  .article-outline-desktop {
+    position: fixed;
+    top: 8.5rem;
+    left: max(1.5rem, calc((100vw - 1560px) / 2));
+    z-index: 30;
+    display: flex;
+    width: clamp(11.5rem, calc((100vw - 840px) / 2 - 3rem), 14.5rem);
+    max-height: calc(100dvh - 11rem);
+  }
+
+  .article-outline-mobile {
+    display: none;
+  }
 }
 
 .article-outline-scroll {
@@ -168,12 +270,12 @@
   --article-border: hsl(var(--theme-border));
   --article-soft-bg: hsl(var(--theme-surface-alt) / 0.72);
   width: 100%;
-  max-width: 72ch;
+  max-width: 100%;
   margin-inline: auto;
   color: var(--article-text);
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
-  line-height: 1.85;
+  font-size: 1.1rem;
+  line-height: 1.95;
   overflow-wrap: break-word;
   text-rendering: optimizeLegibility;
 }
@@ -198,9 +300,7 @@
 }
 
 .markdown-article :where(h2) {
-  margin: 2.4em 0 0.8em;
-  padding-bottom: 0.42em;
-  border-bottom: 1px solid var(--article-border);
+  margin: 2.8em 0 0.85em;
   font-size: clamp(1.5rem, 3vw, 1.85rem);
 }
 
@@ -464,6 +564,40 @@
   padding-block: 0.2em;
 }
 
+.markdown-article :where(.katex) {
+  color: var(--article-text);
+  font-size: 1.05em;
+  overflow-wrap: normal;
+}
+
+.markdown-article :where(.katex-display > .katex) {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+}
+
+.markdown-article > :first-child {
+  margin-top: 0;
+}
+
+.markdown-article :where(video, audio, iframe) {
+  max-width: 100%;
+  margin-block: 2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-reading-page *,
+  .article-reading-page *::before,
+  .article-reading-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+  }
+
+  .markdown-article :where(img[data-zoomable='true']:hover) {
+    transform: none;
+  }
+}
+
 /* Prism token colors for the independent published article scope. */
 .theme-light .markdown-article :where(.token.comment, .token.prolog, .token.doctype, .token.cdata) {
   color: #667085;
@@ -526,6 +660,9 @@
 }
 
 @media (max-width: 640px) {
+  .article-reading-column {
+    width: calc(100% - 2.5rem);
+  }
   .markdown-article {
     max-width: none;
     font-size: 1rem;

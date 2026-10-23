@@ -1,6 +1,6 @@
 // @ts-ignore
 import { relations } from "drizzle-orm";
-import { pgTable, text, primaryKey, integer, uniqueIndex, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, primaryKey, integer, uniqueIndex, boolean, timestamp, index } from "drizzle-orm/pg-core";
 
 // ============================================================================
 // NextAuth.js 表定义 (SQLite)
@@ -432,6 +432,25 @@ export const accountRelations = relations(accounts, ({ one }) => ({
   }),
 }));
 
+// Public analytics contains anonymous session identifiers and approved route paths only.
+export const analyticsEvents = pgTable("analytics_events", {
+  id: text("id").primaryKey(),
+  visitId: text("visit_id").notNull(),
+  sessionId: text("session_id").notNull(),
+  type: text("type").notNull(),
+  path: text("path").notNull(),
+  referrer: text("referrer").notNull(),
+  device: text("device").notNull(),
+  durationMs: integer("duration_ms").notNull().default(0),
+  depth: integer("depth").notNull().default(0),
+  target: text("target"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  createdAtIndex: index("analytics_events_created_at_idx").on(table.createdAt),
+  sessionTimeIndex: index("analytics_events_session_time_idx").on(table.sessionId, table.createdAt),
+  pathTimeIndex: index("analytics_events_path_time_idx").on(table.path, table.createdAt),
+}));
+
 export const schema = {
   users,
   sessions,
@@ -451,4 +470,5 @@ export const schema = {
   songs,
   playlists,
   playlistSongs,
+  analyticsEvents,
 };

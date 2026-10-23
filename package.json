@@ -16,6 +16,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.37",
     "@auth/drizzle-adapter": "^1.11.1",
+    "@irises/front-tracker-sdk": "1.0.5",
     "@milkdown/core": "7.21.1",
     "@milkdown/crepe": "7.21.1",
     "@milkdown/ctx": "7.21.1",

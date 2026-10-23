@@ -12,6 +12,7 @@ import {
   Brain,
   Music,
   Layers3,
+  ChartNoAxesCombined,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
@@ -21,6 +22,7 @@ interface SidebarProps {
 
 const navItems = [
   { href: '/admin', label: '首页', icon: LayoutDashboard },
+  { href: '/admin/analytics', label: '访问统计', icon: ChartNoAxesCombined },
   { href: '/admin/posts', label: '文章管理', icon: FileText },
   { href: '/admin/drafts', label: '草稿箱', icon: FileX },
   { href: '/admin/categories', label: '分类管理', icon: FolderOpen },

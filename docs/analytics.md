@@ -1,55 +1,57 @@
 # 博客访问统计
 
-公开页面由 `components/analytics/analytics-tracker.tsx` 采集，管理端 `/admin/analytics` 通过服务端鉴权读取 PostgreSQL 聚合结果。数据从接入之后开始累计，不回填历史访问量。
+本次统计仅包含文章阅读量和全站按浏览器指纹去重的访问人数两类指标，分别提供累计值、近 30 天值及近 30 天趋势。首页仍处于概念图审查阶段，不依赖本功能改动。管理端 `/admin/analytics` 在服务端检查登录和 `ADMIN_EMAIL` 后读取聚合结果，没有公开的统计读取接口。
 
-## 模块边界
-
-页面仅通过 SDK 的 Reporter 发送 HTTP 事件。后端接收、统计存储和聚合查询各自承担独立职责：
+## 采集与存储
 
 ```text
-浏览器 SDK / Reporter
-  → POST /api/analytics/events                    HTTP 入口
-  → server/analytics/ingestion.ts                 来源、大小、字段、登录状态与限流校验
-  → server/analytics/repository.ts · collect()    幂等落库与累计阅读更新
-  → PostgreSQL analytics_events
+公开页面 Tracker → SDK 自定义 Reporter → POST /api/analytics/events
+  → ingestion：同源、隐私选择、认证、限流、请求体及严格字段校验
+  → visitorId 按 siteOrigin 命名空间 SHA-256
+  → repository.collect：核验已发布文章、事件 ID 幂等写入
+  → analytics_pageviews
 
-/admin/analytics
-  → 管理员鉴权
-  → server/analytics/repository.ts · report()     统计聚合
-  → AnalyticsDashboard                           可视化呈现
+/admin/analytics → 管理员鉴权 → repository.report → 近 30 天图表和完整文章列表
 ```
 
-浏览器模块不引用数据库、数据库凭证或服务端 Repository。接收模块通过依赖注入调用统计存储，管理端只读取聚合结果；采集 HTTP 接口不提供读取能力。
+浏览器通过 SDK Reporter 发送 JSON POST：
 
-## 接入与迁移
+```json
+{"events":[{"id":"bfa7ae7a-30f1-4a65-bb8a-ae206619c802","path":"/post/article-id","visitorId":"0123456789abcdef0123456789abcdef"}]}
+```
 
-1. 安装依赖 `npm ci`，确认 `DATABASE_URL`、`ADMIN_EMAIL` 和认证配置有效。
-2. 使用既有流程执行 `npm run db:migrate`。`0004_thick_sinister_six.sql` 仅新增 `analytics_events` 及索引。
-3. `app/[locale]/layout.tsx` 已挂载 `<AnalyticsTracker />`，无需额外 SessionProvider。
-4. 阅读进度以公开文章正文的 `data-article-content` 容器为范围，兼容回退到 `article` 元素。
-5. 使用未登录浏览器访问公开页面、打开文章并停留/滚动，再登录 `/admin/analytics` 查看。检查日期范围、空数据和手机视图。
+`visitorId` 为浏览器指纹 SDK 生成的 32 位小写十六进制标识，生成失败时必须传 `null`。不使用随机会话 ID 补足访客数。自定义 Reporter 仅复制这三个白名单字段；不发送 SDK 附带的 URL、UA、标题、referrer 或指纹原始特征。采集契约不接受点击、停留时长、阅读进度、来源、设备和会话字段，旧协议请求会被拒绝。
 
-SDK 固定为 [`@irises/front-tracker-sdk@1.0.5`](https://github.com/lz6060788/front-tracker-sdk)。已核对 `Tracker`、`TrackerReporter` 真实源码。使用 `new Tracker()` 与自定义 Reporter：SDK 的 `submit('action', data)` 会附加完整 URL、UA、标题与 referrer，自定义 Reporter 只复制经过严格白名单验证的 `data`。内置 Reporter 默认 image、持久化原始队列，本接入使用同源 JSON POST、有限内存队列、三次失败上限以及隐藏/离开时的 sendBeacon。
+页面采集继续使用 `@irises/front-tracker-sdk@1.0.5`；指纹使用本地打包的 `@fingerprintjs/fingerprintjs@5.3.0`，显式关闭 `monitoring` 安装遥测，不调用其商业识别 API 或 CDN。指纹计算异步进行，同一页面内复用结果，最多等待 3 秒。若访客在识别完成前离开，仍提交该次页面访问且指纹为 `null`，避免为了等待识别而丢失短阅读。
+
+服务端仅存 `{id, path, visitor_hash, created_at}`。`visitor_hash` 是 `SHA-256(siteOrigin + NUL + visitorId)`；不落库原始浏览器指纹 ID。站点域名命名空间变化会改变访客去重结果。指纹用于浏览器近似去重，不代表自然人身份，浏览器环境变化、不同浏览器和设备、共享设备或指纹碰撞都可能影响计数。
 
 ## 指标口径
 
-- **PV**：每次进入已知公开路由计一次，语言前缀合并；SPA 路由切换计新访问，query/hash 变化不另计。
-- **匿名访客**：sessionStorage 随机 ID，同一标签页访问间隔 30 分钟内复用。跨标签页、浏览器、设备不合并，因此是匿名会话估算，不等于独立自然人。
-- **文章阅读**：每 15 秒、页面隐藏/离开、路由卸载时上报可见停留与最大进度。每次阅读使用同一事件 ID，数据库只保留最大累计值，避免重试与晚到请求重复累计。平均值只覆盖收到阅读样本的访问。
-- **点击**：只记录打开文章、公开导航、外部 HTTP(S) 链接三类，不记录链接目的地、文本或输入内容。
-- **来源/设备**：来源只保留域名、直接访问或站内跳转；设备按视口分为手机、平板、桌面。来源分布取前 8 个来源，页面排行取前 10 个页面。
-- **日期**：北京时间自然日，支持近 7 / 30 / 90 天，包含当天。
+- **每篇文章累计阅读量**：该篇真实且当前已发布文章的全部 pageview 数。保留旧 `analytics_events` 中的 pageview，并与新表按事件 ID 去重；新记录优先。旧点击及 engagement 记录不参与。来源不明的历史 `posts.views` 不参与。所有已发布文章均列出，包括阅读量为 0 的文章。
+- **文章近 30 天阅读量**：北京时间近 30 个自然日内收到的该篇文章 pageview，包含当天。总文章阅读量和每日文章阅读量只统计当前已发布的真实文章。下架文章会从这些报表排除；不存在或未发布的 `/post/ID` 在写入前直接忽略。
+- **全站访问人数**：累计值为新表全部记录的 `COUNT(DISTINCT visitor_hash)`，近 30 天值按同一口径限定近 30 天窗口。同一指纹跨页面、事件或日期只计一个周期访客；每日人数分别按当天去重，因此每日人数相加通常大于周期人数。非文章公开页面也计入全站人数。
+- **指纹缺失与旧数据**：`null` 指纹仍计文章阅读量，但不计人数；旧会话 ID 不转换为指纹访客。`visitorSince` 表示新表第一条非空指纹记录的北京时间日期，帮助说明访客统计从何时开始，文章历史阅读量可更早。
+- **日期**：固定近 30 天、北京时间自然日，左闭右开，包含当天；全站与每篇文章趋势均补齐 30 天零值。事件时间由数据库接收时间生成。旧 `report(days, now)` 的调用参数仍兼容，报表始终返回 30 天。
 
-任何登录用户均不采集；服务端也排除已登录请求。管理端页面在查询前执行 `auth()` 并核对 `ADMIN_EMAIL`，没有公开读取明细的 API。采集支持 DNT/GPC；`localStorage.setItem('blog.analytics.disabled', 'true')` 可在当前浏览器禁用，刷新后生效。未启用 console、错误文本、资源 URL 或全量自动点击插件。
+报表中的 `allTime` 为累计文章阅读量与累计全站人数，`total` 保持近 30 天口径；两张指标卡分别同时展示累计值和近 30 天值。累计文章阅读量等于完整文章列表 `views` 之和，近 30 天文章阅读量等于列表 `views30d` 之和。累计人数在全部已保留指纹记录中直接去重，同一指纹跨时间窗口仍只计一人；旧会话和空指纹在累计人数中也不计入。
 
-## 采集接口与运维
+## 接口限制与隐私选择
 
-`POST /api/analytics/events` 接收 `{ events: [...] }`。每批最多 20 条、24 KiB，要求同源 Origin、JSON、同一会话和批内唯一 ID；字段类型、公开路径、设备、点击类别和数值范围严格验证。事件时间采用服务端接收时间。事件 ID 幂等；阅读更新还核对会话、访问和路径。页面浏览不受阅读 checkpoint 更新影响。
+每批 1–20 条、最多 24 KiB；要求同源 Origin、JSON、同一 `visitorId`（一整批均为 `null` 也有效）、批内唯一 UUID 和规范的已知公开路径。语言前缀合并，查询参数和 hash 不进入路径。重试使用原事件 ID；`ON CONFLICT DO NOTHING` 保留首次接收的路径、指纹和时间。服务端不会信任客户端时间，也不读取客户端提供的哈希替代原始 visitorId 契约。
 
-接口有按来源地址哈希的进程内限流（每分钟 120 次请求、最多 2000 个短期 key）；地址不写库。多实例部署需在可信反向代理配置独立限流，并覆盖客户端传入的 `X-Real-IP` / `X-Forwarded-For`。此公开匿名接口的流量仍可能被自动化伪造，适合博客运营参考，不用于计费。没有数据库 IP、登录身份或原始 SDK 元数据。
+服务端排除所有已登录请求；DNT/GPC 请求直接忽略。浏览器禁用开关为 `localStorage.setItem('blog.analytics.disabled', 'true')`，刷新后生效。进程内按来源地址哈希限流为每分钟 120 次请求、最多 2000 个短期 key；地址不写入数据库。多实例部署应配置可信代理限流，并覆盖客户端传入的 `X-Real-IP` / `X-Forwarded-For`。匿名采集端点无法证明真实阅读行为，这些指标用于运营参考。
 
-当前原始事件表不自动清理。按站点保留策略可定期执行 `DELETE FROM analytics_events WHERE created_at < now() - interval '180 days';`，清理会同步影响历史统计。数据库备份和索引维护沿用现有 PostgreSQL 运维流程。新功能没有改动历史 `posts.views` 字段，其历史含义不并入埋点统计。
+## 迁移与运行
+
+`0005_analytics_pageviews.sql` 仅新增窄表和三个索引；旧 `analytics_events` 表和所有旧记录原样保留，不复制、清空、回填或更改旧记录。迁移 snapshot 严格保留 `0004` 全部既有表定义，避免将当前 schema 中其他尚未迁移的差异混入本迁移。新表及旧表均不自动清理，删除旧记录会减少累计阅读量。
+
+仓库数据库默认按生产处理。开发会话已完成只读一致性备份并核验 `verified: true`；备份路径与 SHA-256 留在任务登记中，备份不加入 Git。本次开发只在内存 PGlite 运行迁移与测试，**没有在线上运行迁移，也没有写入线上数据库**。上线时需在用户明确授权的数据库变更流程中审阅并执行新增迁移；禁止为预览直接迁移现有线上连接。迁移未执行时，管理端显示“访问统计暂时不可用”。
+
+本地预览必须显式连接独立实例，默认只读，并使用已核验备份中的真实数据。不得用模拟文章或指标冒充真实数据，也不得向线上数据库造数。
 
 ## 验证
 
-`npx tsx --test tests/analytics.test.ts` 在内存 PGlite 中执行全部迁移，覆盖源/字段/体积校验、登录排除、Reporter 白名单与请求并发、重复与乱序 checkpoint、PV/匿名会话去重、日期窗口和真实聚合。测试不会读取 `.env` 或连接真实数据库。
+`npx tsx --test tests/analytics.test.ts` 不读取 `.env`，使用内存 PostgreSQL PGlite 执行全部迁移，覆盖严格契约、同源和重构 Host、DNT/GPC、登录排除、限流、体积上限、批内指纹一致性、服务端命名空间哈希、重复重试、404/未发布文章过滤、新旧 ID 冲突、同指纹跨事件及跨日去重、不同指纹、`null` 与旧会话不计访客、上海日界线、空文章和全部零值。
+
+`tests/analytics-reporter.test.ts` 验证 SDK 原始元数据不会进入请求、重试保留原事件 ID、并发指纹复用、失败及超时不生成随机身份。后台可筛选文章并查看单篇 30 天趋势，图表支持键盘和每日明细表；手机端按实际容器宽度绘制，避免把坐标文字压缩到不可读。

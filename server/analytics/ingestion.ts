@@ -1,9 +1,10 @@
 import { analyticsBatchSchema, MAX_ANALYTICS_BYTES } from '@/lib/analytics'
-import type { AnalyticsEvent } from '@/lib/analytics'
+import { createHash } from 'node:crypto'
+import type { AnalyticsPageview } from '@/lib/analytics'
 
 interface IngestionDependencies {
   isAuthenticated: () => Promise<boolean>
-  collect: (events: AnalyticsEvent[]) => Promise<void>
+  collect: (events: AnalyticsPageview[]) => Promise<void>
   allowRequest: (request: Request) => boolean
   siteOrigin: string
 }
@@ -53,9 +54,13 @@ export function createAnalyticsHandler(dependencies: IngestionDependencies) {
     if (!dependencies.allowRequest(request)) return respond(429)
     try {
       const parsed = analyticsBatchSchema.safeParse(await readBoundedBody(request))
-      if (!parsed.success || new Set(parsed.data.events.map((event) => event.sessionId)).size !== 1 || new Set(parsed.data.events.map((event) => event.id)).size !== parsed.data.events.length) return respond(400)
+      if (!parsed.success || new Set(parsed.data.events.map((event) => event.visitorId)).size !== 1 || new Set(parsed.data.events.map((event) => event.id)).size !== parsed.data.events.length) return respond(400)
       if (await dependencies.isAuthenticated()) return respond(204)
-      await dependencies.collect(parsed.data.events)
+      const namespace = new URL(dependencies.siteOrigin).origin
+      await dependencies.collect(parsed.data.events.map(({ id, path, visitorId }) => ({
+        id, path,
+        visitorHash: visitorId === null ? null : createHash('sha256').update(`${namespace}\u0000${visitorId}`).digest('hex'),
+      })))
       return respond(204)
     } catch (error) {
       if (error instanceof BodyTooLarge) return respond(413)

@@ -1,24 +1,33 @@
 import assert from 'node:assert/strict'
-import { after, before, test } from 'node:test'
-import { randomUUID } from 'node:crypto'
+import { after, before, beforeEach, test } from 'node:test'
+import { createHash, randomUUID } from 'node:crypto'
 import { readFile, readdir } from 'node:fs/promises'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { eq } from 'drizzle-orm'
 import * as schema from '../server/db/schema'
-import { analyticsPath, analyticsBatchSchema, analyticsRange, referrerDomain, type AnalyticsEvent } from '../lib/analytics'
+import { analyticsPath, analyticsBatchSchema, analyticsRange, type AnalyticsEvent, type AnalyticsPageview } from '../lib/analytics'
 import { createAnalyticsHandler } from '../server/analytics/ingestion'
-import { BlogAnalyticsReporter } from '../lib/analytics-reporter'
 
-// Never load .env or connect to the live application database.
+// No .env loading, network access or live application database is needed.
 process.env.DATABASE_URL = 'postgres://unused:unused@127.0.0.1:1/unused'
 const memory = new PGlite()
 const database = drizzle(memory, { schema })
 let repository: InstanceType<typeof import('../server/analytics/repository').AnalyticsRepository>
-const sessionId = randomUUID()
+const fingerprint = '0123456789abcdef0123456789abcdef'
+const now = new Date('2026-10-26T08:00:00Z')
 function event(input: Partial<AnalyticsEvent> = {}): AnalyticsEvent {
-  const id = randomUUID()
-  return { id, visitId: id, sessionId, type: 'pageview', path: '/', referrer: 'direct', device: 'desktop', durationMs: 0, depth: 0, target: null, ...input }
+  return { id: randomUUID(), path: '/', visitorId: fingerprint, ...input }
+}
+function pageview(input: Partial<AnalyticsPageview> = {}): AnalyticsPageview {
+  return { id: randomUUID(), path: '/post/read', visitorHash: 'a'.repeat(64), ...input }
+}
+async function stored(path: string, visitorHash: string | null, time: string, id = randomUUID()) {
+  await database.insert(schema.analyticsPageviews).values({ id, path, visitorHash, createdAt: new Date(time) })
+  return id
+}
+async function legacy(path: string, time: string, id = randomUUID(), type = 'pageview') {
+  await database.insert(schema.analyticsEvents).values({ id, path, visitId: randomUUID(), sessionId: randomUUID(), type, referrer: 'direct', device: 'desktop', createdAt: new Date(time) })
 }
 
 before(async () => {
@@ -27,132 +36,204 @@ before(async () => {
   }
   const { AnalyticsRepository } = await import('../server/analytics/repository')
   repository = new AnalyticsRepository(database as unknown as typeof import('../server/db').db)
+  await memory.exec(`insert into users (id, name, email) values ('test-author', 'Author', 'author@example.test')`)
+})
+beforeEach(async () => {
+  await memory.exec(`delete from analytics_pageviews; delete from analytics_events; delete from posts;
+    insert into posts (id, title, content, "authorId", published) values
+    ('read', 'Article', 'Content', 'test-author', true),
+    ('zero', 'Zero', 'Content', 'test-author', true),
+    ('draft', 'Draft', 'Content', 'test-author', false);`)
 })
 after(async () => { await memory.close() })
 
-test('only known public paths and source domains survive; query strings and private routes do not', () => {
+test('strict pageview contract accepts canonical public paths and optional fingerprint failures only', () => {
+  assert.equal(analyticsPath('/zh/music-player-demo'), '/music-player-demo')
   assert.equal(analyticsPath('/zh/post/abc?token=secret#heading'), '/post/abc')
   assert.equal(analyticsPath('/zh/lab/garden?preview=true'), '/lab/garden')
   for (const path of ['/admin', '/zh/admin/posts', '/api/search', '/login', '/unknown', '//evil.test/path']) assert.equal(analyticsPath(path), null)
-  assert.equal(referrerDomain('https://search.example/search?email=secret', 'https://blog.example'), 'search.example')
-  assert.equal(referrerDomain('https://blog.example/post/secret?token=s', 'https://blog.example'), 'internal')
-  assert.equal(analyticsBatchSchema.safeParse({ events: [event({ path: '/?token=secret' })] }).success, false)
-  assert.equal(analyticsBatchSchema.safeParse({ events: [{ ...event(), url: 'secret' }] }).success, false)
-  assert.equal(analyticsBatchSchema.safeParse({ events: [event({ type: 'engagement' })] }).success, false)
+  for (const invalid of [
+    event({ path: '/?token=secret' }), event({ visitorId: 'A'.repeat(32) }),
+    { ...event(), url: 'secret' }, { ...event(), sessionId: randomUUID() },
+    { ...event(), type: 'click' }, { ...event(), referrer: 'secret' },
+    { ...event(), visitorId: undefined }, { ...event(), id: 'not-uuid' },
+  ]) assert.equal(analyticsBatchSchema.safeParse({ events: [invalid] }).success, false)
+  assert.equal(analyticsBatchSchema.safeParse({ events: [event({ visitorId: null })] }).success, true)
+  assert.equal(analyticsBatchSchema.safeParse({ events: [] }).success, false)
 })
 
-test('report windows follow Shanghai day boundaries and reject unsupported ranges', () => {
-  const range = analyticsRange(7, new Date('2026-10-22T16:05:00Z'))
-  assert.equal(range.start.toISOString(), '2026-10-16T16:00:00.000Z')
-  assert.equal(range.end.toISOString(), '2026-10-23T16:00:00.000Z')
-  assert.equal(range.dates[6], '2026-10-23')
+test('report date windows use Shanghai boundaries', () => {
+  const range = analyticsRange(30, now)
+  assert.equal(range.start.toISOString(), '2026-09-26T16:00:00.000Z')
+  assert.equal(range.end.toISOString(), '2026-10-26T16:00:00.000Z')
+  assert.equal(range.dates[0], '2026-09-27')
+  assert.equal(range.dates[29], '2026-10-26')
   assert.equal(analyticsRange(999).days, 30)
 })
 
-test('analytics migration metadata adds only its table, with earlier schema defaults preserved', async () => {
-  const previous = JSON.parse(await readFile('drizzle/meta/0003_snapshot.json', 'utf8'))
-  const current = JSON.parse(await readFile('drizzle/meta/0004_snapshot.json', 'utf8'))
+test('migration adds only the narrow table, preserves all earlier tables and chains metadata', async () => {
+  const previous = JSON.parse(await readFile('drizzle/meta/0004_snapshot.json', 'utf8'))
+  const current = JSON.parse(await readFile('drizzle/meta/0005_snapshot.json', 'utf8'))
   assert.equal(current.prevId, previous.id)
   for (const [name, table] of Object.entries(previous.tables)) assert.deepEqual(current.tables[name], table)
-  assert.ok(current.tables['public.analytics_events'])
+  assert.deepEqual(Object.keys(current.tables['public.analytics_pageviews'].columns), ['id', 'path', 'visitor_hash', 'created_at'])
   assert.equal(Object.keys(current.tables).length, Object.keys(previous.tables).length + 1)
-  const sql = await readFile('drizzle/0004_thick_sinister_six.sql', 'utf8')
-  assert.equal(/ALTER TABLE|DROP TABLE/.test(sql), false)
+  const sql = await readFile('drizzle/0005_analytics_pageviews.sql', 'utf8')
+  assert.equal(/ALTER TABLE|DROP TABLE|INSERT INTO|UPDATE |DELETE FROM/.test(sql), false)
   const journal = JSON.parse(await readFile('drizzle/meta/_journal.json', 'utf8'))
-  assert.equal(journal.entries[4].tag, '0004_thick_sinister_six')
+  assert.equal(journal.entries[5].tag, '0005_analytics_pageviews')
 })
 
-test('ingestion blocks cross-site, oversized, invalid and mixed-session payloads; excludes signed-in users', async () => {
-  let collected = 0, authenticated = false, allowed = true
-  const handler = createAnalyticsHandler({ siteOrigin: 'https://blog.example', allowRequest: () => allowed, isAuthenticated: async () => authenticated, collect: async (events) => { collected += events.length } })
+test('ingestion enforces source, privacy, size, auth, rate and a single fingerprint with unique event IDs', async () => {
+  const collected: AnalyticsPageview[][] = []
+  let authenticated = false, allowed = true
+  const handler = createAnalyticsHandler({ siteOrigin: 'https://blog.example', allowRequest: () => allowed, isAuthenticated: async () => authenticated, collect: async (events) => { collected.push(events) } })
   const request = (body: unknown, headers: Record<string, string> = {}) => new Request('https://blog.example/api/analytics/events', { method: 'POST', headers: { origin: 'https://blog.example', 'content-type': 'application/json', ...headers }, body: typeof body === 'string' ? body : JSON.stringify(body) })
-  const body = { events: [event()] }
+  const single = event(), body = { events: [single] }
   assert.equal((await handler(request(body, { origin: 'https://attacker.example' }))).status, 403)
   assert.equal((await handler(request(body, { 'sec-fetch-site': 'cross-site' }))).status, 403)
   assert.equal((await handler(request(body, { 'content-type': 'text/plain' }))).status, 415)
   assert.equal((await handler(request('x'.repeat(25000)))).status, 413)
+  assert.equal((await handler(request(body, { 'content-length': '25000' }))).status, 413)
   assert.equal((await handler(request('{'))).status, 400)
-  assert.equal((await handler(request({ events: [event(), event({ sessionId: randomUUID() })] }))).status, 400)
+  assert.equal((await handler(request({ events: [single, single] }))).status, 400)
+  assert.equal((await handler(request({ events: [event(), event({ visitorId: 'f'.repeat(32) })] }))).status, 400)
+  assert.equal((await handler(request({ events: [event(), event({ visitorId: null })] }))).status, 400)
   assert.equal((await handler(request({ events: Array.from({ length: 21 }, () => event()) }))).status, 400)
   assert.equal((await handler(request(body, { dnt: '1' }))).status, 204)
+  assert.equal((await handler(request(body, { 'sec-gpc': '1' }))).status, 204)
   authenticated = true
   assert.equal((await handler(request(body))).status, 204)
-  assert.equal(collected, 0)
+  assert.equal(collected.length, 0)
   authenticated = false
   assert.equal((await handler(request(body))).status, 204)
-  assert.equal(collected, 1)
+  assert.deepEqual(collected[0], [{ id: single.id, path: '/', visitorHash: createHash('sha256').update(`https://blog.example\u0000${fingerprint}`).digest('hex') }])
+  assert.equal(JSON.stringify(collected).includes(fingerprint), false)
+  assert.equal((await handler(request({ events: [event({ visitorId: null }), event({ visitorId: null })] }))).status, 204)
+  assert.equal(collected[1].every((row) => row.visitorHash === null), true)
   allowed = false
-  assert.equal((await handler(request(body))).status, 429)
+  const rate = await handler(request(body))
+  assert.equal(rate.status, 429)
+  assert.equal(rate.headers.get('retry-after'), '60')
 })
 
-test('same-origin browser Host works when Next reconstructs an internal URL; other authorities remain rejected', async () => {
+test('same-origin Host accepts a reconstructed internal URL but rejects other authorities', async () => {
   let collected = 0
   const handler = createAnalyticsHandler({ siteOrigin: 'https://blog.example', allowRequest: () => true, isAuthenticated: async () => false, collect: async () => { collected++ } })
   const request = (extra: Record<string, string> = {}) => new Request('http://localhost:3000/api/analytics/events', {
-    method: 'POST',
-    headers: { origin: 'http://127.0.0.1:3000', host: '127.0.0.1:3000', 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', ...extra },
-    body: JSON.stringify({ events: [event()] }),
+    method: 'POST', headers: { origin: 'http://127.0.0.1:3000', host: '127.0.0.1:3000', 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', ...extra }, body: JSON.stringify({ events: [event()] }),
   })
   assert.equal((await handler(request())).status, 204)
-  assert.equal(collected, 1)
-  assert.equal((await handler(request({ origin: 'https://attacker.example' }))).status, 403)
-  assert.equal((await handler(request({ origin: 'http://127.0.0.1:3001' }))).status, 403)
-  assert.equal((await handler(request({ 'sec-fetch-site': 'cross-site' }))).status, 403)
-  assert.equal((await handler(request({ 'sec-fetch-site': 'same-site' }))).status, 403)
-  assert.equal((await handler(request({ origin: 'null' }))).status, 403)
-  assert.equal((await handler(request({ origin: 'http://127.0.0.1:3000/path' }))).status, 403)
+  const rejected: Record<string, string>[] = [{ origin: 'https://attacker.example' }, { origin: 'http://127.0.0.1:3001' }, { 'sec-fetch-site': 'cross-site' }, { 'sec-fetch-site': 'same-site' }, { origin: 'null' }, { origin: 'http://127.0.0.1:3000/path' }]
+  for (const extra of rejected) assert.equal((await handler(request(extra))).status, 403)
   assert.equal(collected, 1)
 })
 
-test('SDK reporter sends the whitelist only and preserves a newer checkpoint during an in-flight request', async () => {
-  const original = globalThis.fetch
-  const sent: string[] = []
-  let release: (() => void) | undefined
-  globalThis.fetch = async (_input, init) => {
-    sent.push(String(init?.body))
-    if (sent.length === 1) await new Promise<void>((resolve) => { release = resolve })
-    return new Response(null, { status: 204 })
+test('ingestion namespaces fingerprints by configured origin', async () => {
+  const hashes: (string | null)[] = []
+  for (const siteOrigin of ['https://one.example', 'https://two.example']) {
+    const handler = createAnalyticsHandler({ siteOrigin, allowRequest: () => true, isAuthenticated: async () => false, collect: async (rows) => { hashes.push(rows[0].visitorHash) } })
+    await handler(new Request(`${siteOrigin}/api/analytics/events`, { method: 'POST', headers: { origin: siteOrigin, 'content-type': 'application/json' }, body: JSON.stringify({ events: [event()] }) }))
   }
-  const reporter = new BlogAnalyticsReporter()
-  const read = event({ type: 'engagement', path: '/post/test', durationMs: 1000, depth: 20 })
-  try {
-    reporter.add({ data: read, url: 'https://blog.example/?token=secret', userAgent: 'secret', referrer: 'https://secret.example?q=secret' } as Parameters<typeof reporter.add>[0])
-    const first = reporter.flush()
-    reporter.add({ data: { ...read, durationMs: 2000, depth: 40 } })
-    release?.()
-    await first
-    await reporter.flush()
-    assert.equal(sent.length, 2)
-    assert.equal(sent.some((body) => body.includes('secret')), false)
-    assert.equal(JSON.parse(sent[0]).events[0].durationMs, 1000)
-    assert.equal(JSON.parse(sent[1]).events[0].durationMs, 2000)
-  } finally { reporter.stop(); globalThis.fetch = original }
+  assert.notEqual(hashes[0], hashes[1])
 })
 
-test('migrations, idempotent ingestion, cumulative reading, Shanghai aggregation and true unique counts work in PostgreSQL', async () => {
-  const first = event({ path: '/post/read', device: 'mobile', referrer: 'search.example' })
-  const second = event({ path: '/post/read', device: 'mobile' })
-  const third = event({ sessionId: randomUUID(), path: '/archive' })
-  const reading = event({ visitId: first.visitId, type: 'engagement', path: first.path, durationMs: 10000, depth: 25 })
-  await repository.collect([first, first]) // network retries must count once
-  await repository.collect([second, third, reading, event({ type: 'click', target: 'article' })])
-  await repository.collect([{ ...reading, durationMs: 20000, depth: 75 }])
-  await repository.collect([{ ...reading, durationMs: 100, depth: 10 }]) // late/out-of-order beacon
-  await repository.collect([{ ...reading, sessionId: randomUUID(), durationMs: 999999, depth: 100 }]) // cannot overwrite another session
-  const [stored] = await database.select().from(schema.analyticsEvents).where(eq(schema.analyticsEvents.id, reading.id))
-  assert.equal(stored.durationMs, 20000)
-  assert.equal(stored.depth, 75)
-  const report = await repository.report(7)
-  assert.deepEqual(report.total, { pageviews: 3, visitors: 2, articleViews: 2, averageReadMs: 20000, averageDepth: 75, clicks: 1 })
-  assert.equal(report.daily.length, 7)
-  assert.equal(report.daily.reduce((total, day) => total + day.pageviews, 0), 3)
-  assert.equal(report.pages[0].path, '/post/read')
-  assert.equal(report.pages[0].views, 2)
-  assert.equal(report.pages[0].visitors, 1)
-  assert.equal(report.devices.find((row) => row.name === 'mobile')?.views, 2)
-  assert.equal(report.clicks[0].name, 'article')
-  const empty = await repository.report(7, new Date('2000-01-01T00:00:00Z'))
-  assert.equal(empty.total.pageviews, 0)
-  assert.equal(empty.daily.length, 7)
-  assert.equal(empty.pages.length, 0)
+test('collection is immutable and retry-safe; unpublished and missing article paths are ignored', async () => {
+  const first = pageview()
+  await repository.collect([first, first])
+  await repository.collect([{ ...first, path: '/archive', visitorHash: 'b'.repeat(64) }])
+  await repository.collect([pageview({ path: '/post/missing' }), pageview({ path: '/post/draft' }), pageview({ path: '/archive', visitorHash: null })])
+  const rows = await database.select().from(schema.analyticsPageviews)
+  assert.equal(rows.length, 2)
+  assert.deepEqual(rows.find((row) => row.id === first.id)?.visitorHash, first.visitorHash)
+  assert.equal(rows.find((row) => row.id === first.id)?.path, '/post/read')
+  assert.equal(rows.some((row) => row.path === '/post/missing' || row.path === '/post/draft'), false)
+})
+
+test('30-day report deduplicates fingerprints across events and days while keeping all article PVs', async () => {
+  await stored('/post/read', 'a', '2026-10-24T10:00:00Z')
+  await stored('/post/read', 'a', '2026-10-24T11:00:00Z')
+  await stored('/archive', 'a', '2026-10-25T10:00:00Z')
+  await stored('/', 'b', '2026-10-25T11:00:00Z')
+  await stored('/post/read', null, '2026-10-25T12:00:00Z')
+  await legacy('/post/read', '2026-10-25T12:00:00Z')
+  await legacy('/post/read', '2026-08-01T12:00:00Z')
+  await legacy('/post/read', '2026-10-25T12:00:00Z', randomUUID(), 'engagement')
+  await legacy('/post/missing', '2026-10-25T12:00:00Z')
+  await legacy('/post/draft', '2026-10-25T12:00:00Z')
+  const collision = await stored('/post/read', 'a', '2026-10-25T12:00:00Z')
+  await legacy('/post/read', '2026-10-25T12:00:00Z', collision)
+  const report = await repository.report(7, now)
+  assert.equal(report.days, 30)
+  assert.deepEqual(report.total, { articleViews: 5, visitors: 2 })
+  assert.equal(report.daily.length, 30)
+  assert.equal(report.daily.find((day) => day.date === '2026-10-24')?.visitors, 1)
+  assert.equal(report.daily.find((day) => day.date === '2026-10-25')?.visitors, 2)
+  assert.equal(report.daily.reduce((sum, day) => sum + day.visitors, 0), 3)
+  assert.equal(report.visitorSince, '2026-10-24')
+  assert.deepEqual(report.articles.map(({ id, views, views30d }) => ({ id, views, views30d })), [{ id: 'read', views: 6, views30d: 5 }, { id: 'zero', views: 0, views30d: 0 }])
+  for (const article of report.articles) assert.equal(article.daily.length, 30)
+  assert.equal(report.articles[0].daily.reduce((sum, day) => sum + day.views, 0), 5)
+})
+
+test('null fingerprints and legacy sessions do not count as visitors; dates include start and exclude end', async () => {
+  await stored('/post/read', 'outside', '2026-09-26T15:59:59.999Z')
+  await stored('/post/read', 'inside', '2026-09-26T16:00:00Z')
+  await stored('/post/read', null, '2026-10-26T15:59:59.999Z')
+  await stored('/post/read', 'future', '2026-10-26T16:00:00Z')
+  await legacy('/post/read', '2026-10-26T12:00:00Z')
+  const report = await repository.report(90, now)
+  assert.deepEqual(report.total, { articleViews: 3, visitors: 1 })
+  assert.equal(report.daily[0].articleViews, 1)
+  assert.equal(report.daily[29].articleViews, 2)
+  assert.equal(report.articles[0].views, 5)
+  assert.equal(report.visitorSince, '2026-09-26')
+})
+
+test('no events returns all published articles with zeros; no articles still permits site visitors', async () => {
+  const empty = await repository.report(30, now)
+  assert.deepEqual(empty.total, { articleViews: 0, visitors: 0 })
+  assert.deepEqual(empty.allTime, { articleViews: 0, visitors: 0 })
+  assert.equal(empty.articles.length, 2)
+  assert.equal(empty.visitorSince, null)
+  assert.equal(empty.articles.every((article) => article.views === 0 && article.daily.every((day) => day.views === 0)), true)
+  await memory.exec('delete from posts')
+  await stored('/', 'site-visitor', '2026-10-25T12:00:00Z')
+  const report = await repository.report(30, now)
+  assert.deepEqual(report.total, { articleViews: 0, visitors: 1 })
+  assert.deepEqual(report.articles, [])
+})
+
+test('legacy-only and failed-fingerprint reads retain PV without inventing visitors', async () => {
+  await legacy('/post/read', '2026-10-25T12:00:00Z')
+  await stored('/post/read', null, '2026-10-25T12:01:00Z')
+  const report = await repository.report(30, now)
+  assert.deepEqual(report.total, { articleViews: 2, visitors: 0 })
+  assert.deepEqual(report.allTime, { articleViews: 2, visitors: 0 })
+  assert.equal(report.visitorSince, null)
+  assert.equal(report.daily.every((day) => day.visitors === 0), true)
+  await database.update(schema.posts).set({ published: false }).where(eq(schema.posts.id, 'read'))
+  const unpublished = await repository.report(30, now)
+  assert.equal(unpublished.total.articleViews, 0)
+  assert.equal(unpublished.allTime.articleViews, 0)
+  assert.equal(unpublished.articles.some((article) => article.id === 'read'), false)
+})
+
+test('all-time totals deduplicate across windows and preserve the full article history', async () => {
+  await stored('/post/read', 'returning', '2026-08-01T12:00:00Z')
+  await stored('/post/read', 'returning', '2026-10-25T12:00:00Z')
+  await stored('/archive', 'past-only', '2026-08-02T12:00:00Z')
+  await stored('/', 'recent-only', '2026-10-25T12:00:00Z')
+  await stored('/post/read', null, '2026-08-01T12:01:00Z')
+  await stored('/post/zero', null, '2026-10-25T12:01:00Z')
+  await legacy('/post/read', '2026-08-01T12:02:00Z')
+  await legacy('/post/draft', '2026-08-01T12:02:00Z')
+  const collision = await stored('/post/read', 'returning', '2026-08-01T12:03:00Z')
+  await legacy('/post/read', '2026-08-01T12:03:00Z', collision)
+  const report = await repository.report(30, now)
+  assert.deepEqual(report.allTime, { articleViews: 6, visitors: 3 })
+  assert.deepEqual(report.total, { articleViews: 2, visitors: 2 })
+  assert.equal(report.allTime.articleViews, report.articles.reduce((sum, article) => sum + article.views, 0))
+  assert.equal(report.total.articleViews, report.articles.reduce((sum, article) => sum + article.views30d, 0))
+  assert.equal(report.visitorSince, '2026-08-01')
 })

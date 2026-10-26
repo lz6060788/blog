@@ -14,7 +14,7 @@ export class BlogAnalyticsReporter {
     if (this.stopped) return
     const parsed = analyticsEventSchema.safeParse(envelope.data)
     if (!parsed.success) return
-    // Coalesce cumulative read checkpoints before sending.
+    // Retries of the same page entry keep one immutable event in the queue.
     this.queue = this.queue.filter((event) => event.id !== parsed.data.id)
     this.queue.push(parsed.data)
     this.queue = this.queue.slice(-60)
@@ -47,7 +47,7 @@ export class BlogAnalyticsReporter {
   }
 
   private remove(sent: AnalyticsEvent[]) {
-    // Preserve a newer cumulative checkpoint added while this request was in flight.
+    // Preserve entries queued while this request was in flight.
     this.queue = this.queue.filter((event) => !sent.includes(event))
   }
 

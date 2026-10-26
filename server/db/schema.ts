@@ -451,6 +451,18 @@ export const analyticsEvents = pgTable("analytics_events", {
   pathTimeIndex: index("analytics_events_path_time_idx").on(table.path, table.createdAt),
 }));
 
+// Narrow pageview log; visitorHash is namespaced at the ingestion boundary.
+export const analyticsPageviews = pgTable("analytics_pageviews", {
+  id: text("id").primaryKey(),
+  path: text("path").notNull(),
+  visitorHash: text("visitor_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  createdAtIndex: index("analytics_pageviews_created_at_idx").on(table.createdAt),
+  visitorTimeIndex: index("analytics_pageviews_visitor_time_idx").on(table.visitorHash, table.createdAt),
+  pathTimeIndex: index("analytics_pageviews_path_time_idx").on(table.path, table.createdAt),
+}));
+
 export const schema = {
   users,
   sessions,
@@ -471,4 +483,5 @@ export const schema = {
   playlists,
   playlistSongs,
   analyticsEvents,
+  analyticsPageviews,
 };

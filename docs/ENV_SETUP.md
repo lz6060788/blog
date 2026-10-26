@@ -37,17 +37,21 @@
 
 ### 方案 1：使用部署平台的环境变量（推荐）
 
-**Vercel:**
-1. 进入项目设置 → Environment Variables
-2. 添加以下变量：
+**Docker / 自托管环境：**
+1. 在容器运行环境或私有环境变量文件中配置实际值。
+2. 至少配置以下变量：
    ```
    AUTH_SECRET
+   ADMIN_EMAIL
+   DATABASE_URL
    NEXTAUTH_URL
    GITHUB_CLIENT_ID
    GITHUB_CLIENT_SECRET
    GOOGLE_CLIENT_ID
    GOOGLE_CLIENT_SECRET
    ```
+3. `NEXTAUTH_URL` 和 `BLOG_PUBLIC_URL` 应使用博客的实际对外地址。
+4. 容器启动脚本会先执行数据库迁移；更新前应备份并审阅待执行 SQL，迁移失败时启动会停止。
 
 **Netlify:**
 1. 进入 Site settings → Environment variables
@@ -161,26 +165,13 @@ openssl rand -base64 32
 
 ### Windows (PowerShell)
 ```powershell
-# 使用 PowerShell
-New-Guid
+# 使用本机 Node.js 生成随机密钥
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
 ```
-
-或在线生成：https://generate-secret.vercel.app/32
 
 ---
 
 ## 部署平台特定配置
-
-### Vercel
-- 在项目设置中配置环境变量
-- `NEXTAUTH_URL` 会自动设置，无需手动配置
-- **不要在 `vercel.json` 中使用 `buildEnv`**，应改为 `env`，否则会触发 schema 校验错误
-
-#### 关于 SQLite 在 Vercel 的使用
-- Vercel Serverless/Edge 运行时的本地文件系统是**临时的**，`./data/db.sqlite` 这类文件不能作为持久化数据库。
-- `better-sqlite3` 仅支持 Node.js 运行时（不支持 Edge），并且即使能运行，也不适合作为线上持久存储方案。
-- 生产环境建议改用托管数据库（例如 Vercel Postgres、Neon、Supabase、PlanetScale 等）或专门支持远程 SQLite 的服务（如 Turso/libSQL）。
-- 如果必须保留 SQLite，仅建议用于本地开发/预览环境。
 
 ### Netlify
 - 在 Site settings → Environment variables 中配置

@@ -83,7 +83,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Tech Stack
 
 - **Framework**: Next.js 14 (React Server Components)
-- **Database**: SQLite with Drizzle ORM
+- **Database**: PostgreSQL with Drizzle ORM
 - **Styling**: Tailwind CSS v3
 - **Animation**: Framer Motion
 - **Icons**: Phosphor Icons
@@ -91,11 +91,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Database
 
-This project uses SQLite with Drizzle ORM for data persistence.
+This project uses PostgreSQL with Drizzle ORM for data persistence.
 
 ### Setup
 
-The database file is automatically created at `./data/db.sqlite` on first run.
+Set `DATABASE_URL` to the intended PostgreSQL instance. Before applying migrations,
+run `scripts/backup-database.ts`, verify the backup, and review the pending SQL.
+Local previews must use an independent database and default to read-only access.
 
 ### Migration Commands
 
@@ -106,13 +108,11 @@ npm run db:generate
 # Apply migrations to database
 npm run db:migrate
 
-# Push schema changes directly (development only)
-npm run db:push
 ```
 
 ### Schema Definitions
 
-Database tables are defined in `lib/db/schema.ts` using Drizzle ORM schema builders. TypeScript types are automatically inferred from the schema.
+Database tables are defined in `server/db/schema.ts` using Drizzle ORM schema builders. TypeScript types are automatically inferred from the schema.
 
 ## Authentication
 

@@ -31,7 +31,6 @@ export default async function middleware(req: NextRequest) {
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/_vercel') ||
     pathname.includes('.') ||
     pathname.includes('/favicon')
   ) {
@@ -136,7 +135,7 @@ export default async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next|_vercel|.*\\..*).*)',
+    '/((?!api|_next|.*\\..*).*)',
     '/',
   ],
 }

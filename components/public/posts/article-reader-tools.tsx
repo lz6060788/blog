@@ -4,12 +4,7 @@ import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocale } from 'next-intl'
 import { ArrowUp, X } from 'lucide-react'
-
-interface HeadingItem {
-  id: string
-  text: string
-  level: number
-}
+import { measureArticleOutline, type ArticleOutlineHeading } from '@/lib/article-outline'
 
 interface LightboxImage {
   src: string
@@ -18,7 +13,7 @@ interface LightboxImage {
 
 export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
   const isZh = useLocale() === 'zh'
-  const [headings, setHeadings] = useState<HeadingItem[]>([])
+  const [headings, setHeadings] = useState<ArticleOutlineHeading[]>([])
   const [activeId, setActiveId] = useState('')
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [outlineOpen, setOutlineOpen] = useState(false)
@@ -27,35 +22,37 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
   const [lightbox, setLightbox] = useState<LightboxImage | null>(null)
   const mobileToggleRef = useRef<HTMLButtonElement>(null)
   const mobilePanelRef = useRef<HTMLDivElement>(null)
+  const mobileOutlineRef = useRef<HTMLElement>(null)
   const desktopOutlineRef = useRef<HTMLOListElement>(null)
   const desktopOutlineRegionRef = useRef<HTMLElement>(null)
   const lightboxReturnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    const article = document.querySelector<HTMLElement>('[data-article-reader] .markdown-article')
-    if (!article) return
-    const headingElements = Array.from(article.querySelectorAll<HTMLElement>('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]'))
-    setHeadings(headingElements.map((heading) => ({
-      id: heading.id,
-      text: heading.dataset.outlineTitle?.trim() || heading.textContent?.trim() || heading.id,
-      level: Number(heading.tagName.slice(1)),
-    })))
+    const reader = document.querySelector<HTMLElement>('[data-article-reader]')
+    if (!reader) return
     setOutlineOpen(false)
     setDesktopOutlineOpen(false)
     if (desktopOutlineRef.current) desktopOutlineRef.current.scrollTop = 0
 
     let frame = 0
+    let observedArticle: HTMLElement | null = null
     const updatePosition = () => {
       frame = 0
-      let currentId = headingElements[0]?.id || ''
-      for (const heading of headingElements) {
-        if (heading.getBoundingClientRect().top > 128) break
-        currentId = heading.id
+      const article = reader.querySelector<HTMLElement>('.markdown-article')
+      if (article !== observedArticle) {
+        if (observedArticle) resizeObserver.unobserve(observedArticle)
+        observedArticle = article
+        if (article) resizeObserver.observe(article)
       }
-      setActiveId(currentId)
+      const measured = article ? measureArticleOutline(article) : { headings: [], activeId: '' }
+      setHeadings((previous) => previous.length === measured.headings.length && previous.every((heading, index) => {
+        const next = measured.headings[index]
+        return heading.id === next.id && heading.text === next.text && heading.level === next.level
+      }) ? previous : measured.headings)
+      setActiveId(measured.activeId)
       setShowBackToTop(window.scrollY > 480)
-      const bounds = article.getBoundingClientRect()
-      const isReading = bounds.top <= 128 && bounds.bottom > 128
+      const bounds = article?.getBoundingClientRect()
+      const isReading = !!bounds && bounds.top <= 128 && bounds.bottom > 128
       setInArticle(isReading)
       if (!isReading) {
         setOutlineOpen(false)
@@ -74,36 +71,43 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
       setLightbox({ src: image.currentSrc || image.src, alt: image.alt || (isZh ? '文章图片' : 'Article image') })
     }
     const resizeObserver = new ResizeObserver(schedulePosition)
-    resizeObserver.observe(article)
+    // RSC refreshes can replace the Markdown DOM while this client component
+    // stays mounted. Reconcile immediately, even if the reader doesn't scroll.
+    const mutationObserver = new MutationObserver(schedulePosition)
+    mutationObserver.observe(reader, { childList: true, subtree: true })
     updatePosition()
     window.addEventListener('scroll', schedulePosition, { passive: true })
     window.addEventListener('resize', schedulePosition)
-    article.addEventListener('click', openImage)
-    article.addEventListener('keydown', openImage)
+    reader.addEventListener('click', openImage)
+    reader.addEventListener('keydown', openImage)
     return () => {
       if (frame) window.cancelAnimationFrame(frame)
       resizeObserver.disconnect()
+      mutationObserver.disconnect()
       window.removeEventListener('scroll', schedulePosition)
       window.removeEventListener('resize', schedulePosition)
-      article.removeEventListener('click', openImage)
-      article.removeEventListener('keydown', openImage)
+      reader.removeEventListener('click', openImage)
+      reader.removeEventListener('keydown', openImage)
     }
   }, [contentKey, isZh])
 
   useEffect(() => {
-    const list = desktopOutlineRef.current
-    const activeLink = list?.querySelector<HTMLElement>('[aria-current="location"]')
-    if (!list || !activeLink) return
-    const listRect = list.getBoundingClientRect()
-    const linkRect = activeLink.getBoundingClientRect()
-    if (linkRect.top < listRect.top || linkRect.bottom > listRect.bottom) {
-      list.scrollTop += linkRect.top - listRect.top - list.clientHeight / 2
+    for (const list of [desktopOutlineRef.current, mobileOutlineRef.current]) {
+      const activeLink = list?.querySelector<HTMLElement>('[aria-current="location"]')
+      if (!list || !activeLink || list.clientHeight === 0) continue
+      const listRect = list.getBoundingClientRect()
+      const linkRect = activeLink.getBoundingClientRect()
+      if (linkRect.top < listRect.top || linkRect.bottom > listRect.bottom) {
+        list.scrollTop += linkRect.top - listRect.top - list.clientHeight / 2
+      }
     }
-  }, [activeId, desktopOutlineOpen, headings])
+  }, [activeId, desktopOutlineOpen, outlineOpen, headings])
 
   useEffect(() => {
     if (!outlineOpen) return
-    mobilePanelRef.current?.querySelector<HTMLAnchorElement>('a[aria-current="location"], a')?.focus()
+    const panel = mobilePanelRef.current
+    const activeLink = panel?.querySelector<HTMLAnchorElement>('a[aria-current="location"]') || panel?.querySelector<HTMLAnchorElement>('a')
+    activeLink?.focus({ preventScroll: true })
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOutlineOpen(false)
@@ -145,7 +149,6 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
     if (!target) return
     event.preventDefault()
     setOutlineOpen(false)
-    setActiveId(id)
     window.history.replaceState(window.history.state, '', `#${encodeURIComponent(id)}`)
     target.focus({ preventScroll: true })
     target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
@@ -204,7 +207,7 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
           </button>
           {outlineOpen && (
             <div ref={mobilePanelRef} id="mobile-article-outline" className="article-outline-mobile-panel fixed bottom-60 right-5 z-40 flex max-h-[min(55dvh,32rem)] w-[min(21rem,calc(100vw-2.5rem))] flex-col">
-              <nav aria-label={outlineLabel} className="article-outline-scroll min-h-0 overflow-y-auto"><ol>{renderLinks()}</ol></nav>
+              <nav ref={mobileOutlineRef} aria-label={outlineLabel} className="article-outline-scroll min-h-0 overflow-y-auto"><ol>{renderLinks()}</ol></nav>
             </div>
           )}
         </div>

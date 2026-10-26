@@ -31,7 +31,7 @@ yarn-error.log*
 .env.production
 .env.development
 
-# vercel
+# local deployment metadata
 .vercel
 
 # typescript

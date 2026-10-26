@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocale } from 'next-intl'
-import { ArrowUp, ChevronDown, List, X } from 'lucide-react'
+import { ArrowUp, List, X } from 'lucide-react'
 
 interface HeadingItem {
   id: string
@@ -22,11 +22,13 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
   const [activeId, setActiveId] = useState('')
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [outlineOpen, setOutlineOpen] = useState(false)
-  const [outlineCollapsed, setOutlineCollapsed] = useState(false)
+  const [inArticle, setInArticle] = useState(false)
+  const [desktopOutlineOpen, setDesktopOutlineOpen] = useState(false)
   const [lightbox, setLightbox] = useState<LightboxImage | null>(null)
   const mobileToggleRef = useRef<HTMLButtonElement>(null)
   const mobilePanelRef = useRef<HTMLDivElement>(null)
   const desktopOutlineRef = useRef<HTMLOListElement>(null)
+  const desktopToggleRef = useRef<HTMLButtonElement>(null)
   const lightboxReturnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
       level: Number(heading.tagName.slice(1)),
     })))
     setOutlineOpen(false)
+    setDesktopOutlineOpen(false)
     if (desktopOutlineRef.current) desktopOutlineRef.current.scrollTop = 0
 
     let frame = 0
@@ -51,6 +54,13 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
       }
       setActiveId(currentId)
       setShowBackToTop(window.scrollY > 480)
+      const bounds = article.getBoundingClientRect()
+      const isReading = bounds.top <= 128 && bounds.bottom > 128
+      setInArticle(isReading)
+      if (!isReading) {
+        setOutlineOpen(false)
+        setDesktopOutlineOpen(false)
+      }
     }
     const schedulePosition = () => {
       if (!frame) frame = window.requestAnimationFrame(updatePosition)
@@ -89,7 +99,7 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
     if (linkRect.top < listRect.top || linkRect.bottom > listRect.bottom) {
       list.scrollTop += linkRect.top - listRect.top - list.clientHeight / 2
     }
-  }, [activeId, outlineCollapsed, headings])
+  }, [activeId, desktopOutlineOpen, headings])
 
   useEffect(() => {
     if (!outlineOpen) return
@@ -158,21 +168,37 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
   return (
     <>
       {headings.length > 0 && (
-        <aside className="article-outline-desktop">
-          <nav aria-label={outlineLabel} className="flex max-h-[inherit] min-h-0 flex-col">
-            <button type="button" onClick={() => setOutlineCollapsed((collapsed) => !collapsed)} className="article-outline-heading" aria-expanded={!outlineCollapsed} aria-controls="desktop-article-outline">
-              <List className="h-4 w-4" aria-hidden="true" />
-              <span>{outlineLabel}</span>
-              <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform motion-reduce:transition-none ${outlineCollapsed ? '-rotate-90' : ''}`} aria-hidden="true" />
-            </button>
-            <ol id="desktop-article-outline" ref={desktopOutlineRef} hidden={outlineCollapsed} className="article-outline-scroll min-h-0 overflow-y-auto py-1">
+        <aside
+          className="article-outline-desktop"
+          data-visible={inArticle}
+          data-open={desktopOutlineOpen}
+          aria-hidden={!inArticle}
+          onMouseEnter={() => setDesktopOutlineOpen(true)}
+          onMouseLeave={(event) => {
+            if (!event.currentTarget.contains(document.activeElement)) setDesktopOutlineOpen(false)
+          }}
+          onFocusCapture={() => setDesktopOutlineOpen(true)}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setDesktopOutlineOpen(false)
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return
+            desktopToggleRef.current?.focus({ preventScroll: true })
+            setDesktopOutlineOpen(false)
+          }}
+        >
+          <button ref={desktopToggleRef} type="button" className="article-reader-button" aria-label={outlineLabel} aria-expanded={desktopOutlineOpen} aria-controls="desktop-article-outline" onClick={() => setDesktopOutlineOpen(true)}>
+            <List className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <nav aria-label={outlineLabel} className="article-outline-panel">
+            <ol id="desktop-article-outline" ref={desktopOutlineRef} className="article-outline-scroll min-h-0 overflow-y-auto">
               {renderLinks()}
             </ol>
           </nav>
         </aside>
       )}
       {headings.length > 0 && (
-        <div className="article-outline-mobile">
+        <div className="article-outline-mobile" data-visible={inArticle} aria-hidden={!inArticle}>
           <button ref={mobileToggleRef} type="button" onClick={() => setOutlineOpen((open) => !open)} className="article-reader-button fixed bottom-44 right-5 z-40" aria-label={outlineOpen ? (isZh ? '关闭文章目录' : 'Close outline') : outlineLabel} aria-expanded={outlineOpen} aria-controls="mobile-article-outline">
             {outlineOpen ? <X className="h-4 w-4" /> : <List className="h-4 w-4" />}
           </button>

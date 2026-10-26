@@ -141,22 +141,6 @@
   margin-inline: auto;
 }
 
-.article-reading-progress {
-  position: fixed;
-  inset: 4rem 0 auto;
-  z-index: 45;
-  height: 2px;
-  pointer-events: none;
-}
-
-.article-reading-progress span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-origin: left;
-  background: hsl(var(--theme-primary) / 0.65);
-}
-
 .article-outline-desktop {
   display: none;
 }
@@ -166,6 +150,7 @@
   align-items: center;
   gap: 0.65rem;
   width: 100%;
+  flex-shrink: 0;
   margin-bottom: 0.85rem;
   padding: 0.5rem 0.75rem;
   color: hsl(var(--theme-text-secondary));
@@ -221,15 +206,32 @@
   border-color: hsl(var(--theme-primary) / 0.4);
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1280px) and (min-height: 560px) {
+  .article-reading-layout {
+    display: grid;
+    grid-template-columns: minmax(1.5rem, 1fr) minmax(0, 47.5rem) minmax(1.5rem, 1fr);
+    align-items: start;
+  }
+
+  .article-reading-layout > .article-reading-column {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    margin-inline: 0;
+  }
+
   .article-outline-desktop {
-    position: fixed;
-    top: 8.5rem;
-    left: max(1.5rem, calc((100vw - 1560px) / 2));
+    position: sticky;
+    top: 6rem;
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+    margin-inline-start: 2.5rem;
     z-index: 30;
     display: flex;
-    width: clamp(11.5rem, calc((100vw - 840px) / 2 - 3rem), 14.5rem);
-    max-height: calc(100dvh - 11rem);
+    width: min(14rem, calc(100% - 4rem));
+    /* Leave room below the outline for the fixed back-to-top control. */
+    max-height: calc(100dvh - 16rem);
   }
 
   .article-outline-mobile {

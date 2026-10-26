@@ -20,7 +20,6 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
   const isZh = useLocale() === 'zh'
   const [headings, setHeadings] = useState<HeadingItem[]>([])
   const [activeId, setActiveId] = useState('')
-  const [progress, setProgress] = useState(0)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [outlineOpen, setOutlineOpen] = useState(false)
   const [outlineCollapsed, setOutlineCollapsed] = useState(false)
@@ -40,6 +39,7 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
       level: Number(heading.tagName.slice(1)),
     })))
     setOutlineOpen(false)
+    if (desktopOutlineRef.current) desktopOutlineRef.current.scrollTop = 0
 
     let frame = 0
     const updatePosition = () => {
@@ -49,9 +49,6 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
         if (heading.getBoundingClientRect().top > 128) break
         currentId = heading.id
       }
-      const rect = article.getBoundingClientRect()
-      const readingDistance = rect.height - window.innerHeight + 128
-      setProgress(Math.max(0, Math.min(100, readingDistance > 0 ? (128 - rect.top) / readingDistance * 100 : rect.top <= 128 ? 100 : 0)))
       setActiveId(currentId)
       setShowBackToTop(window.scrollY > 480)
     }
@@ -92,7 +89,7 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
     if (linkRect.top < listRect.top || linkRect.bottom > listRect.bottom) {
       list.scrollTop += linkRect.top - listRect.top - list.clientHeight / 2
     }
-  }, [activeId, outlineCollapsed])
+  }, [activeId, outlineCollapsed, headings])
 
   useEffect(() => {
     if (!outlineOpen) return
@@ -160,7 +157,6 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
 
   return (
     <>
-      <div className="article-reading-progress" aria-hidden="true"><span style={{ transform: `scaleX(${progress / 100})` }} /></div>
       {headings.length > 0 && (
         <aside className="article-outline-desktop">
           <nav aria-label={outlineLabel} className="flex max-h-[inherit] min-h-0 flex-col">
@@ -172,7 +168,6 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
             <ol id="desktop-article-outline" ref={desktopOutlineRef} hidden={outlineCollapsed} className="article-outline-scroll min-h-0 overflow-y-auto py-1">
               {renderLinks()}
             </ol>
-            {!outlineCollapsed && <p className="mt-5 pl-3 text-[10px] tabular-nums tracking-[0.08em] text-theme-text-tertiary">{Math.round(progress)}% {isZh ? '已读' : 'READ'}</p>}
           </nav>
         </aside>
       )}
@@ -183,9 +178,8 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
           </button>
           {outlineOpen && (
             <div ref={mobilePanelRef} id="mobile-article-outline" className="fixed bottom-60 right-5 z-40 flex max-h-[min(55dvh,32rem)] w-[min(21rem,calc(100vw-2.5rem))] flex-col rounded-xl border border-theme-border bg-theme-surface p-5 shadow-xl">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3">
                 <span className="text-xs font-medium text-theme-text-secondary">{outlineLabel}</span>
-                <span className="text-[10px] tabular-nums text-theme-text-tertiary">{Math.round(progress)}%</span>
               </div>
               <nav aria-label={outlineLabel} className="article-outline-scroll min-h-0 overflow-y-auto"><ol>{renderLinks()}</ol></nav>
             </div>

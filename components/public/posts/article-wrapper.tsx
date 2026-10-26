@@ -66,20 +66,23 @@ export function ArticleWrapper({
           tagObjs={tagObjs}
           series={series}
         />
-
-        {/* Content */}
-        <div id="article-body" className="min-w-0" data-article-content>
-          <ArticleContent content={content} />
-        </div>
-
-        {/* Footer */}
-        <ArticleFooter
-          previousPost={previousPost}
-          nextPost={nextPost}
-          relatedPosts={relatedPosts}
-        />
       </div>
-      <ArticleReaderTools contentKey={`${title}-${content.length}`} />
+      <div className="article-reading-layout">
+        <div className="article-reading-column">
+          {/* Content */}
+          <div id="article-body" className="min-w-0" data-article-content>
+            <ArticleContent content={content} />
+          </div>
+
+          {/* Footer */}
+          <ArticleFooter
+            previousPost={previousPost}
+            nextPost={nextPost}
+            relatedPosts={relatedPosts}
+          />
+        </div>
+        <ArticleReaderTools contentKey={`${title}-${content.length}`} />
+      </div>
     </article>
   )
 }

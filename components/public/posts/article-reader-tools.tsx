@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocale } from 'next-intl'
-import { ArrowUp, List, X } from 'lucide-react'
+import { ArrowUp, X } from 'lucide-react'
 
 interface HeadingItem {
   id: string
@@ -28,7 +28,7 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
   const mobileToggleRef = useRef<HTMLButtonElement>(null)
   const mobilePanelRef = useRef<HTMLDivElement>(null)
   const desktopOutlineRef = useRef<HTMLOListElement>(null)
-  const desktopToggleRef = useRef<HTMLButtonElement>(null)
+  const desktopOutlineRegionRef = useRef<HTMLElement>(null)
   const lightboxReturnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -169,7 +169,10 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
     <>
       {headings.length > 0 && (
         <aside
+          ref={desktopOutlineRegionRef}
           className="article-outline-desktop"
+          aria-label={outlineLabel}
+          tabIndex={inArticle ? 0 : -1}
           data-visible={inArticle}
           data-open={desktopOutlineOpen}
           aria-hidden={!inArticle}
@@ -183,13 +186,10 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
           }}
           onKeyDown={(event) => {
             if (event.key !== 'Escape') return
-            desktopToggleRef.current?.focus({ preventScroll: true })
+            desktopOutlineRegionRef.current?.focus({ preventScroll: true })
             setDesktopOutlineOpen(false)
           }}
         >
-          <button ref={desktopToggleRef} type="button" className="article-reader-button" aria-label={outlineLabel} aria-expanded={desktopOutlineOpen} aria-controls="desktop-article-outline" onClick={() => setDesktopOutlineOpen(true)}>
-            <List className="h-4 w-4" aria-hidden="true" />
-          </button>
           <nav aria-label={outlineLabel} className="article-outline-panel">
             <ol id="desktop-article-outline" ref={desktopOutlineRef} className="article-outline-scroll min-h-0 overflow-y-auto">
               {renderLinks()}
@@ -199,14 +199,11 @@ export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
       )}
       {headings.length > 0 && (
         <div className="article-outline-mobile" data-visible={inArticle} aria-hidden={!inArticle}>
-          <button ref={mobileToggleRef} type="button" onClick={() => setOutlineOpen((open) => !open)} className="article-reader-button fixed bottom-44 right-5 z-40" aria-label={outlineOpen ? (isZh ? '关闭文章目录' : 'Close outline') : outlineLabel} aria-expanded={outlineOpen} aria-controls="mobile-article-outline">
-            {outlineOpen ? <X className="h-4 w-4" /> : <List className="h-4 w-4" />}
+          <button ref={mobileToggleRef} type="button" onClick={() => setOutlineOpen((open) => !open)} className="article-outline-mobile-trigger fixed bottom-44 right-5 z-40" aria-label={outlineOpen ? (isZh ? '关闭文章目录' : 'Close outline') : outlineLabel} aria-expanded={outlineOpen} aria-controls="mobile-article-outline">
+            {outlineOpen ? (isZh ? '收起目录' : 'Close outline') : (isZh ? '目录' : 'Contents')}
           </button>
           {outlineOpen && (
-            <div ref={mobilePanelRef} id="mobile-article-outline" className="fixed bottom-60 right-5 z-40 flex max-h-[min(55dvh,32rem)] w-[min(21rem,calc(100vw-2.5rem))] flex-col rounded-xl border border-theme-border bg-theme-surface p-5 shadow-xl">
-              <div className="mb-3">
-                <span className="text-xs font-medium text-theme-text-secondary">{outlineLabel}</span>
-              </div>
+            <div ref={mobilePanelRef} id="mobile-article-outline" className="article-outline-mobile-panel fixed bottom-60 right-5 z-40 flex max-h-[min(55dvh,32rem)] w-[min(21rem,calc(100vw-2.5rem))] flex-col">
               <nav aria-label={outlineLabel} className="article-outline-scroll min-h-0 overflow-y-auto"><ol>{renderLinks()}</ol></nav>
             </div>
           )}

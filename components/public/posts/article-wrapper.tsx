@@ -39,11 +39,11 @@ export function ArticleWrapper({
   relatedPosts,
 }: ArticleWrapperProps) {
   return (
-    <article className="min-h-screen pt-24 pb-16">
-      <div className="mx-auto max-w-4xl px-6">
+    <article className="article-reading-page min-h-screen pb-20 pt-28 sm:pt-36" data-article-reader>
+      <div className="article-reading-column">
         {/* 封面图片 */}
         {coverImageUrl && (
-          <div className="mb-8 overflow-hidden rounded-2xl shadow-lg" style={{ maxHeight: '60vh' }}>
+          <div className="mb-12 overflow-hidden rounded-xl" style={{ maxHeight: '55vh' }}>
             <ArticleCover
               src={coverImageUrl}
               alt={title}
@@ -66,22 +66,23 @@ export function ArticleWrapper({
           tagObjs={tagObjs}
           series={series}
         />
-
-        {/* Content */}
-        <div className="max-w-none">
-          <div className="rounded-[2rem] border border-theme-card bg-theme-card-bg p-5 shadow-card sm:p-8 md:p-12">
+      </div>
+      <div className="article-reading-layout">
+        <div className="article-reading-column">
+          {/* Content */}
+          <div id="article-body" className="min-w-0" data-article-content>
             <ArticleContent content={content} />
           </div>
-        </div>
 
-        {/* Footer */}
-        <ArticleFooter
-          previousPost={previousPost}
-          nextPost={nextPost}
-          relatedPosts={relatedPosts}
-        />
+          {/* Footer */}
+          <ArticleFooter
+            previousPost={previousPost}
+            nextPost={nextPost}
+            relatedPosts={relatedPosts}
+          />
+        </div>
+        <ArticleReaderTools contentKey={`${title}-${content.length}`} />
       </div>
-      <ArticleReaderTools />
     </article>
   )
 }

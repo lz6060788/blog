@@ -1,6 +1,6 @@
 // @ts-ignore
 import { relations } from "drizzle-orm";
-import { pgTable, text, primaryKey, integer, uniqueIndex, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, primaryKey, integer, uniqueIndex, boolean, timestamp, index } from "drizzle-orm/pg-core";
 
 // ============================================================================
 // NextAuth.js 表定义 (SQLite)
@@ -276,6 +276,9 @@ export const settings = pgTable("settings", {
   blogName: text("blog_name").notNull().default('My Blog'),
   blogDescription: text("blog_description").notNull().default('A personal blog'),
   postsPerPage: integer("posts_per_page").notNull().default(10),
+  icpRegistration: text("icp_registration").notNull().default(""),
+  publicSecurityRegistration: text("public_security_registration").notNull().default(""),
+  publicSecurityRegistrationUrl: text("public_security_registration_url").notNull().default(""),
   // 作者信息字段
   authorName: text("author_name").notNull().default('Alex Chen'),
   authorAvatar: text("author_avatar").notNull().default('https://api.dicebear.com/7.x/notionists/svg?seed=Alex&backgroundColor=c0aede'),
@@ -429,6 +432,37 @@ export const accountRelations = relations(accounts, ({ one }) => ({
   }),
 }));
 
+// Public analytics contains anonymous session identifiers and approved route paths only.
+export const analyticsEvents = pgTable("analytics_events", {
+  id: text("id").primaryKey(),
+  visitId: text("visit_id").notNull(),
+  sessionId: text("session_id").notNull(),
+  type: text("type").notNull(),
+  path: text("path").notNull(),
+  referrer: text("referrer").notNull(),
+  device: text("device").notNull(),
+  durationMs: integer("duration_ms").notNull().default(0),
+  depth: integer("depth").notNull().default(0),
+  target: text("target"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  createdAtIndex: index("analytics_events_created_at_idx").on(table.createdAt),
+  sessionTimeIndex: index("analytics_events_session_time_idx").on(table.sessionId, table.createdAt),
+  pathTimeIndex: index("analytics_events_path_time_idx").on(table.path, table.createdAt),
+}));
+
+// Narrow pageview log; visitorHash is namespaced at the ingestion boundary.
+export const analyticsPageviews = pgTable("analytics_pageviews", {
+  id: text("id").primaryKey(),
+  path: text("path").notNull(),
+  visitorHash: text("visitor_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  createdAtIndex: index("analytics_pageviews_created_at_idx").on(table.createdAt),
+  visitorTimeIndex: index("analytics_pageviews_visitor_time_idx").on(table.visitorHash, table.createdAt),
+  pathTimeIndex: index("analytics_pageviews_path_time_idx").on(table.path, table.createdAt),
+}));
+
 export const schema = {
   users,
   sessions,
@@ -448,4 +482,6 @@ export const schema = {
   songs,
   playlists,
   playlistSongs,
+  analyticsEvents,
+  analyticsPageviews,
 };

@@ -5,6 +5,12 @@ export const zh: Messages = {
     siteName: '个人博客',
     siteDescription: '一个极简的个人博客，采用非对称设计',
   },
+  footer: {
+    label: '网站页脚',
+    note: '记录、探索，持续生长。',
+    registration: '网站备案信息',
+    opensInNewTab: '（在新标签页打开）',
+  },
   nav: {
     home: '首页',
     series: '专题',

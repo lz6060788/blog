@@ -5,6 +5,7 @@ import { db } from '@/server/db'
 import { settings } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 import { auth } from '@/server/auth'
+import { normalizePublicSecurityRegistrationUrl } from '@/lib/registration'
 
 // 获取当前用户
 async function getCurrentUser() {
@@ -32,6 +33,9 @@ export async function getSettings() {
       blogName: 'My Blog',
       blogDescription: 'A personal blog',
       postsPerPage: 10,
+      icpRegistration: '',
+      publicSecurityRegistration: '',
+      publicSecurityRegistrationUrl: '',
       authorName: 'Admin',
       authorAvatar: '',
       authorBio: '',
@@ -55,6 +59,9 @@ export async function updateSettings(data: {
   blogName?: string
   blogDescription?: string
   postsPerPage?: number
+  icpRegistration?: string
+  publicSecurityRegistration?: string
+  publicSecurityRegistrationUrl?: string
   authorName?: string
   authorAvatar?: string
   authorBio?: string
@@ -65,12 +72,15 @@ export async function updateSettings(data: {
   authorSocialTwitter?: string
   authorSocialLinkedin?: string
 }) {
-  const user = await getCurrentUser()
+  await getCurrentUser()
 
   const {
     blogName,
     blogDescription,
     postsPerPage,
+    icpRegistration,
+    publicSecurityRegistration,
+    publicSecurityRegistrationUrl,
     authorName,
     authorAvatar,
     authorBio,
@@ -103,6 +113,26 @@ export async function updateSettings(data: {
       throw new Error('每页文章数必须在 1-100 之间')
     }
     updateData.postsPerPage = postsPerPage
+  }
+
+  for (const [key, value] of Object.entries({ icpRegistration, publicSecurityRegistration })) {
+    if (value !== undefined) {
+      if (typeof value !== 'string' || value.trim().length > 80) {
+        throw new Error('备案号应为不超过 80 个字符的文本')
+      }
+      updateData[key] = value.trim()
+    }
+  }
+
+  if (publicSecurityRegistrationUrl !== undefined) {
+    if (typeof publicSecurityRegistrationUrl !== 'string' || publicSecurityRegistrationUrl.length > 2048) {
+      throw new Error('公安备案链接格式不正确')
+    }
+    const url = normalizePublicSecurityRegistrationUrl(publicSecurityRegistrationUrl)
+    if (url === null) {
+      throw new Error('公安备案链接须使用 beian.mps.gov.cn 或 beian.gov.cn 的 HTTPS 官方地址')
+    }
+    updateData.publicSecurityRegistrationUrl = url
   }
 
   if (authorName !== undefined) {
@@ -155,6 +185,9 @@ export async function updateSettings(data: {
       blogName: (updateData.blogName as string) || 'My Blog',
       blogDescription: (updateData.blogDescription as string) || 'A personal blog',
       postsPerPage: (updateData.postsPerPage as number) || 10,
+      icpRegistration: (updateData.icpRegistration as string) || '',
+      publicSecurityRegistration: (updateData.publicSecurityRegistration as string) || '',
+      publicSecurityRegistrationUrl: (updateData.publicSecurityRegistrationUrl as string) || '',
       authorName: (updateData.authorName as string) || 'Admin',
       authorAvatar: (updateData.authorAvatar as string) || '',
       authorBio: (updateData.authorBio as string) || '',
@@ -177,6 +210,7 @@ export async function updateSettings(data: {
   // 重新验证缓存
   revalidatePath('/admin/settings')
   revalidatePath('/') // 重新验证首页，使作者信息更新生效
+  revalidatePath('/[locale]', 'layout')
 
   return { success: true }
 }

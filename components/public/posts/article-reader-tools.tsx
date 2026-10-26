@@ -1,227 +1,229 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowUp, ChevronDown, ChevronRight, ListTree, X } from 'lucide-react'
-
-interface HeadingItem {
-  id: string
-  text: string
-  level: number
-}
-
-interface HeadingNode extends HeadingItem {
-  children: HeadingNode[]
-}
+import { useLocale } from 'next-intl'
+import { ArrowUp, X } from 'lucide-react'
+import { measureArticleOutline, type ArticleOutlineHeading } from '@/lib/article-outline'
 
 interface LightboxImage {
   src: string
   alt: string
 }
 
-function buildHeadingTree(headings: HeadingItem[]): HeadingNode[] {
-  const roots: HeadingNode[] = []
-  const stack: HeadingNode[] = []
-
-  headings.forEach((heading) => {
-    const node: HeadingNode = { ...heading, children: [] }
-    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
-      stack.pop()
-    }
-    const parent = stack[stack.length - 1]
-    if (parent) parent.children.push(node)
-    else roots.push(node)
-    stack.push(node)
-  })
-
-  return roots
-}
-
-export function ArticleReaderTools() {
-  const [headings, setHeadings] = useState<HeadingItem[]>([])
+export function ArticleReaderTools({ contentKey }: { contentKey: string }) {
+  const isZh = useLocale() === 'zh'
+  const [headings, setHeadings] = useState<ArticleOutlineHeading[]>([])
   const [activeId, setActiveId] = useState('')
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [outlineOpen, setOutlineOpen] = useState(false)
-  const [outlineCollapsed, setOutlineCollapsed] = useState(false)
+  const [inArticle, setInArticle] = useState(false)
+  const [desktopOutlineOpen, setDesktopOutlineOpen] = useState(false)
   const [lightbox, setLightbox] = useState<LightboxImage | null>(null)
-  const [collapsedHeadingIds, setCollapsedHeadingIds] = useState<Set<string>>(new Set())
+  const mobileToggleRef = useRef<HTMLButtonElement>(null)
+  const mobilePanelRef = useRef<HTMLDivElement>(null)
+  const mobileOutlineRef = useRef<HTMLElement>(null)
+  const desktopOutlineRef = useRef<HTMLOListElement>(null)
+  const desktopOutlineRegionRef = useRef<HTMLElement>(null)
+  const lightboxReturnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    const article = document.querySelector<HTMLElement>('.markdown-article')
-    if (!article) return
+    const reader = document.querySelector<HTMLElement>('[data-article-reader]')
+    if (!reader) return
+    setOutlineOpen(false)
+    setDesktopOutlineOpen(false)
+    if (desktopOutlineRef.current) desktopOutlineRef.current.scrollTop = 0
 
-    const headingElements = Array.from(
-      article.querySelectorAll<HTMLElement>('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')
-    )
-    setHeadings(headingElements.map((heading) => ({
-      id: heading.id,
-      text: heading.textContent?.trim() || heading.id,
-      level: Number(heading.tagName.slice(1)),
-    })))
-
-    const updateActiveHeading = () => {
-      const readingLine = window.scrollY + 144
-      let currentId = headingElements[0]?.id || ''
-
-      for (const heading of headingElements) {
-        const headingTop = heading.getBoundingClientRect().top + window.scrollY
-        if (headingTop > readingLine) break
-        currentId = heading.id
+    let frame = 0
+    let observedArticle: HTMLElement | null = null
+    const updatePosition = () => {
+      frame = 0
+      const article = reader.querySelector<HTMLElement>('.markdown-article')
+      if (article !== observedArticle) {
+        if (observedArticle) resizeObserver.unobserve(observedArticle)
+        observedArticle = article
+        if (article) resizeObserver.observe(article)
       }
-
-      setActiveId(currentId)
+      const measured = article ? measureArticleOutline(article) : { headings: [], activeId: '' }
+      setHeadings((previous) => previous.length === measured.headings.length && previous.every((heading, index) => {
+        const next = measured.headings[index]
+        return heading.id === next.id && heading.text === next.text && heading.level === next.level
+      }) ? previous : measured.headings)
+      setActiveId(measured.activeId)
       setShowBackToTop(window.scrollY > 480)
+      const bounds = article?.getBoundingClientRect()
+      const isReading = !!bounds && bounds.top <= 128 && bounds.bottom > 128
+      setInArticle(isReading)
+      if (!isReading) {
+        setOutlineOpen(false)
+        setDesktopOutlineOpen(false)
+      }
     }
-    const openImage = (image: HTMLImageElement) => {
-      setLightbox({ src: image.currentSrc || image.src, alt: image.alt || '文章图片' })
+    const schedulePosition = () => {
+      if (!frame) frame = window.requestAnimationFrame(updatePosition)
     }
-    const handleArticleClick = (event: MouseEvent) => {
-      const image = (event.target as Element).closest<HTMLImageElement>('img[data-zoomable="true"]')
+    const openImage = (event: Event) => {
+      if (event instanceof KeyboardEvent && event.key !== 'Enter' && event.key !== ' ') return
+      const image = event.target instanceof Element ? event.target.closest<HTMLImageElement>('img[data-zoomable="true"]') : null
       if (!image) return
       event.preventDefault()
-      openImage(image)
+      lightboxReturnFocusRef.current = image
+      setLightbox({ src: image.currentSrc || image.src, alt: image.alt || (isZh ? '文章图片' : 'Article image') })
     }
-    const handleArticleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return
-      const image = (event.target as Element).closest<HTMLImageElement>('img[data-zoomable="true"]')
-      if (!image) return
-      event.preventDefault()
-      openImage(image)
-    }
-
-    updateActiveHeading()
-    window.addEventListener('scroll', updateActiveHeading, { passive: true })
-    article.addEventListener('click', handleArticleClick)
-    article.addEventListener('keydown', handleArticleKeyDown)
+    const resizeObserver = new ResizeObserver(schedulePosition)
+    // RSC refreshes can replace the Markdown DOM while this client component
+    // stays mounted. Reconcile immediately, even if the reader doesn't scroll.
+    const mutationObserver = new MutationObserver(schedulePosition)
+    mutationObserver.observe(reader, { childList: true, subtree: true })
+    updatePosition()
+    window.addEventListener('scroll', schedulePosition, { passive: true })
+    window.addEventListener('resize', schedulePosition)
+    reader.addEventListener('click', openImage)
+    reader.addEventListener('keydown', openImage)
     return () => {
-      window.removeEventListener('scroll', updateActiveHeading)
-      article.removeEventListener('click', handleArticleClick)
-      article.removeEventListener('keydown', handleArticleKeyDown)
+      if (frame) window.cancelAnimationFrame(frame)
+      resizeObserver.disconnect()
+      mutationObserver.disconnect()
+      window.removeEventListener('scroll', schedulePosition)
+      window.removeEventListener('resize', schedulePosition)
+      reader.removeEventListener('click', openImage)
+      reader.removeEventListener('keydown', openImage)
     }
-  }, [])
+  }, [contentKey, isZh])
+
+  useEffect(() => {
+    for (const list of [desktopOutlineRef.current, mobileOutlineRef.current]) {
+      const activeLink = list?.querySelector<HTMLElement>('[aria-current="location"]')
+      if (!list || !activeLink || list.clientHeight === 0) continue
+      const listRect = list.getBoundingClientRect()
+      const linkRect = activeLink.getBoundingClientRect()
+      if (linkRect.top < listRect.top || linkRect.bottom > listRect.bottom) {
+        list.scrollTop += linkRect.top - listRect.top - list.clientHeight / 2
+      }
+    }
+  }, [activeId, desktopOutlineOpen, outlineOpen, headings])
+
+  useEffect(() => {
+    if (!outlineOpen) return
+    const panel = mobilePanelRef.current
+    const activeLink = panel?.querySelector<HTMLAnchorElement>('a[aria-current="location"]') || panel?.querySelector<HTMLAnchorElement>('a')
+    activeLink?.focus({ preventScroll: true })
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOutlineOpen(false)
+        mobileToggleRef.current?.focus()
+      }
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !mobilePanelRef.current?.contains(event.target) && !mobileToggleRef.current?.contains(event.target)) setOutlineOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [outlineOpen])
 
   useEffect(() => {
     if (!lightbox) return
     const previousOverflow = document.body.style.overflow
-    const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && setLightbox(null)
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setLightbox(null)
+      // The close button is the only control in this modal.
+      if (event.key === 'Tab') event.preventDefault()
+    }
     document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', closeOnEscape)
+    window.addEventListener('keydown', onKeyDown)
     return () => {
       document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', closeOnEscape)
+      window.removeEventListener('keydown', onKeyDown)
+      lightboxReturnFocusRef.current?.focus({ preventScroll: true })
     }
   }, [lightbox])
 
-  const headingTree = useMemo(() => buildHeadingTree(headings), [headings])
-
-  const toggleHeading = (id: string) => {
-    setCollapsedHeadingIds((current) => {
-      const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+  const minimumLevel = useMemo(() => Math.min(...headings.map((heading) => heading.level)), [headings])
+  const navigateToHeading = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    const target = document.getElementById(id)
+    if (!target) return
+    event.preventDefault()
+    setOutlineOpen(false)
+    window.history.replaceState(window.history.state, '', `#${encodeURIComponent(id)}`)
+    target.focus({ preventScroll: true })
+    target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
   }
-
-  const renderHeadingNodes = (nodes: HeadingNode[]) => nodes.map((heading) => {
-    const hasChildren = heading.children.length > 0
-    const isCollapsed = collapsedHeadingIds.has(heading.id)
-    const isActive = activeId === heading.id
-
-    return (
-      <li key={heading.id}>
-        <div className="flex items-start gap-0.5">
-          {hasChildren ? (
-            <button
-              type="button"
-              onClick={() => toggleHeading(heading.id)}
-              className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded text-theme-text-tertiary transition-colors hover:bg-theme-muted hover:text-theme-text-canvas"
-              aria-label={isCollapsed ? `展开 ${heading.text}` : `收起 ${heading.text}`}
-              aria-expanded={!isCollapsed}
-            >
-              {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            </button>
-          ) : (
-            <span className="h-5 w-5 shrink-0" />
-          )}
-          <a
-            href={`#${heading.id}`}
-            title={heading.text}
-            onClick={() => setOutlineOpen(false)}
-            className={`min-w-0 flex-1 truncate rounded-md px-1.5 py-1 text-xs leading-4 transition-colors ${
-              isActive
-                ? 'bg-theme-accent-bg text-theme-accent-primary'
-                : 'text-theme-text-secondary hover:bg-theme-muted hover:text-theme-text-canvas'
-            }`}
-          >
-            {heading.text}
-          </a>
-        </div>
-        {hasChildren && !isCollapsed && (
-          <ol className="ml-2.5 border-l border-theme-border pl-1.5">
-            {renderHeadingNodes(heading.children)}
-          </ol>
-        )}
-      </li>
-    )
-  })
-
-  const outline = (
-    <nav aria-label="文章目录" className="flex max-h-[inherit] min-h-0 flex-col">
-      <button
-        type="button"
-        onClick={() => setOutlineCollapsed((collapsed) => !collapsed)}
-        className={`flex w-full shrink-0 items-center gap-2 rounded-lg px-1.5 py-1.5 text-left text-xs font-semibold text-theme-text-canvas transition-colors hover:bg-theme-muted ${outlineCollapsed ? '' : 'mb-2'}`}
-        aria-label={outlineCollapsed ? '展开文章目录' : '收起文章目录'}
-        aria-expanded={!outlineCollapsed}
+  const renderLinks = () => headings.map((heading) => (
+    <li key={heading.id}>
+      <a
+        href={`#${encodeURIComponent(heading.id)}`}
+        onClick={(event) => navigateToHeading(event, heading.id)}
+        aria-current={activeId === heading.id ? 'location' : undefined}
+        className="article-outline-link"
+        style={{ paddingInlineStart: `${Math.min(heading.level - minimumLevel, 3) * 0.8 + 0.75}rem` }}
       >
-        <ListTree className="h-3.5 w-3.5 shrink-0" />
-        <span className="min-w-0 flex-1">文章目录</span>
-        {outlineCollapsed ? (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-theme-text-tertiary" />
-        ) : (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-theme-text-tertiary" />
-        )}
-      </button>
-      {!outlineCollapsed && (
-        <ol className="article-outline-scroll min-h-0 flex-1 space-y-0.5 overflow-y-auto border-t border-theme-border pt-2 pr-1">
-          {renderHeadingNodes(headingTree)}
-        </ol>
-      )}
-    </nav>
-  )
+        {heading.text}
+      </a>
+    </li>
+  ))
+  const outlineLabel = isZh ? '文章目录' : 'On this page'
 
   return (
     <>
       {headings.length > 0 && (
-        <aside className="fixed right-12 top-24 z-30 hidden max-h-[calc(100vh-12rem)] w-56 overflow-hidden rounded-xl border border-theme-card bg-theme-card-bg/95 p-4 shadow-card backdrop-blur-md 2xl:block">
-          {outline}
+        <aside
+          ref={desktopOutlineRegionRef}
+          className="article-outline-desktop"
+          aria-label={outlineLabel}
+          tabIndex={inArticle ? 0 : -1}
+          data-visible={inArticle}
+          data-open={desktopOutlineOpen}
+          aria-hidden={!inArticle}
+          onMouseEnter={() => setDesktopOutlineOpen(true)}
+          onMouseLeave={(event) => {
+            if (!event.currentTarget.contains(document.activeElement)) setDesktopOutlineOpen(false)
+          }}
+          onFocusCapture={() => setDesktopOutlineOpen(true)}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setDesktopOutlineOpen(false)
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return
+            desktopOutlineRegionRef.current?.focus({ preventScroll: true })
+            setDesktopOutlineOpen(false)
+          }}
+        >
+          <nav aria-label={outlineLabel} className="article-outline-panel">
+            <ol id="desktop-article-outline" ref={desktopOutlineRef} className="article-outline-scroll min-h-0 overflow-y-auto">
+              {renderLinks()}
+            </ol>
+          </nav>
         </aside>
       )}
       {headings.length > 0 && (
-        <div className="2xl:hidden">
-          <button type="button" onClick={() => setOutlineOpen((open) => !open)} className="fixed bottom-28 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-theme-border bg-theme-surface/90 text-theme-text-canvas shadow-card backdrop-blur-md" aria-label={outlineOpen ? '关闭文章目录' : '打开文章目录'} aria-expanded={outlineOpen}>
-            {outlineOpen ? <X className="h-5 w-5" /> : <ListTree className="h-5 w-5" />}
+        <div className="article-outline-mobile" data-visible={inArticle} aria-hidden={!inArticle}>
+          <button ref={mobileToggleRef} type="button" onClick={() => setOutlineOpen((open) => !open)} className="article-outline-mobile-trigger fixed bottom-44 right-5 z-40" aria-label={outlineOpen ? (isZh ? '关闭文章目录' : 'Close outline') : outlineLabel} aria-expanded={outlineOpen} aria-controls="mobile-article-outline">
+            {outlineOpen ? (isZh ? '收起目录' : 'Close outline') : (isZh ? '目录' : 'Contents')}
           </button>
           {outlineOpen && (
-            <div className="fixed bottom-44 right-6 z-40 max-h-[60vh] w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-theme-border bg-theme-surface p-5 shadow-card">
-              {outline}
+            <div ref={mobilePanelRef} id="mobile-article-outline" className="article-outline-mobile-panel fixed bottom-60 right-5 z-40 flex max-h-[min(55dvh,32rem)] w-[min(21rem,calc(100vw-2.5rem))] flex-col">
+              <nav ref={mobileOutlineRef} aria-label={outlineLabel} className="article-outline-scroll min-h-0 overflow-y-auto"><ol>{renderLinks()}</ol></nav>
             </div>
           )}
         </div>
       )}
-      <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={`fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-theme-border bg-theme-surface/90 text-theme-text-canvas shadow-card backdrop-blur-md transition-all 2xl:right-12 ${showBackToTop ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`} aria-label="回到顶部">
-        <ArrowUp className="h-5 w-5" />
+      <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })} className={`article-reader-button fixed bottom-28 right-5 z-40 transition-opacity motion-reduce:transition-none ${showBackToTop ? 'opacity-100' : 'pointer-events-none opacity-0'}`} tabIndex={showBackToTop ? 0 : -1} aria-label={isZh ? '回到顶部' : 'Back to top'}>
+        <ArrowUp className="h-4 w-4" />
       </button>
       {lightbox && createPortal(
         <div className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm md:p-10" role="dialog" aria-modal="true" aria-label={lightbox.alt} onClick={() => setLightbox(null)}>
-          <button type="button" onClick={() => setLightbox(null)} className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/80" aria-label="关闭图片预览" autoFocus>
+          <button type="button" onClick={() => setLightbox(null)} className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/80" aria-label={isZh ? '关闭图片预览' : 'Close image'} autoFocus>
             <X className="h-6 w-6" />
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={lightbox.src} alt={lightbox.alt} className="max-h-full max-w-full rounded-lg object-contain shadow-2xl" onClick={(event) => event.stopPropagation()} />
         </div>,
-        document.body
+        document.body,
       )}
     </>
   )
